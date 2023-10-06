@@ -1,0 +1,83 @@
+@startuml
+title Battery Business Flow
+
+actor BatteryBusiness as BB
+actor RetailInvestor as RI
+
+participant BBWallet as BBW
+participant InvestorWallet as IW
+
+participant BBPortal as BBP
+participant InvestorPortal as IP
+
+participant API as API
+
+participant Database as DB
+participant IPFS as IPFS
+participant PeaqSDK as PS
+
+participant ServiceContract as SC
+participant TokenContract as TC
+participant LiquidityContract as LC
+participant RevenueContract as RC
+participant RevenueReceiverContract as RRC
+
+participant BatterySimulator as BS
+
+' Battery Business Registration and Tokenization
+group BB Registration and Tokenization
+    BB -> BBP: Register on bb-portal
+    BBP -[#red]> API: POST /registerBB
+    API -> DB: CreateBBProfile()
+    DB -[#red]> API: Return BBWallet
+    API -> BBP: Return BBWallet
+    BB -> BBP: RegisterBattery(data)
+    BBP -> IPFS: SaveBatteryData(data)
+    IPFS -> BBP: Return CID
+    BBP -> PS: CreateDID(CID)
+    PS -> BBP: Return DID
+    BBP -[#red]> API: POST /tokenizeBattery
+    API -> SC: TokenizeBattery(CID, DID, data)
+    SC -> TC: DeployTokenContract(CID, DID, data)
+    SC -> LC: DeployLiquidityContract()
+    SC -> RC: DeployRevenueContract()
+end
+
+' Retail Investor Registration and Token Purchase
+group Retail Investor Interaction
+    RI -> IP: Register on investor portal
+    IP -[#red]> API: POST /registerInvestor
+    API -> DB: CreateInvestorProfile()
+    DB -[#red]> API: Return InvestorWallet
+    API -> IP: Return InvestorWallet
+    RI -> IP: BuyTokens(amount)
+    IP -[#red]> API: POST /buyTokens
+    API -> IW: SignTransaction(amount)
+    IW -> SC: Approve(amount)
+    SC -> TC: TransferTokens(RI, amount)
+    SC -> LC: TransferFunds(amount)
+end
+
+' Revenue Simulation and Distribution
+group Revenue Simulation and Distribution
+    BS -> RRC: Send kWh data
+    RRC -[#red]> API: POST /calculateFunds
+    API -> SC: CalculateFunds(kWh)
+    SC -> RC: DistributeRevenue()
+    RC -> TC: DistributeTokensProportional()
+end
+
+' Revenue Share Distribution
+group Revenue Share Distribution
+    SC -[#red]> API: POST /distributeRevenueShares
+    API -> RC: DistributeRevenueShares()
+    RC -> TC: RetrieveTokenHoldersShares()
+    TC -> RC: Return(holders, fractions)
+    loop for each holder in holders[]
+        RC -> RC: CalculateRevenueShare(fractions[i])
+        RC -[#green]> IW: TransferRevenueShare(holders[i])
+    end
+    RC -> RC: UpdateLastDistributionBlocktime()
+end
+
+@enduml
