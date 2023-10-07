@@ -24,43 +24,71 @@ participant RevenueReceiverContract as RRC
 
 participant BatterySimulator as BS
 
-' Battery Business Registration and Login
-group BB Registration and Login
+' Battery Business Registration
+group BB Registration
     BB -> BBP: Register on bb-portal
-    BBP -[#red]> API: POST /register
-    API -> DB: CreateProfile("company", data)
+    BBP -[#red]> API: POST /company/register
+    API -> API: keys = web3.eth.accounts.create()
+    API -> API: encryptedPrivateKey = Encrypt(keys.privateKey)
+    API -> DB: StoreProfile("company", data, keys.publicKey, encryptedPrivateKey)
+    DB -> API: Return success/failure
+    API -> BBP: Return registration status
+end
+
+group BB Login
     BB -> BBP: Login on bb-portal
-    BBP -[#red]> API: POST /login
+    BBP -[#red]> API: POST /company/login
+    API -> DB: CheckCredentials(data)
+    DB -> API: Return user data if valid
+    API -> API: GenerateJWT(user data)
+    API -> BBP: Set JWT as HttpOnly Cookie
 end
 
 ' Battery Tokenization
 group Battery Tokenization
-    BB -> BBP: RegisterBattery(bid, data)
-    BBP -> PS: CreateDID(bid)
+    BBP -[#red]> API: POST asset/register
+    API -> PS: CreateDID(bid)
     PS -> BBP: Return DID
-    BBP -> IPFS: SaveBatteryData(DID, data)
+    BBP -[#red]> API: POST asset/storeData
+    API -> IPFS: store(DID, data)
     IPFS -> BBP: Return CID
-    BBP -[#red]> API: POST /tokenizeBattery
-    API -> SC: TokenizeBattery(CID, DID, data)
-    SC -> TC: DeployTokenContract(CID, DID, data)
+    BBP -[#red]> API: POST asset/tokenize
+    API -> SC: TokenizeBattery(CID, DID, protocolSpecs)
+    SC -> TC: DeployTokenContract(CID, DID, protocolSpecs)
     SC -> LC: DeployLiquidityContract()
     SC -> RC: DeployRevenueContract()
 end
 
-' Retail Investor Registration and Token Purchase
-group Retail Investor Interaction
+' Retail Investor Registration and Login
+group RI Registration
     RI -> IP: Register on investor portal
-    IP -[#red]> API: POST /register
-    API -> DB: CreateProfile("investor", data)
+    IP -[#red]> API: POST /investor/register
+    API -> API: keys = web3.eth.accounts.create()
+    API -> API: encryptedPrivateKey = Encrypt(keys.privateKey)
+    API -> DB: StoreProfile("investor", data, keys.publicKey, encryptedPrivateKey)
+    DB -> API: Return success/failure
+    API -> IP: Return registration status
+end
+
+group RI Login
     RI -> IP: Login in investor portal
-    IP -[#red]> API: POST /login
+    IP -[#red]> API: POST /investor/login
+    API -> DB: CheckCredentials(data)
+    DB -> API: Return user data if valid
+    API -> API: GenerateJWT(user data)
+    API -> IP: Set JWT as HttpOnly Cookie
+end
+
+' Retail Investor Token Purchase
+group Retail Investor Interaction
     RI -> IP: BuyTokens(amount)
-    IP -[#red]> API: POST /buyTokens
+    IP -[#red]> API: POST /investor/buyTokens
     API -> IW: SignTransaction(amount)
     IW -> SC: Approve(amount)
     SC -> TC: TransferTokens(RI, amount)
-    SC -> LC: TransferFunds(amount)
+    SC -> LC: TransferFunds(amount * (100%-penomoFee))
 end
+
 
 ' Revenue Simulation and Distribution
 group Revenue Simulation and Distribution
@@ -68,7 +96,7 @@ group Revenue Simulation and Distribution
     BS -> RRC: Every second: Send kWh reading
     RRC -> RRC: stopRental() -> Calculate totalAmount
     RRC -> SC: transfer(totalAmount)
-    SC -> RC: transfer(totalAmount-penomoFee)
+    SC -> RC: transfer(totalAmount * (100%-penomoFee))
     RC -> RC:  DistributeRevenueShares()
     RC -> TC: RetrieveTokenHoldersShares()
     TC -> RC: Return(holders, fractions)
