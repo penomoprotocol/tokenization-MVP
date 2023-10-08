@@ -1,6 +1,6 @@
 pragma solidity ^0.8.0;
 
-import "./ERC1400.sol";
+import "./UniversalToken/contracts/ERC1400.sol";
 
 contract TokenContract is ERC1400 {
     uint256 public revenueShare; // in basis points (e.g., 500 for 5%)
@@ -11,7 +11,6 @@ contract TokenContract is ERC1400 {
     struct Battery {
         string DID;
         string CID;
-        uint256 netAssetValue;
         uint256 revenueGoal;
     }
     Battery[] public batteries;
@@ -28,7 +27,6 @@ contract TokenContract is ERC1400 {
         uint256 _tokenPrice,
         string[] memory DIDs,
         string[] memory CIDs,
-        uint256[] memory netAssetValues,
         uint256[] memory revenueGoals
     )
         ERC1400(_name, _symbol, _controllers, _defaultOperators)
@@ -42,7 +40,6 @@ contract TokenContract is ERC1400 {
             Battery memory newBattery = Battery({
                 DID: DIDs[i],
                 CID: CIDs[i],
-                netAssetValue: netAssetValues[i],
                 revenueGoal: revenueGoals[i]
             });
             batteries.push(newBattery);
@@ -52,13 +49,11 @@ contract TokenContract is ERC1400 {
     function addBattery(
         string memory DID,
         string memory CID,
-        uint256 netAssetValue,
         uint256 revenueGoal
     ) public onlyController {
         Battery memory newBattery = Battery({
             DID: DID,
             CID: CID,
-            netAssetValue: netAssetValue,
             revenueGoal: revenueGoal
         });
         batteries.push(newBattery);
