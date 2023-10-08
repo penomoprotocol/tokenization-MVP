@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.0;
 
-contract RevenueReceiverContract {
+contract RevenueStreamContract {
     address public owner; // Battery Business's address
     address public serviceContract; // Address of the ServiceContract
     uint256 public pricePerKWh; // Price per kWh in wei

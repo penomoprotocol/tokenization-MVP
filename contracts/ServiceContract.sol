@@ -2,25 +2,25 @@ pragma solidity ^0.8.0;
 
 import "./TokenContract.sol"; // Import the token contract
 import "./LiquidityContract.sol"; // Import the liquidity contract
-import "./RevenueContract.sol"; // Import the revenue contract
+import "./RevenueDistributionContract.sol"; // Import the revenue contract
 
 contract ServiceContract {
     address public owner; // Penomo platform's address
     address[] public registeredInvestors; // Whitelist of registered investors
     TokenContract public tokenContract; // Reference to the token contract
     LiquidityContract public liquidityContract; // Reference to the liquidity contract
-    RevenueContract public revenueContract; // Reference to the revenue contract
+    RevenueDistributionContract public revenueDistributionContract; // Reference to the revenue contract
     uint256 public penomoFee; // Penomo fee in basis points (e.g., 500 for 5%)
 
     // Event to log the purchase of tokens
     event TokensPurchased(address indexed investor, uint256 amount);
     event ReceivedFundsFromRevenueReceiver(address indexed from, uint256 amount);
 
-    constructor(address _tokenContractAddress, address _liquidityContractAddress, address _revenueContractAddress, uint256 _penomoFee) {
+    constructor(address _tokenContractAddress, address _liquidityContractAddress, address _revenueDistributionContractAddress, uint256 _penomoFee) {
         owner = msg.sender;
         tokenContract = TokenContract(_tokenContractAddress);
         liquidityContract = LiquidityContract(_liquidityContractAddress);
-        revenueContract = RevenueContract(_revenueContractAddress);
+        revenueDistributionContract = RevenueDistributionContract(_revenueDistributionContractAddress);
         penomoFee = _penomoFee;
     }
 
@@ -56,18 +56,18 @@ contract ServiceContract {
         emit TokensPurchased(msg.sender, amount);
     }
 
-    function receiveFundsFromRevenueReceiver() external payable {
-        // Ensure only the RevenueReceiverContract can send funds
+    function receiveFundsFromRevenueStream() external payable {
+        // Ensure only the RevenueStreamContract can send funds
         // (You might need to add a check or a modifier for this based on your setup)
 
-        // Calculate Penomo's fee and the amount to send to the RevenueContract
+        // Calculate Penomo's fee and the amount to send to the RevenueDistributionContract
         uint256 feeAmount = (msg.value * penomoFee) / 10000;
         uint256 revenueAmount = msg.value - feeAmount;
 
-        // Send the funds to the RevenueContract
-        payable(address(revenueContract)).transfer(revenueAmount);
+        // Send the funds to the RevenueDistributionContract
+        payable(address(revenueDistributionContract)).transfer(revenueAmount);
 
-        emit ReceivedFundsFromRevenueReceiver(msg.sender, msg.value);
+        emit ReceivedFundsFromRevenueStream(msg.sender, msg.value);
     }
 
     function isRegisteredInvestor(address investor) public view returns(bool) {

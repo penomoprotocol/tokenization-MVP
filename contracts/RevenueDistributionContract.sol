@@ -3,7 +3,7 @@ pragma solidity ^0.8.0;
 
 import "./TokenContract.sol"; // Import the previously defined token contract
 
-contract RevenueContract {
+contract RevenueDistributionContract {
     address public serviceContract; // Address of the ServiceContract
     TokenContract public tokenContract; // Instance of the token contract
 

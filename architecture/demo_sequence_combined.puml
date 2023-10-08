@@ -19,8 +19,8 @@ participant PeaqSDK as PS
 participant ServiceContract as SC
 participant TokenContract as TC
 participant LiquidityContract as LC
-participant RevenueContract as RC
-participant RevenueReceiverContract as RRC
+participant RevenueDistributionContract as RDC
+participant RevenueStreamContract as RSC
 
 participant BatterySimulator as BS
 
@@ -56,7 +56,8 @@ group Battery Tokenization
     API -> SC: TokenizeBattery(CID, DID, protocolSpecs)
     SC -> TC: DeployTokenContract(CID, DID, protocolSpecs)
     SC -> LC: DeployLiquidityContract()
-    SC -> RC: DeployRevenueContract()
+    SC -> RDC: DeployRevenueDistributionContract()
+    SC -> RDC: DeployRevenueStreamContract()
 end
 
 ' Retail Investor Registration and Login
@@ -92,17 +93,17 @@ end
 
 ' Revenue Simulation and Distribution
 group Revenue Simulation and Distribution
-    RRC -> RRC: startRental()
-    BS -> RRC: Every second: Send kWh reading
-    RRC -> RRC: stopRental() -> Calculate totalAmount
-    RRC -> SC: transfer(totalAmount)
-    SC -> RC: transfer(totalAmount * (100%-penomoFee))
-    RC -> RC:  DistributeRevenueShares()
-    RC -> TC: RetrieveTokenHoldersShares()
-    TC -> RC: Return(holders, fractions)
+    RSC -> RSC: startRental()
+    BS -> RSC: Every second: Send kWh reading
+    RSC -> RSC: stopRental() -> Calculate totalAmount
+    RSC -> SC: transfer(totalAmount)
+    SC -> RDC: transfer(totalAmount * (100%-penomoFee))
+    RDC -> RDC:  DistributeRevenueShares()
+    RDC -> TC: RetrieveTokenHoldersShares()
+    TC -> RDC: Return(holders, fractions)
     loop for each holder in holders[]
-        RC -> RC: CalculateRevenueShare(fractions[i])
-        RC -[#green]> IW: TransferRevenueShare(holders[i])
+        RDC -> RDC: CalculateRevenueShare(fractions[i])
+        RDC -[#green]> IW: TransferRevenueShare(holders[i])
     end
 end
 
