@@ -11,17 +11,25 @@ contract ServiceContract {
     LiquidityContract public liquidityContract; // Reference to the liquidity contract
     RevenueDistributionContract public revenueDistributionContract; // Reference to the revenue contract
     uint256 public penomoFee; // Penomo fee in basis points (e.g., 500 for 5%)
+    uint256 public revenueSharePercentage; // Revenue share percentage in basis points (e.g., 5000 for 50%)
 
     // Event to log the purchase of tokens
     event TokensPurchased(address indexed investor, uint256 amount);
     event ReceivedFundsFromRevenueReceiver(address indexed from, uint256 amount);
 
-    constructor(address _tokenContractAddress, address _liquidityContractAddress, address _revenueDistributionContractAddress, uint256 _penomoFee) {
+    constructor(
+        address _tokenContractAddress, 
+        address _liquidityContractAddress, 
+        address _revenueDistributionContractAddress, 
+        uint256 _penomoFee,
+        uint256 _revenueSharePercentage
+    ) {
         owner = msg.sender;
         tokenContract = TokenContract(_tokenContractAddress);
         liquidityContract = LiquidityContract(_liquidityContractAddress);
         revenueDistributionContract = RevenueDistributionContract(_revenueDistributionContractAddress);
         penomoFee = _penomoFee;
+        revenueSharePercentage = _revenueSharePercentage;
     }
 
     modifier onlyOwner() {
@@ -43,12 +51,12 @@ contract ServiceContract {
         uint256 requiredEther = amount * tokenContract.tokenPrice();
         require(msg.value == requiredEther, "Incorrect Ether sent");
 
+        // Transfer the tokens to the investor
+        tokenContract.transfer(msg.sender, amount);
+
         // Calculate Penomo's fee and the amount to send to the LiquidityContract
         uint256 feeAmount = (msg.value * penomoFee) / 10000;
         uint256 liquidityAmount = msg.value - feeAmount;
-
-        // Transfer the tokens to the investor
-        tokenContract.transfer(msg.sender, amount);
 
         // Send the funds to the LiquidityContract
         payable(address(liquidityContract)).transfer(liquidityAmount);
@@ -57,17 +65,18 @@ contract ServiceContract {
     }
 
     function receiveFundsFromRevenueStream() external payable {
-        // Ensure only the RevenueStreamContract can send funds
-        // (You might need to add a check or a modifier for this based on your setup)
-
-        // Calculate Penomo's fee and the amount to send to the RevenueDistributionContract
+        // Calculate the amount to send to RevenueDistributionContract based on revenueSharePercentage
+        uint256 amountForRDC = (msg.value * revenueSharePercentage) / 10000;
+        
+        // Calculate Penomo's fee and the amount to send to the LiquidityContract
         uint256 feeAmount = (msg.value * penomoFee) / 10000;
-        uint256 revenueAmount = msg.value - feeAmount;
+        uint256 liquidityAmount = msg.value - amountForRDC - feeAmount;
 
-        // Send the funds to the RevenueDistributionContract
-        payable(address(revenueDistributionContract)).transfer(revenueAmount);
+        // Send the funds
+        payable(address(revenueDistributionContract)).transfer(amountForRDC);
+        payable(address(liquidityContract)).transfer(liquidityAmount);
 
-        emit ReceivedFundsFromRevenueStream(msg.sender, msg.value);
+        emit ReceivedFundsFromRevenueReceiver(msg.sender, msg.value);
     }
 
     function isRegisteredInvestor(address investor) public view returns(bool) {
