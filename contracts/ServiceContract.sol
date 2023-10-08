@@ -65,16 +65,18 @@ contract ServiceContract {
     }
 
     function receiveFundsFromRevenueStream() external payable {
+        // Calculate the amount after deducting Penomo's fee
+        uint256 amountAfterFee = (msg.value * (10000 - penomoFee)) / 10000;
+
         // Calculate the amount to send to RevenueDistributionContract based on revenueSharePercentage
-        uint256 amountForRDC = (msg.value * revenueSharePercentage) / 10000;
-        
-        // Calculate Penomo's fee and the amount to send to the LiquidityContract
-        uint256 feeAmount = (msg.value * penomoFee) / 10000;
-        uint256 liquidityAmount = msg.value - amountForRDC - feeAmount;
+        uint256 amountForRDC = (amountAfterFee * revenueSharePercentage) / 10000;
+
+        // Calculate the amount to send to the LiquidityContract
+        uint256 amountForLC = amountAfterFee - amountForRDC;
 
         // Send the funds
         payable(address(revenueDistributionContract)).transfer(amountForRDC);
-        payable(address(liquidityContract)).transfer(liquidityAmount);
+        payable(address(liquidityContract)).transfer(amountForLC);
 
         emit ReceivedFundsFromRevenueReceiver(msg.sender, msg.value);
     }

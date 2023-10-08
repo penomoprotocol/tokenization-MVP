@@ -53,11 +53,12 @@ group Battery Tokenization
     API -> IPFS: store(DID, data)
     IPFS -> BBP: Return CID
     BBP -[#red]> API: POST asset/tokenize
-    API -> SC: TokenizeBattery(CID, DID, protocolSpecs)
-    SC -> TC: DeployTokenContract(CID, DID, protocolSpecs)
-    SC -> LC: DeployLiquidityContract()
-    SC -> RDC: DeployRevenueDistributionContract()
-    SC -> RDC: DeployRevenueStreamContract()
+    API -> TC: TokenContract(CID, DID, tokenizationSpecs)
+    API -> LC: LiquidityContract()
+    API -> RDC: RevenueDistributionContract()
+    API -> SC: ServiceContract(tokenContractAddress, liquidityContractAddress, revenueDistributionContractAddress)
+    BBP -[#red]> API: POST asset/connectRevenueStream
+    API -> RSC: RevenueStreamContract(DID, revenueStreamSpecs)
 end
 
 ' Retail Investor Registration and Login
@@ -90,14 +91,15 @@ group Retail Investor Interaction
     SC -> LC: TransferFunds(amount * (100%-penomoFee))
 end
 
-
 ' Revenue Simulation and Distribution
 group Revenue Simulation and Distribution
     RSC -> RSC: startRental()
     BS -> RSC: Every second: Send kWh reading
     RSC -> RSC: stopRental() -> Calculate totalAmount
     RSC -> SC: transfer(totalAmount)
-    SC -> RDC: transfer(totalAmount * (100%-penomoFee))
+    SC -> SC: amountAfterFee = totalAmount * (100%-penomoFee)
+    SC -> RDC: transfer(amountAfterFee * revenueSharePercentage)
+    SC -> LC: transfer(amountAfterFee * (100%-revenueSharePercentage))
     RDC -> RDC:  DistributeRevenueShares()
     RDC -> TC: RetrieveTokenHoldersShares()
     TC -> RDC: Return(holders, fractions)
