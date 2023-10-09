@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.0;
 
-import "./TokenContract.sol"; // Import the previously defined token contract
+import "./TokenContractERC20.sol"; // Import the previously defined token contract
 
 contract RevenueDistributionContract {
     address public serviceContract; // Address of the ServiceContract
