@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-pragma solidity ^0.8.0;
+pragma solidity ^0.8.20;
 
 import "./TokenContractERC20.sol";
 import "./LiquidityContract.sol";
@@ -60,7 +60,7 @@ contract ServiceContract {
 
     function receiveFundsFromRevenueStream() external payable {
         // Calculate the amount after deducting Penomo's fee
-        uint256 amountAfterFee = (msg.value * (10000 - penomoFee)) / 10000;
+        uint256 amountAfterFee = (msg.value * (10000 - globalState.penomoFee())) / 10000;
 
         // Calculate the amount to send to RevenueDistributionContract based on revenueSharePercentage
         uint256 amountForRDC = (amountAfterFee * revenueSharePercentage) / 10000;
@@ -73,15 +73,6 @@ contract ServiceContract {
         payable(address(liquidityContract)).transfer(amountForLC);
 
         emit ReceivedFundsFromRevenueReceiver(msg.sender, msg.value);
-    }
-
-    function isRegisteredInvestor(address investor) public view returns(bool) {
-        for(uint i = 0; i < registeredInvestors.length; i++) {
-            if(registeredInvestors[i] == investor) {
-                return true;
-            }
-        }
-        return false;
     }
 
     // Allows the owner to withdraw the accumulated Ether (Penomo's fees)

@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-pragma solidity ^0.8.0;
+pragma solidity ^0.8.20;
 
 import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 import "./GlobalStateContract.sol"; // Import the GlobalStateContract for the whitelist check
@@ -47,9 +47,7 @@ contract TokenContract is ERC20 {
         }
     }
 
-    function _beforeTokenTransfer(address from, address to, uint256 amount) internal override {
-        super._beforeTokenTransfer(from, to, amount);
-        
+    function _beforeTokenTransfer(address from, address to, uint256 amount) internal {
         require(globalState.isRegisteredInvestor(to), "Recipient is not whitelisted");
         
         // If the recipient is not already a token holder, add them to the list
@@ -82,6 +80,11 @@ contract TokenContract is ERC20 {
             }
         }
         revert("Address not found");
+    }
+
+    // Function to return the list of token holders
+    function getTokenHolders() external view returns (address[] memory) {
+        return tokenHolders;
     }
 
     // Additional functions for battery data, revenue share, etc.
