@@ -1,10 +1,10 @@
 // SPDX-License-Identifier: MIT
-pragma solidity ^0.8.20;
+pragma solidity ^0.8.19;
 
 import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 import "./GlobalStateContract.sol"; // Import the GlobalStateContract for the whitelist check
 
-contract TokenContract is ERC20 {
+contract TokenContractERC20 is ERC20 {
     uint256 public revenueShare; // in basis points (e.g., 500 for 5%)
     uint256 public contractTerm; // in months
     uint256 public maxTokenSupply;

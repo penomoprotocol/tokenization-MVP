@@ -1,0 +1,41 @@
+{
+  "_format": "hh-sol-cache-2",
+  "files": {
+    "C:\\Users\\Sascha\\Documents\\GitHub\\tokenization-demo\\contracts\\GlobalStateContract.sol": {
+      "lastModificationDate": 1696937148462,
+      "contentHash": "1af86c6c5e14272d9b2a756bd517b09d",
+      "sourceName": "contracts/GlobalStateContract.sol",
+      "solcConfig": {
+        "version": "0.8.20",
+        "settings": {
+          "evmVersion": "paris",
+          "optimizer": {
+            "enabled": false,
+            "runs": 200
+          },
+          "outputSelection": {
+            "*": {
+              "*": [
+                "abi",
+                "evm.bytecode",
+                "evm.deployedBytecode",
+                "evm.methodIdentifiers",
+                "metadata"
+              ],
+              "": [
+                "ast"
+              ]
+            }
+          }
+        }
+      },
+      "imports": [],
+      "versionPragmas": [
+        "^0.8.20"
+      ],
+      "artifacts": [
+        "GlobalStateContract"
+      ]
+    }
+  }
+}

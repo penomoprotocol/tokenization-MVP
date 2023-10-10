@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-pragma solidity ^0.8.20;
+pragma solidity ^0.8.19;
 
 import "./TokenContractERC20.sol";
 import "./LiquidityContract.sol";
@@ -8,7 +8,7 @@ import "./GlobalStateContract.sol";
 
 contract ServiceContract {
     address public owner;
-    TokenContract public tokenContract;
+    TokenContractERC20 public tokenContractERC20;
     LiquidityContract public liquidityContract;
     RevenueDistributionContract public revenueDistributionContract;
     GlobalStateContract public globalState;
@@ -18,16 +18,12 @@ contract ServiceContract {
     event ReceivedFundsFromRevenueReceiver(address indexed from, uint256 amount);
 
     constructor(
-        address _tokenContractAddress, 
-        address _liquidityContractAddress, 
-        address _revenueDistributionContractAddress, 
+        address _tokenContractERC20Address, 
         address _globalStateAddress,
         uint256 _revenueSharePercentage
     ) {
         owner = msg.sender;
-        tokenContract = TokenContract(_tokenContractAddress);
-        liquidityContract = LiquidityContract(_liquidityContractAddress);
-        revenueDistributionContract = RevenueDistributionContract(_revenueDistributionContractAddress);
+        tokenContractERC20 = TokenContractERC20(_tokenContractERC20Address);
         globalState = GlobalStateContract(_globalStateAddress);
         revenueSharePercentage = _revenueSharePercentage;
     }
@@ -37,16 +33,27 @@ contract ServiceContract {
         _;
     }
 
+    function setLiquidityContract(address _liquidityContractAddress) external onlyOwner {
+        require(address(liquidityContract) == address(0), "LiquidityContract address already set!");
+        liquidityContract = LiquidityContract(_liquidityContractAddress);
+    }
+
+    function setRevenueDistributionContract(address _revenueDistributionContractAddress) external onlyOwner {
+        require(address(revenueDistributionContract) == address(0), "RevenueDistributionContract address already set!");
+        revenueDistributionContract = RevenueDistributionContract(_revenueDistributionContractAddress);
+    }
+
+
     function buyTokens(uint256 amount) public payable {
         // Check if the investor is registered in the GlobalStateContract
         require(globalState.isRegisteredInvestor(msg.sender), "Investor is not registered");
 
         // Ensure the correct amount of ether is sent
-        uint256 requiredEther = amount * tokenContract.tokenPrice();
+        uint256 requiredEther = amount * tokenContractERC20.tokenPrice();
         require(msg.value == requiredEther, "Incorrect Ether sent");
 
         // Transfer the tokens to the investor
-        tokenContract.transfer(msg.sender, amount);
+        tokenContractERC20.transfer(msg.sender, amount);
 
         // Calculate Penomo's fee from the GlobalStateContract and the amount to send to the LiquidityContract
         uint256 feeAmount = (msg.value * globalState.penomoFee()) / 10000;
