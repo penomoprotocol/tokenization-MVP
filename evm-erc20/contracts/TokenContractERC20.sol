@@ -45,6 +45,9 @@ contract TokenContractERC20 is ERC20 {
             });
             batteries.push(newBattery);
         }
+
+        // Mint the maximum supply of tokens to the contract's address upon construction
+        _mint(address(this), maxTokenSupply);
     }
 
     function _beforeTokenTransfer(address from, address to, uint256 amount) internal {
