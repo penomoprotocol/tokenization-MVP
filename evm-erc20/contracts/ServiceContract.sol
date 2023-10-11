@@ -53,7 +53,9 @@ contract ServiceContract {
         require(msg.value == requiredEther, "Incorrect Ether sent");
 
         // Transfer the tokens to the investor
-        tokenContractERC20.transfer(msg.sender, amount);
+        //tokenContractERC20.transfer(msg.sender, amount); // OLD VERSION
+        tokenContractERC20.transferFrom(address(this), msg.sender, amount);
+
 
         // Calculate Penomo's fee from the GlobalStateContract and the amount to send to the LiquidityContract
         uint256 feeAmount = (msg.value * globalState.penomoFee()) / 10000;

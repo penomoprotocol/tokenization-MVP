@@ -89,6 +89,14 @@ contract TokenContractERC20 is ERC20 {
     function getTokenHolders() external view returns (address[] memory) {
         return tokenHolders;
     }
+ 
+    // Function to give service contract allowance of erc20 tokens in this contract
+    function approveServiceContract(address serviceContractAddress) external {
+    uint256 balance = balanceOf(address(this));
+    approve(serviceContractAddress, balance);
+}
+
+
 
     // Additional functions for battery data, revenue share, etc.
     // ...
