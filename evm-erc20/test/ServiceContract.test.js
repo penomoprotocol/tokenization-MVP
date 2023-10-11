@@ -20,7 +20,7 @@ describe("ServiceContract", function () {
 
         // Deploy TokenContractERC20
         const TokenERC20 = await ethers.getContractFactory("TokenContractERC20");
-        tokenERC20 = await TokenERC20.deploy(globalState.target, serviceContract.target, "Battery Uno", "UNO", 1000, 12, 1000000, 10, [], [], []);
+        tokenERC20 = await TokenERC20.deploy(globalState.target, serviceContract.target, "Battery Uno", "UNO", 1000, 12, 1000000, 1000000000000, [], [], []);
 
         // Deploy LiquidityContract and RevenueDistributionContract
         const Liquidity = await ethers.getContractFactory("LiquidityContract");
@@ -36,8 +36,8 @@ describe("ServiceContract", function () {
 
 
         // Log Receipt
-        //const receipt = await txResponse.wait();
-        //console.log(receipt);
+        // const receipt = await tx.wait();
+        // console.log(receipt);
 
         // Logging for debugging
         const allowance = await tokenERC20.allowance(tokenERC20.target, serviceContract.target);

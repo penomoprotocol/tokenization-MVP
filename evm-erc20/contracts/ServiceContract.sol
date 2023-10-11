@@ -57,7 +57,7 @@ contract ServiceContract {
 
         // Transfer the tokens to the investor
         //tokenContractERC20.transfer(msg.sender, amount); // OLD VERSION
-        tokenContractERC20.transferFrom(address(this), msg.sender, amount);
+        tokenContractERC20.transferFrom(address(tokenContractERC20), msg.sender, amount);
 
 
         // Calculate Penomo's fee from the GlobalStateContract and the amount to send to the LiquidityContract

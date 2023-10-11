@@ -11,8 +11,7 @@ contract TokenContractERC20 is ERC20 {
     uint256 public maxTokenSupply;
     uint256 public tokenPrice; // in wei
     GlobalStateContract public globalState;
-    //ServiceContract public serviceContract;
-    address public serviceContract; // Use address type instead of ServiceContract
+    address public serviceContract; 
 
 
     struct Battery {
@@ -22,6 +21,9 @@ contract TokenContractERC20 is ERC20 {
     }
     Battery[] public batteries;
     address[] public tokenHolders;
+
+    // Events for debugging
+    event Debug(uint256 allowance);
 
     constructor(
         address _globalStateAddress,
@@ -56,7 +58,10 @@ contract TokenContractERC20 is ERC20 {
         _mint(address(this), maxTokenSupply);
 
         // Set the allowance for the ServiceContract
-        approve(_serviceContractAddress, maxTokenSupply);
+        _approve(address(this), _serviceContractAddress, maxTokenSupply);
+
+        // Emit allowance for debugging
+        emit Debug(allowance(address(this), _serviceContractAddress));
 
     }
 
