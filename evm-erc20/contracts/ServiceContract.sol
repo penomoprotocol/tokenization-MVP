@@ -18,12 +18,10 @@ contract ServiceContract {
     event ReceivedFundsFromRevenueReceiver(address indexed from, uint256 amount);
 
     constructor(
-        address _tokenContractERC20Address, 
         address _globalStateAddress,
         uint256 _revenueSharePercentage
     ) {
         owner = msg.sender;
-        tokenContractERC20 = TokenContractERC20(_tokenContractERC20Address);
         globalState = GlobalStateContract(_globalStateAddress);
         revenueSharePercentage = _revenueSharePercentage;
     }
@@ -31,6 +29,11 @@ contract ServiceContract {
     modifier onlyOwner() {
         require(msg.sender == owner, "Only the owner can execute this");
         _;
+    }
+
+    function setTokenContract(address _tokenContractERC20Address) external onlyOwner {
+        require(address(tokenContractERC20) == address(0), "TokenContractERC20 address already set!");
+        tokenContractERC20 = TokenContractERC20(_tokenContractERC20Address);
     }
 
     function setLiquidityContract(address _liquidityContractAddress) external onlyOwner {

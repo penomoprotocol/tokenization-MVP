@@ -3,6 +3,7 @@ pragma solidity ^0.8.20;
 
 import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 import "./GlobalStateContract.sol"; // Import the GlobalStateContract for the whitelist check
+//import "./ServiceContract.sol"; // Import the ServiceContract for giving allowance
 
 contract TokenContractERC20 is ERC20 {
     uint256 public revenueShare; // in basis points (e.g., 500 for 5%)
@@ -10,6 +11,9 @@ contract TokenContractERC20 is ERC20 {
     uint256 public maxTokenSupply;
     uint256 public tokenPrice; // in wei
     GlobalStateContract public globalState;
+    //ServiceContract public serviceContract;
+    address public serviceContract; // Use address type instead of ServiceContract
+
 
     struct Battery {
         string DID;
@@ -21,6 +25,7 @@ contract TokenContractERC20 is ERC20 {
 
     constructor(
         address _globalStateAddress,
+        address _serviceContractAddress,
         string memory _name,
         string memory _symbol,
         uint256 _revenueShare,
@@ -32,6 +37,7 @@ contract TokenContractERC20 is ERC20 {
         uint256[] memory revenueGoals
     ) ERC20(_name, _symbol) {
         globalState = GlobalStateContract(_globalStateAddress);
+        serviceContract = _serviceContractAddress;
         revenueShare = _revenueShare;
         contractTerm = _contractTerm;
         maxTokenSupply = _maxTokenSupply;
@@ -48,6 +54,10 @@ contract TokenContractERC20 is ERC20 {
 
         // Mint the maximum supply of tokens to the contract's address upon construction
         _mint(address(this), maxTokenSupply);
+
+        // Set the allowance for the ServiceContract
+        approve(_serviceContractAddress, maxTokenSupply);
+
     }
 
     function _beforeTokenTransfer(address from, address to, uint256 amount) internal {
@@ -90,13 +100,6 @@ contract TokenContractERC20 is ERC20 {
         return tokenHolders;
     }
  
-    // Function to give service contract allowance of erc20 tokens in this contract
-    function approveServiceContract(address serviceContractAddress) external {
-    uint256 balance = balanceOf(address(this));
-    approve(serviceContractAddress, balance);
-}
-
-
 
     // Additional functions for battery data, revenue share, etc.
     // ...

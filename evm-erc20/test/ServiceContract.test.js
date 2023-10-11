@@ -14,15 +14,15 @@ describe("ServiceContract", function () {
         // Register the investor
         await globalState.registerInvestor(investor.address);
 
-        // Deploy TokenContractERC20
-        const TokenERC20 = await ethers.getContractFactory("TokenContractERC20");
-        tokenERC20 = await TokenERC20.deploy(globalState.target, "Battery Uno", "UNO", 1000, 12, 1000000, 10, [], [], []);
-
         // Deploy ServiceContract
         const Service = await ethers.getContractFactory("ServiceContract");
-        serviceContract = await Service.deploy(tokenERC20.target, globalState.target, 5000);
+        serviceContract = await Service.deploy(globalState.target, 0);
 
-        // Deploy LiquidityContract and RevenueDistributionContract for testing
+        // Deploy TokenContractERC20
+        const TokenERC20 = await ethers.getContractFactory("TokenContractERC20");
+        tokenERC20 = await TokenERC20.deploy(globalState.target, serviceContract.target, "Battery Uno", "UNO", 1000, 12, 1000000, 10, [], [], []);
+
+        // Deploy LiquidityContract and RevenueDistributionContract
         const Liquidity = await ethers.getContractFactory("LiquidityContract");
         liquidityContract = await Liquidity.deploy(serviceContract.target, "0x70997970C51812dc3A010C7d01b50e0d17dc79C8", "0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266");
 
@@ -30,28 +30,45 @@ describe("ServiceContract", function () {
         revenueDistributionContract = await RevenueDistribution.deploy(serviceContract.target, tokenERC20.target);
 
         // Set LiquidityContract and RevenueDistributionContract in ServiceContract
+        await serviceContract.setTokenContract(tokenERC20.target);  
         await serviceContract.setLiquidityContract(liquidityContract.target);
         await serviceContract.setRevenueDistributionContract(revenueDistributionContract.target);
 
-        // Give service contract allowance to spend tokens in the token contract
-        await tokenERC20.approveServiceContract(serviceContract.target);
-        console.log(`Approved ServiceContract at address ${serviceContract.target} to spend tokens from TokenContractERC20.`);
+
+        // Log Receipt
+        //const receipt = await txResponse.wait();
+        //console.log(receipt);
+
+        // Logging for debugging
+        const allowance = await tokenERC20.allowance(tokenERC20.target, serviceContract.target);
+        console.log(serviceContract.target);
+        console.log(allowance);
+
+
+
 
     });
 
-
+    it("should mint the defined maximum supply upon construction", async function () {
+        const balance = await tokenERC20.balanceOf(tokenERC20.target);
+        const maxTokenSupply = await tokenERC20.maxTokenSupply()
+        console.log(balance, maxTokenSupply)
+        expect(balance).to.equal(maxTokenSupply);
+    });
 
     it("should allow an investor to buy tokens", async function () {
         const amount = 10n; // Using BigInt
         const tokenPrice = BigInt(await tokenERC20.tokenPrice()); // Convert to BigInt
         const requiredEther = amount * tokenPrice; // Use BigInt multiplication
 
+
         const allowance = await tokenERC20.allowance(tokenERC20.target, serviceContract.target);
-        console.log("Allowance for ServiceContract:", allowance.toString());
+        console.log(serviceContract.target);
+        console.log("Allowance for ServiceContract:", allowance);
         await expect(serviceContract.connect(investor).buyTokens(amount, {
             value: requiredEther
         })).to.emit(serviceContract, "TokensPurchased").withArgs(investor.address, amount);
-    
+
     });
 
     it("should send funds to RevenueDistributionContract and LiquidityContract when receiving funds from revenue simulator", async function () {
