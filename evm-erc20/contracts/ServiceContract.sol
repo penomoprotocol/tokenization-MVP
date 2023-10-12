@@ -15,12 +15,12 @@ contract ServiceContract {
     uint256 public revenueSharePercentage;
 
     event TokensPurchased(address indexed investor, uint256 amount);
-    event ReceivedFundsFromRevenueReceiver(address indexed from, uint256 amount);
+    event ReceivedFundsFromRevenueReceiver(
+        address indexed from,
+        uint256 amount
+    );
 
-    constructor(
-        address _globalStateAddress,
-        uint256 _revenueSharePercentage
-    ) {
+    constructor(address _globalStateAddress, uint256 _revenueSharePercentage) {
         owner = msg.sender;
         globalState = GlobalStateContract(_globalStateAddress);
         revenueSharePercentage = _revenueSharePercentage;
@@ -31,51 +31,76 @@ contract ServiceContract {
         _;
     }
 
-    function setTokenContract(address _tokenContractERC20Address) external onlyOwner {
-        require(address(tokenContractERC20) == address(0), "TokenContractERC20 address already set!");
+    function setTokenContract(
+        address _tokenContractERC20Address
+    ) external onlyOwner {
+        require(
+            address(tokenContractERC20) == address(0),
+            "TokenContractERC20 address already set!"
+        );
         tokenContractERC20 = TokenContractERC20(_tokenContractERC20Address);
     }
 
-    function setLiquidityContract(address _liquidityContractAddress) external onlyOwner {
-        require(address(liquidityContract) == address(0), "LiquidityContract address already set!");
+    function setLiquidityContract(
+        address _liquidityContractAddress
+    ) external onlyOwner {
+        require(
+            address(liquidityContract) == address(0),
+            "LiquidityContract address already set!"
+        );
         liquidityContract = LiquidityContract(_liquidityContractAddress);
     }
 
-    function setRevenueDistributionContract(address _revenueDistributionContractAddress) external onlyOwner {
-        require(address(revenueDistributionContract) == address(0), "RevenueDistributionContract address already set!");
-        revenueDistributionContract = RevenueDistributionContract(_revenueDistributionContractAddress);
+    function setRevenueDistributionContract(
+        address _revenueDistributionContractAddress
+    ) external onlyOwner {
+        require(
+            address(revenueDistributionContract) == address(0),
+            "RevenueDistributionContract address already set!"
+        );
+        revenueDistributionContract = RevenueDistributionContract(
+            _revenueDistributionContractAddress
+        );
     }
-
 
     function buyTokens(uint256 amount) public payable {
         // Check if the investor is registered in the GlobalStateContract
-        require(globalState.isRegisteredInvestor(msg.sender), "Investor is not registered");
+        require(
+            globalState.isRegisteredInvestor(msg.sender),
+            "Investor is not registered"
+        );
 
         // Ensure the correct amount of ether is sent
         uint256 requiredEther = amount * tokenContractERC20.tokenPrice();
         require(msg.value == requiredEther, "Incorrect Ether sent");
 
         // Transfer the tokens to the investor
-        //tokenContractERC20.transfer(msg.sender, amount); // OLD VERSION
-        tokenContractERC20.transferFrom(address(tokenContractERC20), msg.sender, amount);
-
+        tokenContractERC20.transferFrom(
+            address(tokenContractERC20),
+            msg.sender,
+            amount
+        );
 
         // Calculate Penomo's fee from the GlobalStateContract and the amount to send to the LiquidityContract
         uint256 feeAmount = (msg.value * globalState.penomoFee()) / 10000;
         uint256 liquidityAmount = msg.value - feeAmount;
 
-        // Send the funds to the LiquidityContract
-        payable(address(liquidityContract)).transfer(liquidityAmount);
+        // Send the funds to the LiquidityContract via the receiveFunds function
+        LiquidityContract(liquidityContract).receiveFunds{
+            value: liquidityAmount
+        }();
 
         emit TokensPurchased(msg.sender, amount);
     }
 
     function receiveFundsFromRevenueStream() external payable {
         // Calculate the amount after deducting Penomo's fee
-        uint256 amountAfterFee = (msg.value * (10000 - globalState.penomoFee())) / 10000;
+        uint256 amountAfterFee = (msg.value *
+            (10000 - globalState.penomoFee())) / 10000;
 
         // Calculate the amount to send to RevenueDistributionContract based on revenueSharePercentage
-        uint256 amountForRDC = (amountAfterFee * revenueSharePercentage) / 10000;
+        uint256 amountForRDC = (amountAfterFee * revenueSharePercentage) /
+            10000;
 
         // Calculate the amount to send to the LiquidityContract
         uint256 amountForLC = amountAfterFee - amountForRDC;
@@ -90,5 +115,10 @@ contract ServiceContract {
     // Allows the owner to withdraw the accumulated Ether (Penomo's fees)
     function withdraw() public onlyOwner {
         payable(owner).transfer(address(this).balance);
+    }
+
+    // Function to check the balance of the contract
+    function getBalance() external view returns (uint256) {
+        return address(this).balance;
     }
 }
