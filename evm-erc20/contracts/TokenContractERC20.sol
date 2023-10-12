@@ -3,6 +3,7 @@ pragma solidity ^0.8.20;
 
 import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 import "./GlobalStateContract.sol"; // Import the GlobalStateContract for the whitelist check
+
 //import "./ServiceContract.sol"; // Import the ServiceContract for giving allowance
 
 contract TokenContractERC20 is ERC20 {
@@ -11,8 +12,7 @@ contract TokenContractERC20 is ERC20 {
     uint256 public maxTokenSupply;
     uint256 public tokenPrice; // in wei
     GlobalStateContract public globalState;
-    address public serviceContract; 
-
+    address public serviceContract;
 
     struct Battery {
         string DID;
@@ -45,7 +45,7 @@ contract TokenContractERC20 is ERC20 {
         maxTokenSupply = _maxTokenSupply;
         tokenPrice = _tokenPrice;
 
-        for(uint i = 0; i < DIDs.length; i++) {
+        for (uint i = 0; i < DIDs.length; i++) {
             Battery memory newBattery = Battery({
                 DID: DIDs[i],
                 CID: CIDs[i],
@@ -62,27 +62,42 @@ contract TokenContractERC20 is ERC20 {
 
         // Emit allowance for debugging
         emit Debug(allowance(address(this), _serviceContractAddress));
-
     }
 
-    function _beforeTokenTransfer(address from, address to, uint256 amount) internal {
-        require(globalState.isRegisteredInvestor(to), "Recipient is not whitelisted");
-        
+    // Override the transferFrom function
+    function transferFrom(
+        address sender,
+        address recipient,
+        uint256 amount
+    ) public override returns (bool) {
+        // Call the _beforeTokenTransfer hook
+        _beforeTokenTransfer(sender, recipient, amount);
+
+        // Call the original transferFrom function from the parent ERC20 contract
+        super.transferFrom(sender, recipient, amount);
+
+        return true;
+    }
+
+    function _beforeTokenTransfer(
+        address from,
+        address to,
+        uint256 amount
+    ) internal {
+        require(
+            globalState.isRegisteredInvestor(to),
+            "Recipient is not whitelisted"
+        );
+
         // If the recipient is not already a token holder, add them to the list
-        if (!isTokenHolder(to) && to != address(0)) { // address(0) check is to ensure the zero address is not added
+        if (!isTokenHolder(to) && to != address(0)) {
+            // address(0) check is to ensure the zero address is not added
             tokenHolders.push(to);
         }
 
-        // If a token holder's balance drops to zero, remove them from the list
-        if (balanceOf(from) == 0 && from != address(0)) {
-            uint256 indexToRemove = findIndex(from);
-            address lastAddress = tokenHolders[tokenHolders.length - 1];
-            tokenHolders[indexToRemove] = lastAddress;
-            tokenHolders.pop();
-        }
     }
 
-    function isTokenHolder(address _address) internal view returns (bool) {
+    function isTokenHolder(address _address) public view returns (bool) {
         for (uint256 i = 0; i < tokenHolders.length; i++) {
             if (tokenHolders[i] == _address) {
                 return true;
@@ -91,20 +106,10 @@ contract TokenContractERC20 is ERC20 {
         return false;
     }
 
-    function findIndex(address _address) internal view returns (uint256) {
-        for (uint256 i = 0; i < tokenHolders.length; i++) {
-            if (tokenHolders[i] == _address) {
-                return i;
-            }
-        }
-        revert("Address not found");
-    }
-
     // Function to return the list of token holders
     function getTokenHolders() external view returns (address[] memory) {
         return tokenHolders;
     }
- 
 
     // Additional functions for battery data, revenue share, etc.
     // ...

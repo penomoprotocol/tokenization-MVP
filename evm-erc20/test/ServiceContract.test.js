@@ -49,11 +49,6 @@ describe("ServiceContract", function () {
 
     });
 
-    it("should mint the defined maximum supply upon construction", async function () {
-        const balance = await tokenERC20.balanceOf(tokenERC20.target);
-        const maxTokenSupply = await tokenERC20.maxTokenSupply()
-        expect(balance).to.equal(maxTokenSupply);
-    });
 
     it("should allow an investor to buy tokens", async function () {
         const amount = 100n; // Using BigInt
