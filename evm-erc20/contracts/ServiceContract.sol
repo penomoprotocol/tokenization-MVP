@@ -15,10 +15,7 @@ contract ServiceContract {
     uint256 public revenueSharePercentage;
 
     event TokensPurchased(address indexed investor, uint256 amount);
-    event ReceivedFundsFromRevenueReceiver(
-        address indexed from,
-        uint256 amount
-    );
+    event ReceivedFundsFromRevenueStream(address indexed from, uint256 amount);
 
     constructor(address _globalStateAddress, uint256 _revenueSharePercentage) {
         owner = msg.sender;
@@ -106,10 +103,13 @@ contract ServiceContract {
         uint256 amountForLC = amountAfterFee - amountForRDC;
 
         // Send the funds
-        payable(address(revenueDistributionContract)).transfer(amountForRDC);
-        payable(address(liquidityContract)).transfer(amountForLC);
+        RevenueDistributionContract(revenueDistributionContract)
+            .receiveFunds{value: amountForRDC}();
+        LiquidityContract(liquidityContract).receiveFunds{
+            value: amountForLC
+        }();
 
-        emit ReceivedFundsFromRevenueReceiver(msg.sender, msg.value);
+        emit ReceivedFundsFromRevenueStream(msg.sender, msg.value);
     }
 
     // Allows the owner to withdraw the accumulated Ether (Penomo's fees)

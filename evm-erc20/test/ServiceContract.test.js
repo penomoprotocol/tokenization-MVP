@@ -9,14 +9,14 @@ describe("ServiceContract", function () {
 
         // Deploy GlobalStateContract
         const GlobalState = await ethers.getContractFactory("GlobalStateContract");
-        globalState = await GlobalState.deploy(500);
+        globalState = await GlobalState.deploy(1000);
 
         // Register the investor
         await globalState.registerInvestor(investor.address);
 
         // Deploy ServiceContract
         const Service = await ethers.getContractFactory("ServiceContract");
-        serviceContract = await Service.deploy(globalState.target, 0);
+        serviceContract = await Service.deploy(globalState.target, 5000);
 
         // Deploy TokenContractERC20
         const TokenERC20 = await ethers.getContractFactory("TokenContractERC20");
@@ -67,20 +67,25 @@ describe("ServiceContract", function () {
         })).to.emit(serviceContract, "TokensPurchased").withArgs(investor.address, amount);
         const serviceBalance = await serviceContract.getBalance();
         const liquidityBalance = await liquidityContract.getBalance();
-        console.log("Service Contract Balance: ", serviceBalance, "Liquidity Contract Balance: ", liquidityBalance);
+        console.log("Service Contract Balance: ", serviceBalance, "Liquidity Contract Balance: ", liquidityBalance);revenueDistributionContract
         
     });
 
-    // it("should send funds to RevenueDistributionContract and LiquidityContract when receiving funds from revenue simulator", async function () {
-    //     const sentAmount = BigInt(ethers.utils.parseEther("1").toString()); // Convert to BigInt
-    //     await revenueSimulator.sendTransaction({
-    //         to: serviceContract.address,
-    //         value: sentAmount.toString() // Convert BigInt to string for transaction
-    //     });
+    it("should send funds to RevenueDistributionContract and LiquidityContract when receiving funds from revenue simulator", async function () {
+        const sentAmount = 100n; // Convert to BigInt
+        await serviceContract.connect(revenueSimulator).receiveFundsFromRevenueStream({
+            value: sentAmount
+        });
+        
+        const liquidityBalance = await liquidityContract.getBalance();
+        const revenueBalance = await revenueDistributionContract.getBalance();
+        const serviceBalance = await serviceContract.getBalance();
+        console.log("Service Contract Balance: ", serviceBalance, "Liquidity Contract Balance: ", liquidityBalance, "Revenue Distribution Contract Balance: ", revenueBalance);
 
-    //     expect(BigInt(await ethers.provider.getBalance(revenueDistributionContract.address))).to.be.gt(0n); // Convert to BigInt for comparison
-    //     expect(BigInt(await ethers.provider.getBalance(liquidityContract.address))).to.be.gt(0n); // Convert to BigInt for comparison
-    // });
+        expect(BigInt(await ethers.provider.getBalance(liquidityContract.target))).to.be.gt(0n); // Convert to BigInt for comparison
+        expect(BigInt(await ethers.provider.getBalance(revenueDistributionContract.target))).to.be.gt(0n); // Convert to BigInt for comparison
+        
+    });
 
     // it("should allow the owner to withdraw accumulated fees", async function () {
     //     const initialBalance = BigInt(await ethers.provider.getBalance(owner.address)); // Convert to BigInt

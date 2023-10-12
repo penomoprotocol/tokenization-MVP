@@ -25,8 +25,9 @@ contract RevenueDistributionContract {
     // Function to receive funds from the ServiceContract
     function receiveFunds() external payable onlyServiceContract {
         emit ReceivedFunds(msg.sender, msg.value);
-        distributeRevenue();
+        // distributeRevenue();
     }
+    
 
     // Function to distribute revenue among token holders
     function distributeRevenue() internal {
