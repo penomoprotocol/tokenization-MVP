@@ -2,10 +2,10 @@ const { expect } = require("chai");
 const { ethers } = require("hardhat");
 
 describe("TokenContractERC20", function () {
-    let owner, RI, penomoWallet, globalState, tokenERC20, serviceContract;
+    let owner, BB, RI, URI, RSC, penomoWallet, globalState, tokenERC20, serviceContract;
 
     beforeEach(async function () {
-        [owner, RI, penomoWallet] = await ethers.getSigners();
+        [owner, BB, RI, URI, RSC, penomoWallet] = await ethers.getSigners();
 
         // Deploy GlobalStateContract
         const GlobalState = await ethers.getContractFactory("GlobalStateContract");
@@ -20,18 +20,18 @@ describe("TokenContractERC20", function () {
 
         // Deploy TokenContractERC20
         const TokenERC20 = await ethers.getContractFactory("TokenContractERC20");
-        tokenERC20 = await TokenERC20.deploy(
-            globalState.target, 
-            serviceContract.target, 
-            "Battery Uno", 
-            "UNO", 
-            1000, 
-            12, 
-            1000000, 
-            1n*10n**18n, 
-            [], 
-            [], 
-            []);
+        const constructorArgs = {
+            penomoWallet: penomoWallet.address,
+            globalStateAddress: globalState.target,
+            serviceContractAddress: serviceContract.target,
+            name: "Battery Uno",
+            symbol: "UNO",
+            revenueShare: 1000,
+            contractTerm: 12,
+            maxTokenSupply: 1000000,
+            tokenPrice: 1
+        };
+        tokenERC20 = await TokenERC20.deploy(constructorArgs, [], [], []);
 
         // Deploy LiquidityContract and RevenueDistributionContract
         const Liquidity = await ethers.getContractFactory("LiquidityContract");
@@ -41,13 +41,10 @@ describe("TokenContractERC20", function () {
         revenueDistributionContract = await RevenueDistribution.deploy(serviceContract.target, tokenERC20.target);
 
         // Set LiquidityContract and RevenueDistributionContract in ServiceContract
-        await serviceContract.setTokenContract(tokenERC20.target);  
+        await serviceContract.setTokenContract(tokenERC20.target);
         await serviceContract.setLiquidityContract(liquidityContract.target);
         await serviceContract.setRevenueDistributionContract(revenueDistributionContract.target);
-
-
     });
-
 
     it("should mint the defined maximum supply upon construction", async function () {
         const balance = await tokenERC20.balanceOf(tokenERC20.target);
@@ -66,9 +63,9 @@ describe("TokenContractERC20", function () {
         });
 
         const balance = await tokenERC20.balanceOf(RI.address);
-        console.log("RI Token Balance: ",balance);
+        console.log("RI Token Balance: ", balance);
         expect(balance).to.equal(amount);
-        
+
         const isTokenHolder = await tokenERC20.isTokenHolder(RI.address);
         const tokenHolders = await tokenERC20.getTokenHolders();
         console.log("RI wallet in isTokenHolder list: ", isTokenHolder);
@@ -76,19 +73,94 @@ describe("TokenContractERC20", function () {
     });
 
     it("should not allow an unregistered RI to buy tokens", async function () {
-        const unregisteredRI = ethers.Wallet.createRandom();
         const amount = 100n;
         const tokenPrice = BigInt(await tokenERC20.tokenPrice());
         const requiredEther = amount * tokenPrice;
 
         await expect(
-            serviceContract.connect(unregisteredRI).buyTokens(amount, {
+            serviceContract.connect(URI).buyTokens(amount, {
                 value: requiredEther
             })
-        ).to.be.revertedWith("Recipient is not whitelisted");
+        ).to.be.revertedWith("Recipient is not whitelisted as registered investor.");
+
+
     });
 
+    it("should  allow RI to transfer token to registered RI", async function () {
+
+        // Register URI
+        await globalState.registerInvestor(URI.address);
+
+        // First, let's make sure RI has some tokens to transfer
+        const initialAmount = 100n;
+        const tokenPrice = BigInt(await tokenERC20.tokenPrice());
+        const requiredEther = initialAmount * tokenPrice;
+
+        await serviceContract.connect(RI).buyTokens(initialAmount, {
+            value: requiredEther
+        });
+
+        const balanceBeforeTransfer = await tokenERC20.balanceOf(RI.address);
+        expect(balanceBeforeTransfer).to.equal(initialAmount);
+
+        // Try to transfer tokens to the unregistered RI
+        const transferAmount = 50n;
+        await expect(
+            tokenERC20.connect(RI).transfer(URI.address, transferAmount)
+        ).to.not.be.revertedWith("Recipient is not whitelisted as registered investor.");
+
+        // Check that the balance of RI hasn't changed
+        const balanceAfterAttemptedTransferRegistered = await tokenERC20.balanceOf(RI.address);
+        const balanceAfterAttemptedTransferUnregistered = await tokenERC20.balanceOf(URI.address);
+
+        console.log("Balance registered RI: ", balanceAfterAttemptedTransferRegistered);
+        console.log("Balance unregistered RI: ", balanceAfterAttemptedTransferUnregistered);
+
+        expect(balanceAfterAttemptedTransferRegistered).to.equal(balanceAfterAttemptedTransferUnregistered);
+
+    });
+
+    it("should not allow RI to transfer token to unregistered RI", async function () {
+        // First, let's make sure RI has some tokens to transfer
+        const initialAmount = 100n;
+        const tokenPrice = BigInt(await tokenERC20.tokenPrice());
+        const requiredEther = initialAmount * tokenPrice;
+
+        await serviceContract.connect(RI).buyTokens(initialAmount, {
+            value: requiredEther
+        });
+
+        const balanceBeforeTransfer = await tokenERC20.balanceOf(RI.address);
+        expect(balanceBeforeTransfer).to.equal(initialAmount);
+
+        // Try to transfer tokens to the unregistered RI
+        const transferAmount = 50n;
+        await expect(
+            tokenERC20.connect(RI).transfer(URI.address, transferAmount)
+        ).to.be.revertedWith("Recipient is not whitelisted as registered investor.");
+
+        // Check that the balance of RI hasn't changed
+        const balanceAfterAttemptedTransferRegistered = await tokenERC20.balanceOf(RI.address);
+        const balanceAfterAttemptedTransferUnregistered = await tokenERC20.balanceOf(URI.address);
+
+        console.log("Balance registered RI: ", balanceAfterAttemptedTransferRegistered);
+        console.log("Balance unregistered RI: ", balanceAfterAttemptedTransferUnregistered);
+
+        expect(balanceAfterAttemptedTransferRegistered).to.equal(initialAmount);
+
+    });
+
+
     it("penomoWallet should be able to force transfer tokens from RI", async function () {
+        // First, let's make sure RI has some tokens to transfer
+        const initialAmount = 100n;
+        const tokenPrice = BigInt(await tokenERC20.tokenPrice());
+        const requiredEther = initialAmount * tokenPrice;
+
+        await serviceContract.connect(RI).buyTokens(initialAmount, {
+            value: requiredEther
+        });
+
         // Assuming there's a forceTransfer function in the TokenContractERC20
         const amount = 50n;
         await tokenERC20.connect(penomoWallet).forceTransfer(RI.address, penomoWallet.address, amount);
@@ -100,6 +172,6 @@ describe("TokenContractERC20", function () {
         expect(balancePenomo).to.equal(50n);
     });
 
-    // Add other tests as needed...
+
 });
 

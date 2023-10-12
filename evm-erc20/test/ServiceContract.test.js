@@ -1,18 +1,18 @@
 const { expect } = require("chai");
 const { ethers } = require("hardhat");
 
-describe("ServiceContract", function () {
-    let owner, investor, revenueSimulator, globalState, tokenERC20, serviceContract, liquidityContract, revenueDistributionContract;
+describe("TokenContractERC20", function () {
+    let owner, BB, RI, URI, RSC, penomoWallet, globalState, tokenERC20, serviceContract;
 
     beforeEach(async function () {
-        [owner, investor, revenueSimulator] = await ethers.getSigners();
+        [owner, BB, RI, URI, RSC, penomoWallet] = await ethers.getSigners();
 
         // Deploy GlobalStateContract
         const GlobalState = await ethers.getContractFactory("GlobalStateContract");
         globalState = await GlobalState.deploy(1000);
 
-        // Register the investor
-        await globalState.registerInvestor(investor.address);
+        // Register the RI
+        await globalState.registerInvestor(RI.address);
 
         // Deploy ServiceContract
         const Service = await ethers.getContractFactory("ServiceContract");
@@ -20,7 +20,18 @@ describe("ServiceContract", function () {
 
         // Deploy TokenContractERC20
         const TokenERC20 = await ethers.getContractFactory("TokenContractERC20");
-        tokenERC20 = await TokenERC20.deploy(globalState.target, serviceContract.target, "Battery Uno", "UNO", 1000, 12, 1000000, 1, [], [], []);
+        const constructorArgs = {
+            penomoWallet: penomoWallet.address,
+            globalStateAddress: globalState.target,
+            serviceContractAddress: serviceContract.target,
+            name: "Battery Uno",
+            symbol: "UNO",
+            revenueShare: 1000,
+            contractTerm: 12,
+            maxTokenSupply: 1000000,
+            tokenPrice: 1
+        };
+        tokenERC20 = await TokenERC20.deploy(constructorArgs, [], [], []);
 
         // Deploy LiquidityContract and RevenueDistributionContract
         const Liquidity = await ethers.getContractFactory("LiquidityContract");
@@ -30,36 +41,22 @@ describe("ServiceContract", function () {
         revenueDistributionContract = await RevenueDistribution.deploy(serviceContract.target, tokenERC20.target);
 
         // Set LiquidityContract and RevenueDistributionContract in ServiceContract
-        await serviceContract.setTokenContract(tokenERC20.target);  
+        await serviceContract.setTokenContract(tokenERC20.target);
         await serviceContract.setLiquidityContract(liquidityContract.target);
         await serviceContract.setRevenueDistributionContract(revenueDistributionContract.target);
-
-
-        // Log Receipt
-        // const receipt = await tx.wait();
-        // console.log(receipt);
-
-        // Logging for debugging
-        // const allowance = await tokenERC20.allowance(tokenERC20.target, serviceContract.target);
-        // console.log(serviceContract.target);
-        // console.log(allowance);
-
-
-
-
     });
 
 
-    it("should allow an investor to buy tokens", async function () {
+    it("should allow an RI to buy tokens", async function () {
         const amount = 100n; // Using BigInt
         const tokenPrice = BigInt(await tokenERC20.tokenPrice()); // Convert to BigInt
         const requiredEther = amount * tokenPrice; // Use BigInt multiplication
 
 
         const allowance = await tokenERC20.allowance(tokenERC20.target, serviceContract.target);
-        await expect(serviceContract.connect(investor).buyTokens(amount, {
+        await expect(serviceContract.connect(RI).buyTokens(amount, {
             value: requiredEther
-        })).to.emit(serviceContract, "TokensPurchased").withArgs(investor.address, amount);
+        })).to.emit(serviceContract, "TokensPurchased").withArgs(RI.address, amount);
         const serviceBalance = await serviceContract.getBalance();
         const liquidityBalance = await liquidityContract.getBalance();
         console.log("Service Contract Balance: ", serviceBalance, "Liquidity Contract Balance: ", liquidityBalance);revenueDistributionContract
@@ -68,7 +65,7 @@ describe("ServiceContract", function () {
 
     it("should send funds to RevenueDistributionContract and LiquidityContract when receiving funds from revenue simulator", async function () {
         const sentAmount = 100n; // Convert to BigInt
-        await serviceContract.connect(revenueSimulator).receiveFundsFromRevenueStream({
+        await serviceContract.connect(RSC).receiveFundsFromRevenueStream({
             value: sentAmount
         });
         
@@ -85,7 +82,7 @@ describe("ServiceContract", function () {
     it("should allow the owner to withdraw accumulated fees", async function () {
         const sentAmount = 100n; // Convert to BigInt
         const sentAmountWei = sentAmount * 10n**18n; // Convert to BigInt
-        await serviceContract.connect(revenueSimulator).receiveFundsFromRevenueStream({
+        await serviceContract.connect(RSC).receiveFundsFromRevenueStream({
             value: sentAmountWei
         });
         const initialBalance = BigInt(await ethers.provider.getBalance(owner.address));
@@ -97,7 +94,7 @@ describe("ServiceContract", function () {
 
 
     it("should not allow non-owners to withdraw accumulated fees", async function () {
-        await expect(serviceContract.connect(investor).withdraw()).to.be.revertedWith("Only the owner can execute this");
+        await expect(serviceContract.connect(RI).withdraw()).to.be.revertedWith("Only the owner can execute this");
     });
 
 });

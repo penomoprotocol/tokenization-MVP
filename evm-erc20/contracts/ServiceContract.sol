@@ -61,12 +61,7 @@ contract ServiceContract {
     }
 
     function buyTokens(uint256 amount) public payable {
-        // Check if the investor is registered in the GlobalStateContract
-        require(
-            globalState.isRegisteredInvestor(msg.sender),
-            "Investor is not registered"
-        );
-
+        
         // Ensure the correct amount of ether is sent
         uint256 requiredEther = amount * tokenContractERC20.tokenPrice();
         require(msg.value == requiredEther, "Incorrect Ether sent");
