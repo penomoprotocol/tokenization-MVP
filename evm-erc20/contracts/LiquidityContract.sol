@@ -29,7 +29,7 @@ contract LiquidityContract {
     }
 
     // Function to receive funds from the ServiceContract
-    function receiveFunds() external payable onlyServiceContract {
+    function receiveFunds() external payable {
         emit ReceivedFunds(msg.sender, msg.value);
     }
 

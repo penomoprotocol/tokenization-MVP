@@ -16,7 +16,7 @@ describe("TokenContractERC20", function () {
 
         // Deploy ServiceContract
         const Service = await ethers.getContractFactory("ServiceContract");
-        serviceContract = await Service.deploy(globalState.target, 5000);
+        serviceContract = await Service.deploy(globalState.target);
 
         // Deploy TokenContractERC20
         const TokenERC20 = await ethers.getContractFactory("TokenContractERC20");
@@ -26,7 +26,7 @@ describe("TokenContractERC20", function () {
             serviceContractAddress: serviceContract.target,
             name: "Battery Uno",
             symbol: "UNO",
-            revenueShare: 1000,
+            revenueShare: 5000,
             contractTerm: 12,
             maxTokenSupply: 1000000,
             tokenPrice: 1
@@ -38,7 +38,7 @@ describe("TokenContractERC20", function () {
         liquidityContract = await Liquidity.deploy(serviceContract.target, "0x70997970C51812dc3A010C7d01b50e0d17dc79C8", "0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266");
 
         const RevenueDistribution = await ethers.getContractFactory("RevenueDistributionContract");
-        revenueDistributionContract = await RevenueDistribution.deploy(serviceContract.target, tokenERC20.target);
+        revenueDistributionContract = await RevenueDistribution.deploy(serviceContract.target, tokenERC20.target, liquidityContract.target);
 
         // Set LiquidityContract and RevenueDistributionContract in ServiceContract
         await serviceContract.setTokenContract(tokenERC20.target);
@@ -59,29 +59,29 @@ describe("TokenContractERC20", function () {
         })).to.emit(serviceContract, "TokensPurchased").withArgs(RI.address, amount);
         const serviceBalance = await serviceContract.getBalance();
         const liquidityBalance = await liquidityContract.getBalance();
-        console.log("Service Contract Balance: ", serviceBalance, "Liquidity Contract Balance: ", liquidityBalance);revenueDistributionContract
-        
+        //console.log("Service Contract Balance: ", serviceBalance, "Liquidity Contract Balance: ", liquidityBalance);revenueDistributionContract
+
     });
 
-    it("should send funds to RevenueDistributionContract and LiquidityContract when receiving funds from revenue simulator", async function () {
+    it("should send funds to RDC and LC when receiving funds from RSC", async function () {
         const sentAmount = 100n; // Convert to BigInt
         await serviceContract.connect(RSC).receiveFundsFromRevenueStream({
             value: sentAmount
         });
-        
+
         const liquidityBalance = await liquidityContract.getBalance();
         const revenueBalance = await revenueDistributionContract.getBalance();
         const serviceBalance = await serviceContract.getBalance();
-        console.log("Service Contract Balance: ", serviceBalance, "Liquidity Contract Balance: ", liquidityBalance, "Revenue Distribution Contract Balance: ", revenueBalance);
+        //console.log("Service Contract Balance: ", serviceBalance, "Liquidity Contract Balance: ", liquidityBalance, "Revenue Distribution Contract Balance: ", revenueBalance);
 
         expect(BigInt(await ethers.provider.getBalance(liquidityContract.target))).to.be.gt(0n); // Convert to BigInt for comparison
         expect(BigInt(await ethers.provider.getBalance(revenueDistributionContract.target))).to.be.gt(0n); // Convert to BigInt for comparison
-        
+
     });
 
     it("should allow the owner to withdraw accumulated fees", async function () {
         const sentAmount = 100n; // Convert to BigInt
-        const sentAmountWei = sentAmount * 10n**18n; // Convert to BigInt
+        const sentAmountWei = sentAmount * 10n ** 18n; // Convert to BigInt
         await serviceContract.connect(RSC).receiveFundsFromRevenueStream({
             value: sentAmountWei
         });
@@ -91,7 +91,6 @@ describe("TokenContractERC20", function () {
 
         expect(finalBalance).to.be.gt(initialBalance); // Use BigInt comparison
     });
-
 
     it("should not allow non-owners to withdraw accumulated fees", async function () {
         await expect(serviceContract.connect(RI).withdraw()).to.be.revertedWith("Only the owner can execute this");

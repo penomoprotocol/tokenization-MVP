@@ -11,22 +11,22 @@ describe("GlobalStateContract", function() {
   });
 
   describe("Investor Registration", function() {
-    it("Should allow the owner to register an investor", async function() {
+    it("Should allow the owner to register a RI", async function() {
       await globalStateContract.connect(owner).registerInvestor(addr1.address);
       expect(await globalStateContract.isRegisteredInvestor(addr1.address)).to.equal(true);
     });
 
-    it("Should emit an event when an investor is registered", async function() {
+    it("Should emit an event when RI is registered", async function() {
       await expect(globalStateContract.connect(owner).registerInvestor(addr1.address))
         .to.emit(globalStateContract, "InvestorRegistered")
         .withArgs(addr1.address);
     });
 
-    it("Should not allow non-owners to register an investor", async function() {
+    it("Should not allow non-owners to register RIs", async function() {
       await expect(globalStateContract.connect(addr1).registerInvestor(addr2.address)).to.be.revertedWith("Only the owner can execute this");
     });
 
-    it("Should not allow registering an already registered investor", async function() {
+    it("Should not allow registering an already registered RI", async function() {
       await globalStateContract.connect(owner).registerInvestor(addr1.address);
       await expect(globalStateContract.connect(owner).registerInvestor(addr1.address)).to.be.revertedWith("Investor is already registered");
     });

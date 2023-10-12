@@ -17,10 +17,9 @@ contract ServiceContract {
     event TokensPurchased(address indexed investor, uint256 amount);
     event ReceivedFundsFromRevenueStream(address indexed from, uint256 amount);
 
-    constructor(address _globalStateAddress, uint256 _revenueSharePercentage) {
+    constructor(address _globalStateAddress) {
         owner = msg.sender;
         globalState = GlobalStateContract(_globalStateAddress);
-        revenueSharePercentage = _revenueSharePercentage;
     }
 
     modifier onlyOwner() {
@@ -36,6 +35,7 @@ contract ServiceContract {
             "TokenContractERC20 address already set!"
         );
         tokenContractERC20 = TokenContractERC20(_tokenContractERC20Address);
+        revenueSharePercentage = tokenContractERC20.revenueShare();
     }
 
     function setLiquidityContract(
@@ -101,8 +101,7 @@ contract ServiceContract {
         RevenueDistributionContract(revenueDistributionContract)
             .receiveFunds{value: amountForRDC}();
         LiquidityContract(liquidityContract).receiveFunds{
-            value: amountForLC
-        }();
+            value: amountForLC}();
 
         emit ReceivedFundsFromRevenueStream(msg.sender, msg.value);
     }

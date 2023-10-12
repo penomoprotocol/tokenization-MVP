@@ -16,7 +16,7 @@ describe("TokenContractERC20", function () {
 
         // Deploy ServiceContract
         const Service = await ethers.getContractFactory("ServiceContract");
-        serviceContract = await Service.deploy(globalState.target, 5000);
+        serviceContract = await Service.deploy(globalState.target);
 
         // Deploy TokenContractERC20
         const TokenERC20 = await ethers.getContractFactory("TokenContractERC20");
@@ -26,7 +26,7 @@ describe("TokenContractERC20", function () {
             serviceContractAddress: serviceContract.target,
             name: "Battery Uno",
             symbol: "UNO",
-            revenueShare: 1000,
+            revenueShare: 5000,
             contractTerm: 12,
             maxTokenSupply: 1000000,
             tokenPrice: 1
@@ -38,7 +38,7 @@ describe("TokenContractERC20", function () {
         liquidityContract = await Liquidity.deploy(serviceContract.target, "0x70997970C51812dc3A010C7d01b50e0d17dc79C8", "0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266");
 
         const RevenueDistribution = await ethers.getContractFactory("RevenueDistributionContract");
-        revenueDistributionContract = await RevenueDistribution.deploy(serviceContract.target, tokenERC20.target);
+        revenueDistributionContract = await RevenueDistribution.deploy(serviceContract.target, tokenERC20.target, liquidityContract.target);
 
         // Set LiquidityContract and RevenueDistributionContract in ServiceContract
         await serviceContract.setTokenContract(tokenERC20.target);
@@ -63,12 +63,12 @@ describe("TokenContractERC20", function () {
         });
 
         const balance = await tokenERC20.balanceOf(RI.address);
-        console.log("RI Token Balance: ", balance);
+        //console.log("RI Token Balance: ", balance);
         expect(balance).to.equal(amount);
 
         const isTokenHolder = await tokenERC20.isTokenHolder(RI.address);
         const tokenHolders = await tokenERC20.getTokenHolders();
-        console.log("RI wallet in isTokenHolder list: ", isTokenHolder);
+        //console.log("RI wallet in isTokenHolder list: ", isTokenHolder);
         expect(isTokenHolder).to.be.true;
     });
 
@@ -86,7 +86,7 @@ describe("TokenContractERC20", function () {
 
     });
 
-    it("should  allow RI to transfer token to registered RI", async function () {
+    it("should allow RI to transfer token to registered RI", async function () {
 
         // Register URI
         await globalState.registerInvestor(URI.address);
@@ -113,8 +113,8 @@ describe("TokenContractERC20", function () {
         const balanceAfterAttemptedTransferRegistered = await tokenERC20.balanceOf(RI.address);
         const balanceAfterAttemptedTransferUnregistered = await tokenERC20.balanceOf(URI.address);
 
-        console.log("Balance registered RI: ", balanceAfterAttemptedTransferRegistered);
-        console.log("Balance unregistered RI: ", balanceAfterAttemptedTransferUnregistered);
+        //console.log("Balance registered RI: ", balanceAfterAttemptedTransferRegistered);
+        //console.log("Balance unregistered RI: ", balanceAfterAttemptedTransferUnregistered);
 
         expect(balanceAfterAttemptedTransferRegistered).to.equal(balanceAfterAttemptedTransferUnregistered);
 
@@ -143,13 +143,12 @@ describe("TokenContractERC20", function () {
         const balanceAfterAttemptedTransferRegistered = await tokenERC20.balanceOf(RI.address);
         const balanceAfterAttemptedTransferUnregistered = await tokenERC20.balanceOf(URI.address);
 
-        console.log("Balance registered RI: ", balanceAfterAttemptedTransferRegistered);
-        console.log("Balance unregistered RI: ", balanceAfterAttemptedTransferUnregistered);
+        //console.log("Balance registered RI: ", balanceAfterAttemptedTransferRegistered);
+        //console.log("Balance unregistered RI: ", balanceAfterAttemptedTransferUnregistered);
 
         expect(balanceAfterAttemptedTransferRegistered).to.equal(initialAmount);
 
     });
-
 
     it("penomoWallet should be able to force transfer tokens from RI", async function () {
         // First, let's make sure RI has some tokens to transfer
