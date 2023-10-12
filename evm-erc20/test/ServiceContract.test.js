@@ -87,17 +87,22 @@ describe("ServiceContract", function () {
         
     });
 
-    // it("should allow the owner to withdraw accumulated fees", async function () {
-    //     const initialBalance = BigInt(await ethers.provider.getBalance(owner.address)); // Convert to BigInt
-    //     await serviceContract.withdraw();
-    //     const finalBalance = BigInt(await ethers.provider.getBalance(owner.address)); // Convert to BigInt
+    it("should allow the owner to withdraw accumulated fees", async function () {
+        const sentAmount = 100n; // Convert to BigInt
+        const sentAmountWei = sentAmount * 10n**18n; // Convert to BigInt
+        await serviceContract.connect(revenueSimulator).receiveFundsFromRevenueStream({
+            value: sentAmountWei
+        });
+        const initialBalance = BigInt(await ethers.provider.getBalance(owner.address));
+        await serviceContract.withdraw();
+        const finalBalance = BigInt(await ethers.provider.getBalance(owner.address)); // Convert to BigInt
 
-    //     expect(finalBalance).to.be.gt(initialBalance); // Use BigInt comparison
-    // });
+        expect(finalBalance).to.be.gt(initialBalance); // Use BigInt comparison
+    });
 
 
-    // it("should not allow non-owners to withdraw accumulated fees", async function () {
-    //     await expect(serviceContract.connect(investor).withdraw()).to.be.revertedWith("Only the owner can execute this");
-    // });
+    it("should not allow non-owners to withdraw accumulated fees", async function () {
+        await expect(serviceContract.connect(investor).withdraw()).to.be.revertedWith("Only the owner can execute this");
+    });
 
 });
