@@ -43,16 +43,23 @@ contract RevenueDistributionContract {
         uint256 totalSupply = tokenContractERC20.totalSupply();
         require(totalSupply > 0, "No tokens in circulation");
 
+        uint256 receivedFunds = address(this).balance;
         address[] memory tokenHolders = tokenContractERC20.getTokenHolders();
         for (uint256 i = 0; i < tokenHolders.length; i++) {
             address holder = tokenHolders[i];
             uint256 holderBalance = tokenContractERC20.balanceOf(holder);
-            uint256 holderShare = (address(this).balance * holderBalance) /
+            uint256 holderShare = (receivedFunds * holderBalance) /
                 totalSupply;
             payable(holder).transfer(holderShare);
             emit DistributedRevenue(holder, holderShare);
         }
-        LiquidityContract(liquidityContract).receiveFunds{value: address(this).balance}();
+
+        uint256 remaining = address(this).balance;
+        if (remaining > 0) {
+            LiquidityContract(liquidityContract).receiveFunds{
+                value: remaining
+            }();
+        }
     }
 
     // Function to check the balance of the contract
