@@ -1,7 +1,7 @@
 const { expect } = require("chai");
 const { ethers } = require("hardhat");
 
-describe("TokenContractERC20", function () {
+describe("Service Contract", function () {
     let owner, BB, RI, URI, RSC, penomoWallet, globalState, tokenERC20, serviceContract;
 
     beforeEach(async function () {
