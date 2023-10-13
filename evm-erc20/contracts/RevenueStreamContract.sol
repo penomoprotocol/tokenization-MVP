@@ -1,9 +1,11 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.19;
 
+import "./ServiceContract.sol";
+
 contract RevenueStreamContract {
+    ServiceContract public serviceContract; // Address of the liquidity contract
     address public owner; // Battery Business's address
-    address public serviceContract; // Address of the ServiceContract
     uint256 public pricePerKWh; // Price per kWh in wei
     uint256 public currentKWh; // Current kWh reading
     uint256 public startKWh; // kWh reading at the start of the rental
@@ -17,7 +19,7 @@ contract RevenueStreamContract {
 
     constructor(address _serviceContract, uint256 _pricePerKWh) {
         owner = msg.sender;
-        serviceContract = _serviceContract;
+        serviceContract = ServiceContract(_serviceContract);
         pricePerKWh = _pricePerKWh;
     }
 
@@ -59,8 +61,13 @@ contract RevenueStreamContract {
     }
 
     // Update the current kWh reading
-    function updateKWhReading(uint256 _currentKWh) external onlyAuthorizedBattery rentalActive {
-        require(_currentKWh > startKWh, "Current kWh should be greater than start kWh");
+    function updateKWhReading(
+        uint256 _currentKWh
+    ) external onlyAuthorizedBattery rentalActive {
+        require(
+            _currentKWh > startKWh,
+            "Current kWh should be greater than start kWh"
+        );
         currentKWh = _currentKWh;
     }
 
@@ -75,7 +82,7 @@ contract RevenueStreamContract {
         currentKWh = 0;
 
         // Transfer the total amount to the ServiceContract
-        payable(serviceContract).transfer(totalAmount);
+        ServiceContract(serviceContract).receiveFundsFromRevenueStream{value: totalAmount}();
 
         emit RentalStopped(totalAmount);
     }

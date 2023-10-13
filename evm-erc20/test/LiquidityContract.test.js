@@ -48,7 +48,7 @@ describe("Liquidity Contract", function () {
 
 
 
-    it("should allow BBWallet and owner to withdraw funds", async function () {
+    it("should allow BB and owner to withdraw funds", async function () {
         // Send some funds to the LiquidityContract
         await liquidityContract.connect(owner).receiveFunds({ value: 2n });
 
