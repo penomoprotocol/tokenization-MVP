@@ -1,85 +1,81 @@
 const express = require('express');
-const bodyParser = require('body-parser');
-const mongoose = require('mongoose');
-const ipfsClient = require('ipfs-http-client');
-const cors = require('cors');
-
-// Authentication and authorization imports
 const passport = require('passport');
 const JwtStrategy = require('passport-jwt').Strategy;
 const ExtractJwt = require('passport-jwt').ExtractJwt;
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
-
-
+const mongoose = require('mongoose');
 
 const app = express();
 
-// Middleware
-app.use(cors());
-app.use(bodyParser.json());
+app.use(express.json());
 
 // Connect to MongoDB
 mongoose.connect('mongodb://localhost:27017/bbTokenization', { useNewUrlParser: true, useUnifiedTopology: true })
     .then(() => console.log('Connected to MongoDB'))
     .catch(err => console.error('Could not connect to MongoDB', err));
 
-// Initialize IPFS client
-const ipfs = ipfsClient({ host: 'localhost', port: '5001', protocol: 'http' });
-
+// User schema and model
+const userSchema = new mongoose.Schema({
+    username: String,
+    password: String
+});
+const User = mongoose.model('User', userSchema);
 
 // JWT configuration
 const jwtOptions = {
     jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
-    secretOrKey: 'YOUR_SECRET_KEY'  // Replace with your secret key
+    secretOrKey: 'YOUR_SECRET_KEY'
 };
 
-
-// Initialize passport
 passport.use(new JwtStrategy(jwtOptions, (jwtPayload, done) => {
-    // Here, you'd typically look up your user in the database using the info in jwtPayload
-    // For simplicity, we'll just return the jwtPayload as the user
     return done(null, jwtPayload);
 }));
 
 app.use(passport.initialize());
 
-
-
 // Routes
 
-// Protecting a route using JWT authentication
 app.get('/protectedRoute', passport.authenticate('jwt', { session: false }), (req, res) => {
     res.send('This is a protected route!');
 });
 
-// Company Routes
-// Register route with password hashing and token generation
 app.post('/company/register', async (req, res) => {
     const hashedPassword = await bcrypt.hash(req.body.password, 10);
 
-    // Store the hashed password in your database along with other user details
-    // ...
+    const user = new User({
+        username: req.body.username,
+        password: hashedPassword
+    });
 
-    // Return a JWT to the user
-    const token = jwt.sign({ id: 'USER_ID' }, 'YOUR_SECRET_KEY');  // Replace USER_ID with the actual user ID from your database
+    await user.save();
+
+    const token = jwt.sign({ id: user._id }, 'YOUR_SECRET_KEY');
     res.json({ token });
 });
 
-// Login route with password verification and token generation
 app.post('/company/login', async (req, res) => {
-    // Fetch the user from your database using req.body.username or email
-    // ...
+    const user = await User.findOne({ username: req.body.username });
 
-    const isPasswordValid = await bcrypt.compare(req.body.password, 'STORED_HASHED_PASSWORD');  // Replace STORED_HASHED_PASSWORD with the hashed password from your database
+    if (!user) {
+        return res.status(401).send('User not found');
+    }
+
+    const isPasswordValid = await bcrypt.compare(req.body.password, user.password);
 
     if (isPasswordValid) {
-        const token = jwt.sign({ id: 'USER_ID' }, 'YOUR_SECRET_KEY');  // Replace USER_ID with the actual user ID from your database
+        const token = jwt.sign({ id: user._id }, 'YOUR_SECRET_KEY');
         res.json({ token });
     } else {
         res.status(401).send('Invalid credentials');
     }
 });
+
+const PORT = 3000;
+app.listen(PORT, () => {
+    console.log(`Server is running on http://localhost:${PORT}`);
+});
+
 
 
 app.get('/company/:id', (req, res) => {
