@@ -1,3 +1,4 @@
+
 const express = require('express');
 const passport = require('passport');
 const JwtStrategy = require('passport-jwt').Strategy;
@@ -5,13 +6,20 @@ const ExtractJwt = require('passport-jwt').ExtractJwt;
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const mongoose = require('mongoose');
+const process = require('dotenv').config();
+
+// Get variables from .env
+const PORT = process.env.PORT || 3000;
+const JWT_SECRET_KEY = process.env.JWT_SECRET_KEY;
+const MONGO_URI = process.env.MONGO_URI;
+
 
 const app = express();
 
 app.use(express.json());
 
 // Connect to MongoDB
-mongoose.connect('mongodb://localhost:27017/bbTokenization', { useNewUrlParser: true, useUnifiedTopology: true })
+mongoose.connect(MONGO_URI, { useNewUrlParser: true, useUnifiedTopology: true })
     .then(() => console.log('Connected to MongoDB'))
     .catch(err => console.error('Could not connect to MongoDB', err));
 
@@ -25,7 +33,7 @@ const User = mongoose.model('User', userSchema);
 // JWT configuration
 const jwtOptions = {
     jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
-    secretOrKey: 'YOUR_SECRET_KEY'
+    secretOrKey: JWT_SECRET_KEY
 };
 
 passport.use(new JwtStrategy(jwtOptions, (jwtPayload, done) => {
@@ -50,7 +58,7 @@ app.post('/company/register', async (req, res) => {
 
     await user.save();
 
-    const token = jwt.sign({ id: user._id }, 'YOUR_SECRET_KEY');
+    const token = jwt.sign({ id: user._id }, JWT_SECRET_KEY);
     res.json({ token });
 });
 
@@ -64,14 +72,14 @@ app.post('/company/login', async (req, res) => {
     const isPasswordValid = await bcrypt.compare(req.body.password, user.password);
 
     if (isPasswordValid) {
-        const token = jwt.sign({ id: user._id }, 'YOUR_SECRET_KEY');
+        const token = jwt.sign({ id: user._id }, JWT_SECRET_KEY);
         res.json({ token });
     } else {
         res.status(401).send('Invalid credentials');
     }
 });
 
-const PORT = 3000;
+
 app.listen(PORT, () => {
     console.log(`Server is running on http://localhost:${PORT}`);
 });
@@ -162,7 +170,6 @@ app.get('/transactions/user/:userId', (req, res) => {
 });
 
 // Start the server
-const PORT = 3000;
 app.listen(PORT, () => {
     console.log(`Server is running on port ${PORT}`);
 });
