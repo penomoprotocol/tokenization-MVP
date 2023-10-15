@@ -13,6 +13,12 @@ const PORT = process.env.PORT || 3000;
 const JWT_SECRET_KEY = process.env.JWT_SECRET_KEY;
 const MONGO_URI = process.env.MONGO_URI;
 
+// Import database models
+const Company = require('../database/models/Company');
+const Investor = require('../database/models/Investor');
+const Asset = require('../database/models/Asset');
+const Transaction = require('../database/models/Transaction');
+
 
 const app = express();
 
@@ -36,11 +42,12 @@ const jwtOptions = {
     secretOrKey: JWT_SECRET_KEY
 };
 
+// Initialize passport
 passport.use(new JwtStrategy(jwtOptions, (jwtPayload, done) => {
     return done(null, jwtPayload);
 }));
-
 app.use(passport.initialize());
+
 
 // Routes
 
@@ -48,18 +55,21 @@ app.get('/protectedRoute', passport.authenticate('jwt', { session: false }), (re
     res.send('This is a protected route!');
 });
 
+// Company Registration
 app.post('/company/register', async (req, res) => {
-    const hashedPassword = await bcrypt.hash(req.body.password, 10);
-
-    const user = new User({
-        username: req.body.username,
-        password: hashedPassword
-    });
-
-    await user.save();
-
-    const token = jwt.sign({ id: user._id }, JWT_SECRET_KEY);
-    res.json({ token });
+    try {
+        const hashedPassword = await bcrypt.hash(req.body.password, 10);
+        const company = new Company({
+            name: req.body.name,
+            email: req.body.email,
+            password: hashedPassword
+        });
+        await company.save();
+        const token = jwt.sign({ id: company._id }, JWT_SECRET_KEY);
+        res.json({ token });
+    } catch (error) {
+        res.status(500).send('Error registering company');
+    }
 });
 
 app.post('/company/login', async (req, res) => {
@@ -98,9 +108,23 @@ app.delete('/company/:id', (req, res) => {
     // Delete company
 });
 
-// Investor Routes
-app.post('/investor/register', (req, res) => {
-    // Handle investor registration
+// // Investor Routes
+
+// Investor Registration
+app.post('/investor/register', async (req, res) => {
+    try {
+        const hashedPassword = await bcrypt.hash(req.body.password, 10);
+        const investor = new Investor({
+            name: req.body.name,
+            email: req.body.email,
+            password: hashedPassword
+        });
+        await investor.save();
+        const token = jwt.sign({ id: investor._id }, JWT_SECRET_KEY);
+        res.json({ token });
+    } catch (error) {
+        res.status(500).send('Error registering investor');
+    }
 });
 
 app.post('/investor/login', (req, res) => {
