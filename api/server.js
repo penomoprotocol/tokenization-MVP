@@ -6,7 +6,7 @@ const ExtractJwt = require('passport-jwt').ExtractJwt;
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const mongoose = require('mongoose');
-const process = require('dotenv').config();
+require('dotenv').config();
 
 // Get variables from .env
 const PORT = process.env.PORT || 3000;
@@ -169,7 +169,3 @@ app.get('/transactions/user/:userId', (req, res) => {
     // Retrieve all transactions for a specific user
 });
 
-// Start the server
-app.listen(PORT, () => {
-    console.log(`Server is running on port ${PORT}`);
-});
