@@ -18,7 +18,7 @@ const companySchema = new mongoose.Schema({
         type: Date,
         default: Date.now
     }
-    // ... any other fields you might need
+    // ... 
 });
 
 const Company = mongoose.model('Company', companySchema);
