@@ -72,20 +72,22 @@ app.post('/company/register', async (req, res) => {
     }
 });
 
+// Company Login
 app.post('/company/login', async (req, res) => {
-    const user = await User.findOne({ username: req.body.username });
-
-    if (!user) {
-        return res.status(401).send('User not found');
-    }
-
-    const isPasswordValid = await bcrypt.compare(req.body.password, user.password);
-
-    if (isPasswordValid) {
-        const token = jwt.sign({ id: user._id }, JWT_SECRET_KEY);
-        res.json({ token });
-    } else {
-        res.status(401).send('Invalid credentials');
+    try {
+        const company = await Company.findOne({ email: req.body.email });
+        if (!company) {
+            return res.status(401).send('Company not found');
+        }
+        const isPasswordValid = await bcrypt.compare(req.body.password, company.password);
+        if (isPasswordValid) {
+            const token = jwt.sign({ id: company._id }, JWT_SECRET_KEY);
+            res.json({ token });
+        } else {
+            res.status(401).send('Invalid credentials');
+        }
+    } catch (error) {
+        res.status(500).send('Error logging in');
     }
 });
 
@@ -127,8 +129,23 @@ app.post('/investor/register', async (req, res) => {
     }
 });
 
-app.post('/investor/login', (req, res) => {
-    // Handle investor login
+// Investor Login
+app.post('/investor/login', async (req, res) => {
+    try {
+        const investor = await Investor.findOne({ email: req.body.email });
+        if (!investor) {
+            return res.status(401).send('Investor not found');
+        }
+        const isPasswordValid = await bcrypt.compare(req.body.password, investor.password);
+        if (isPasswordValid) {
+            const token = jwt.sign({ id: investor._id }, JWT_SECRET_KEY);
+            res.json({ token });
+        } else {
+            res.status(401).send('Invalid credentials');
+        }
+    } catch (error) {
+        res.status(500).send('Error logging in');
+    }
 });
 
 app.post('/investor/buyToken', (req, res) => {
