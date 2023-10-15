@@ -1,0 +1,55 @@
+name: Interdependent CI Pipeline
+
+on: [push, pull_request]
+
+jobs:
+  api-tests:
+    name: API Tests
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v2
+
+    - name: Set up Node.js
+      uses: actions/setup-node@v2
+      with:
+        node-version: '14'
+
+    - name: Install API dependencies
+      run: |
+        cd api
+        npm install
+
+    - name: Run API tests
+      run: |
+        cd api
+        npm test
+
+  contracts-erc20-tests:
+    name: Smart Contracts ERC20 Tests
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v2
+
+    - name: Set up Node.js
+      uses: actions/setup-node@v2
+      with:
+        node-version: '14'
+
+    - name: Install Smart Contracts ERC20 dependencies
+      run: |
+        cd evm-erc20
+        npm install
+
+    - name: Run Smart Contracts ERC20 tests
+      run: |
+        cd evm-erc20
+        npm test
+
+
+
+
+
