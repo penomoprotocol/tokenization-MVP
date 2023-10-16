@@ -216,3 +216,4 @@ app.get('/transactions/user/:userId', (req, res) => {
     // Retrieve all transactions for a specific user
 });
 
+module.exports = app;
