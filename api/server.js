@@ -49,8 +49,9 @@ passport.use(new JwtStrategy(jwtOptions, (jwtPayload, done) => {
 app.use(passport.initialize());
 
 
-// Routes
+// // // Routes
 
+// // Company Routes
 app.get('/protectedRoute', passport.authenticate('jwt', { session: false }), (req, res) => {
     res.send('This is a protected route!');
 });
@@ -97,7 +98,6 @@ app.listen(PORT, () => {
 });
 
 
-
 app.get('/company/:id', (req, res) => {
     // Retrieve company details
 });
@@ -109,6 +109,7 @@ app.put('/company/:id', (req, res) => {
 app.delete('/company/:id', (req, res) => {
     // Delete company
 });
+
 
 // // Investor Routes
 
@@ -164,6 +165,9 @@ app.delete('/investor/:id', (req, res) => {
     // Delete investor
 });
 
+
+// // Asset Routes
+
 // Real World Assets Routes
 app.post('/asset/register', (req, res) => {
     // Register asset and return DID
@@ -193,7 +197,9 @@ app.delete('/asset/:id', (req, res) => {
     // Delete asset
 });
 
-// [Nice to have] Transactions Routes
+
+// // Transactions Routes
+
 app.post('/transactions', (req, res) => {
     // Log a new transaction
 });
