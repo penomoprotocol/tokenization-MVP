@@ -15,10 +15,6 @@ const investorSchema = new mongoose.Schema({
         type: String,
         required: true
     },
-    registeredDate: {
-        type: Date,
-        default: Date.now
-    }
     // ... 
 });
 
