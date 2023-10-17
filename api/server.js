@@ -45,7 +45,7 @@ const companySchema = new mongoose.Schema(
 const Company = mongoose.model('Company', companySchema);
 
 
-// Import database models -> DEBUG!
+// Import database models -> DEBUG IMPORT / TIMEOUT ERROR!
 //const Company = require('../database/models/Company');
 // const Investor = require('../database/models/Investor');
 // const Asset = require('../database/models/Asset');
@@ -53,17 +53,17 @@ const Company = mongoose.model('Company', companySchema);
 
 
 
-// // JWT configuration
-// const jwtOptions = {
-//     jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
-//     secretOrKey: JWT_SECRET_KEY
-// };
+// JWT configuration
+const jwtOptions = {
+    jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
+    secretOrKey: JWT_SECRET_KEY
+};
 
-// // Initialize passport
-// passport.use(new JwtStrategy(jwtOptions, (jwtPayload, done) => {
-//     return done(null, jwtPayload);
-// }));
-// app.use(passport.initialize());
+// Initialize passport
+passport.use(new JwtStrategy(jwtOptions, (jwtPayload, done) => {
+    return done(null, jwtPayload);
+}));
+app.use(passport.initialize());
 
 
 // Listen to server port
@@ -89,8 +89,6 @@ app.post('/company/register', async (req, res) => {
             password: hashedPassword
         });
         await company.save();
-        // const token = jwt.sign({ id: company._id }, JWT_SECRET_KEY);
-        // res.json({ token });
     } catch (error) {
         console.error('Error while registering company:', error);
         res.status(500).send('Error registering company')
@@ -98,23 +96,23 @@ app.post('/company/register', async (req, res) => {
 });
 
 // Company Login
-// app.post('/company/login', async (req, res) => {
-//     try {
-//         const company = await Company.findOne({ email: req.body.email });
-//         if (!company) {
-//             return res.status(401).send('Company not found');
-//         }
-//         const isPasswordValid = await bcrypt.compare(req.body.password, company.password);
-//         if (isPasswordValid) {
-//             const token = jwt.sign({ id: company._id }, JWT_SECRET_KEY);
-//             res.json({ token });
-//         } else {
-//             res.status(401).send('Invalid credentials');
-//         }
-//     } catch (error) {
-//         res.status(500).send('Error logging in');
-//     }
-// });
+app.post('/company/login', async (req, res) => {
+    try {
+        const company = await Company.findOne({ email: req.body.email });
+        if (!company) {
+            return res.status(401).send('Company not found');
+        }
+        const isPasswordValid = await bcrypt.compare(req.body.password, company.password);
+        if (isPasswordValid) {
+            const token = jwt.sign({ id: company._id }, JWT_SECRET_KEY);
+            res.json({ token });
+        } else {
+            res.status(401).send('Invalid credentials');
+        }
+    } catch (error) {
+        res.status(500).send('Error logging in');
+    }
+});
 
 
 
