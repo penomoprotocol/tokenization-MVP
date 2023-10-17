@@ -7,14 +7,13 @@ require('dotenv').config();
 
 // Get variables from .env
 const PORT = process.env.PORT || 3000;
-const JWT_SECRET_KEY = process.env.JWT_SECRET_KEY;
+const SECRET_KEY = process.env.SECRET_KEY;
 const MONGO_URI = process.env.MONGO_URI;
 
 chai.use(chaiHttp);
 
 before(function (done) {
-    // Establish a connection to the test database (if you're using a testing database)
-    // Replace 'your_test_database_uri' with your actual test database URI
+    // Establish a connection to the test database 
     mongoose.connect(MONGO_URI, {
         useNewUrlParser: true,
         useUnifiedTopology: true,
