@@ -12,50 +12,46 @@ const PORT = process.env.PORT || 3000;
 const JWT_SECRET_KEY = process.env.JWT_SECRET_KEY;
 const MONGO_URI = process.env.MONGO_URI;
 
-// Import database models
-
-// const Company = require('../database/models/Company');
-const Investor = require('../database/models/Investor');
-const Asset = require('../database/models/Asset');
-const Transaction = require('../database/models/Transaction');
-
-
-
-const companySchema = new mongoose.Schema({
-    name: {
-        type: String,
-        required: true
-    },
-    email: {
-        type: String,
-        required: true,
-        unique: true
-    },
-    password: {
-        type: String,
-        required: true
-    },
-});
-
-const Company = mongoose.model('Company', companySchema);
-
-
-
 // Initialized app
 const app = express();
 app.use(express.json());
 
 // Connect to MongoDB
-mongoose.connect(MONGO_URI, {useNewUrlParser: true, useUnifiedTopology: true})
+mongoose.connect(MONGO_URI, { useNewUrlParser: true, useUnifiedTopology: true })
     .then(() => console.log('Connected to MongoDB'))
     .catch(err => console.error('Could not connect to MongoDB', err));
 
-// // User schema and model
-// const userSchema = new mongoose.Schema({
-//     username: String,
-//     password: String
-// });
-// const User = mongoose.model('User', userSchema);
+// Define company schema and model
+const companySchema = new mongoose.Schema(
+    {
+        name: {
+            type: String,
+            required: true
+        },
+        email: {
+            type: String,
+            required: true,
+            unique: true
+        },
+        password: {
+            type: String,
+            required: true
+        },
+    },
+    {
+        collection: 'companies'
+    }
+);
+const Company = mongoose.model('Company', companySchema);
+
+
+// Import database models -> DEBUG!
+//const Company = require('../database/models/Company');
+// const Investor = require('../database/models/Investor');
+// const Asset = require('../database/models/Asset');
+// const Transaction = require('../database/models/Transaction');
+
+
 
 // // JWT configuration
 // const jwtOptions = {
@@ -86,11 +82,11 @@ app.listen(PORT, () => {
 // Company Registration
 app.post('/company/register', async (req, res) => {
     try {
-        // const hashedPassword = await bcrypt.hash(req.body.password, 10);
+        const hashedPassword = await bcrypt.hash(req.body.password, 10);
         const company = new Company({
             name: req.body.name,
             email: req.body.email,
-            password: req.body.password
+            password: hashedPassword
         });
         await company.save();
         // const token = jwt.sign({ id: company._id }, JWT_SECRET_KEY);
