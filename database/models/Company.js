@@ -14,11 +14,8 @@ const companySchema = new mongoose.Schema({
         type: String,
         required: true
     },
-    registeredDate: {
-        type: Date,
-        default: Date.now
-    }
-    // ... 
 });
 
 const Company = mongoose.model('Company', companySchema);
+
+module.exports = Company; // Export the Company model

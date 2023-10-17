@@ -23,3 +23,6 @@ const investorSchema = new mongoose.Schema({
 });
 
 const Investor = mongoose.model('Investor', investorSchema);
+
+
+module.exports = Investor; // Export the Investor model
