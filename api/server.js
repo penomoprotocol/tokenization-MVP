@@ -1,4 +1,3 @@
-
 const express = require('express');
 const passport = require('passport');
 const JwtStrategy = require('passport-jwt').Strategy;
@@ -25,7 +24,8 @@ const app = express();
 app.use(express.json());
 
 // Connect to MongoDB
-mongoose.connect(MONGO_URI, { useNewUrlParser: true, useUnifiedTopology: true })
+//mongoose.connect(uri, { useNewUrlParser: true });
+mongoose.connect(MONGO_URI, {useNewUrlParser: true, useUnifiedTopology: true})
     .then(() => console.log('Connected to MongoDB'))
     .catch(err => console.error('Could not connect to MongoDB', err));
 
@@ -48,6 +48,11 @@ passport.use(new JwtStrategy(jwtOptions, (jwtPayload, done) => {
 }));
 app.use(passport.initialize());
 
+
+// Listen to server port
+app.listen(PORT, () => {
+    console.log(`Server is running on http://localhost:${PORT}`);
+});
 
 // // // Routes
 
@@ -74,28 +79,24 @@ app.post('/company/register', async (req, res) => {
 });
 
 // Company Login
-app.post('/company/login', async (req, res) => {
-    try {
-        const company = await Company.findOne({ email: req.body.email });
-        if (!company) {
-            return res.status(401).send('Company not found');
-        }
-        const isPasswordValid = await bcrypt.compare(req.body.password, company.password);
-        if (isPasswordValid) {
-            const token = jwt.sign({ id: company._id }, JWT_SECRET_KEY);
-            res.json({ token });
-        } else {
-            res.status(401).send('Invalid credentials');
-        }
-    } catch (error) {
-        res.status(500).send('Error logging in');
-    }
-});
+// app.post('/company/login', async (req, res) => {
+//     try {
+//         const company = await Company.findOne({ email: req.body.email });
+//         if (!company) {
+//             return res.status(401).send('Company not found');
+//         }
+//         const isPasswordValid = await bcrypt.compare(req.body.password, company.password);
+//         if (isPasswordValid) {
+//             const token = jwt.sign({ id: company._id }, JWT_SECRET_KEY);
+//             res.json({ token });
+//         } else {
+//             res.status(401).send('Invalid credentials');
+//         }
+//     } catch (error) {
+//         res.status(500).send('Error logging in');
+//     }
+// });
 
-
-app.listen(PORT, () => {
-    console.log(`Server is running on http://localhost:${PORT}`);
-});
 
 
 app.get('/company/:id', (req, res) => {
@@ -113,41 +114,41 @@ app.delete('/company/:id', (req, res) => {
 
 // // Investor Routes
 
-// Investor Registration
-app.post('/investor/register', async (req, res) => {
-    try {
-        const hashedPassword = await bcrypt.hash(req.body.password, 10);
-        const investor = new Investor({
-            name: req.body.name,
-            email: req.body.email,
-            password: hashedPassword
-        });
-        await investor.save();
-        const token = jwt.sign({ id: investor._id }, JWT_SECRET_KEY);
-        res.json({ token });
-    } catch (error) {
-        res.status(500).send('Error registering investor');
-    }
-});
+// // Investor Registration
+// app.post('/investor/register', async (req, res) => {
+//     try {
+//         const hashedPassword = await bcrypt.hash(req.body.password, 10);
+//         const investor = new Investor({
+//             name: req.body.name,
+//             email: req.body.email,
+//             password: hashedPassword
+//         });
+//         await investor.save();
+//         const token = jwt.sign({ id: investor._id }, JWT_SECRET_KEY);
+//         res.json({ token });
+//     } catch (error) {
+//         res.status(500).send('Error registering investor');
+//     }
+// });
 
 // Investor Login
-app.post('/investor/login', async (req, res) => {
-    try {
-        const investor = await Investor.findOne({ email: req.body.email });
-        if (!investor) {
-            return res.status(401).send('Investor not found');
-        }
-        const isPasswordValid = await bcrypt.compare(req.body.password, investor.password);
-        if (isPasswordValid) {
-            const token = jwt.sign({ id: investor._id }, JWT_SECRET_KEY);
-            res.json({ token });
-        } else {
-            res.status(401).send('Invalid credentials');
-        }
-    } catch (error) {
-        res.status(500).send('Error logging in');
-    }
-});
+// app.post('/investor/login', async (req, res) => {
+//     try {
+//         const investor = await Investor.findOne({ email: req.body.email });
+//         if (!investor) {
+//             return res.status(401).send('Investor not found');
+//         }
+//         const isPasswordValid = await bcrypt.compare(req.body.password, investor.password);
+//         if (isPasswordValid) {
+//             const token = jwt.sign({ id: investor._id }, JWT_SECRET_KEY);
+//             res.json({ token });
+//         } else {
+//             res.status(401).send('Invalid credentials');
+//         }
+//     } catch (error) {
+//         res.status(500).send('Error logging in');
+//     }
+// });
 
 app.post('/investor/buyToken', (req, res) => {
     // Handle token purchase
