@@ -24,7 +24,6 @@ describe('Company Registration API', function () {
             .then(function (res) {
                 res.should.have.status(200);
                 res.body.should.be.a('object');
-                console.log(res.body);
             })
             .catch(done()); // Handle promise rejections by calling done()
     });
@@ -41,7 +40,6 @@ describe('Company Registration API', function () {
                 res.should.have.status(200);
                 res.body.should.be.a('object');
                 res.body.should.have.property('token');
-                console.log(res.body);
             })
             .catch(done());
     });
