@@ -1,5 +1,12 @@
-const web3 = require('web3');
+//const web3 = require('web3');
 const CryptoJS = require('crypto-js');
+const {web3, networkId, gasPrice} = require('./config/web3Config');
+const { GCABI, GCAddress } = require('./config/GlobalStateContract');
+
+console.log("GCABI:", GCABI);
+console.log("GCAddress:", GCAddress);
+console.log("web3:", web3);
+
 
 const express = require('express');
 const passport = require('passport');
@@ -17,6 +24,9 @@ require('dotenv').config();
 const PORT = process.env.PORT || 3000;
 const SECRET_KEY = process.env.SECRET_KEY;
 const MONGO_URI = process.env.MONGO_URI;
+const MASTER_ADDRESS = process.env.MASTER_ADDRESS;
+const MASTER_PRIVATE_KEY = process.env.MASTER_PRIVATE_KEY;
+
 
 // Initialize app
 const app = express();
@@ -108,7 +118,7 @@ app.listen(PORT, () => {
 const createWallet = () => {
     const wallet = web3.eth.accounts.create();
     console.log("privateKey: ", wallet.privateKey);
-    return wallet.privateKey;
+    return wallet;
 };
 
 // Function to encrypt and decrypt private keys
@@ -164,8 +174,6 @@ app.post('/company/register', async (req, res) => {
     }
 });
 
-
-
 // Company Login
 app.post('/company/login', async (req, res) => {
     try {
@@ -189,35 +197,62 @@ app.post('/company/login', async (req, res) => {
     }
 });
 
-
-// Company KYB
+// Company KYC
 app.post('/company/verify', async (req, res) => {
     try {
-        const { companyAddress } = req.body; // Get the company's Ethereum wallet address from the request
+        const { companyWalletAddress } = req.body;
 
-        // Mock the KYC process (assume it's done by a third party and verified)
-        const kycVerified = true; // Replace with KYC verification logic
+        // Ensure that you are connected to the correct Ethereum network
+        // const currentNetworkId = await web3.eth.net.getId();
+        // if (currentNetworkId !== networkId) {
+        //     return res.status(400).json({ error: 'Connected to the wrong Ethereum network' });
+        // }
 
-        if (kycVerified) {
-            const accounts = await web3.eth.getAccounts();
-            const contract = new web3.eth.Contract(contractAbi, contractAddress); // Replace with actual ABI and contract address
-            const ownerAccount = accounts[0]; // The Ethereum account of the contract owner
-            const gas = await contract.methods.verifyCompany(companyAddress).estimateGas();
-            const result = await contract.methods.verifyCompany(companyAddress).send({
-                from: ownerAccount,
-                gas,
-            });
-            res.status(200).json({ transactionHash: result.transactionHash });
+        // Prepare the contract instance
+        const contract = new web3.eth.Contract(GCABI, GCAddress);
+        //console.log("contract: ", contract);
+
+        // Prepare the transaction data
+        const data = contract.methods.verifyCompany(companyWalletAddress).encodeABI();
+        //console.log("data: ", data);
+
+        // Fetch the nonce for the sender's address
+        const senderAddress = MASTER_ADDRESS; // Replace with the sender's Ethereum address
+        const nonce = await web3.eth.getTransactionCount(senderAddress);
+
+        // Prepare the transaction object
+        //const gasPrice = gasPrice; // Example gas price
+        const gasLimit = 200000; // Adjust the gas limit as needed
+        const rawTransaction = {
+            from: MASTER_ADDRESS,
+            to: GCAddress,
+            gas: gasLimit,
+            gasPrice,
+            nonce,
+            data,
+        };
+
+        // Sign the transaction with the private key
+        const signedTransaction = await web3.eth.accounts.signTransaction(rawTransaction, MASTER_PRIVATE_KEY);
+        console.log("signedTransaction: ", signedTransaction);
+
+        // Send the signed transaction to the network
+        const receipt = await web3.eth.sendSignedTransaction(signedTransaction.rawTransaction);
+
+        // Handle the transaction receipt
+        console.log('Transaction receipt:', receipt);
+
+        // Check if the transaction was successful
+        if (receipt.status) {
+            return res.status(200).json({ message: 'Company registered successfully' });
         } else {
-            res.status(403).send('KYC verification failed');
+            return res.status(500).json({ error: 'Transaction failed' });
         }
     } catch (error) {
-        console.error('Error verifying company:', error);
-        res.status(500).send('Error verifying company');
+        console.error('Error in company registration:', error);
+        return res.status(500).json({ error: 'An error occurred' });
     }
 });
-
-
 
 // Retrieve company details by ID
 app.get('/company/:id', async (req, res) => {
@@ -236,7 +271,6 @@ app.get('/company/:id', async (req, res) => {
         res.status(500).send('Error retrieving company');
     }
 });
-
 
 // Update company details by ID
 app.put('/company/:id', async (req, res) => {
@@ -273,7 +307,7 @@ app.delete('/company/:id', async (req, res) => {
 
 // // Investor Routes
 
-// // Investor Registration
+// Investor Registration
 app.post('/investor/register', async (req, res) => {
     try {
         const { name, email, password } = req.body;
@@ -327,8 +361,9 @@ app.post('/investor/login', async (req, res) => {
     }
 });
 
+// Handle investor token purchase
 app.post('/investor/buyToken', (req, res) => {
-    // Handle token purchase
+    
 });
 
 // Retrieve investor details by ID
@@ -348,7 +383,6 @@ app.get('/investor/:id', async (req, res) => {
         res.status(500).send('Error retrieving investor');
     }
 });
-
 
 // Update investor details by ID
 app.put('/investor/:id', async (req, res) => {
@@ -415,6 +449,7 @@ app.delete('/asset/:id', (req, res) => {
 });
 
 
+
 // // Transactions Routes (Nice to have for book keeping & analytics)
 
 app.post('/transactions', (req, res) => {
@@ -433,4 +468,6 @@ app.get('/transactions/user/:userId', (req, res) => {
     // Retrieve all transactions for a specific user
 });
 
+
+// // // EXPORT
 module.exports = {app, Company, Investor};

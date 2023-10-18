@@ -19,7 +19,7 @@
     "mongoose": "^7.6.2",
     "passport": "^0.6.0",
     "passport-jwt": "^4.0.1",
-    "web3": "^4.1.2"
+    "web3": "^4.2.0"
   },
   "devDependencies": {
     "chai": "^4.3.10",
