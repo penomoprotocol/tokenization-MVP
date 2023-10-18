@@ -156,6 +156,7 @@ app.post('/company/register', async (req, res) => {
         });
 
         await company.save();
+        console.log("Added company instance: ", company);
         res.status(200).json({ company });
     } catch (error) {
         console.error('Error while registering company:', error);
@@ -246,37 +247,53 @@ app.delete('/company/:id', async (req, res) => {
 // // Investor Registration
 app.post('/investor/register', async (req, res) => {
     try {
-        console.log('Received registration request:', req.body); // Add this line for debugging
-        const hashedPassword = await bcrypt.hash(req.body.password, 10);
+        const { name, email, password } = req.body;
+        const hashedPassword = await bcrypt.hash(password, 10);
+
+        // Create a new Ethereum wallet and get the private key
+        const wallet = createWallet();
+        const privateKey = wallet.privateKey;
+        const publicKey = wallet.address; // Get the public key (wallet address)
+
+        // Encrypt the private key with the user's password
+        const encryptedPrivateKey = encryptPrivateKey(privateKey, SECRET_KEY);
+
         const investor = new Investor({
-            name: req.body.name,
-            email: req.body.email,
-            password: hashedPassword
+            name,
+            email,
+            password: hashedPassword,
+            ethereumPrivateKey: encryptedPrivateKey, // Store the encrypted private key
+            ethereumPublicKey: publicKey, // Store the public key (wallet address)
         });
+
         await investor.save();
-        console.log('Company registered successfully:', investor); // Add this line for debugging
-        //res.status(200).send('Company registered successfully');
-        res.json({ investor });
+        console.log("Added investor instance: ", investor);
+        res.status(200).json({ investor });
     } catch (error) {
         console.error('Error while registering investor:', error);
         res.status(500).send('Error registering investor');
     }
 });
+
 //Investor Login
 app.post('/investor/login', async (req, res) => {
     try {
         const investor = await Investor.findOne({ email: req.body.email });
         if (!investor) {
+            console.log('Investor not found:', req.body.email); // Add this line for debugging
             return res.status(401).send('Investor not found');
         }
         const isPasswordValid = await bcrypt.compare(req.body.password, investor.password);
         if (isPasswordValid) {
+            console.log('Login successful:', investor.email); // Add this line for debugging
             const token = jwt.sign({ id: investor._id }, SECRET_KEY);
             res.json({ token });
         } else {
+            console.log('Invalid credentials:', req.body.email); // Add this line for debugging
             res.status(401).send('Invalid credentials');
         }
     } catch (error) {
+        console.error('Error logging in:', error);
         res.status(500).send('Error logging in');
     }
 });
@@ -336,6 +353,7 @@ app.delete('/investor/:id', async (req, res) => {
 });
 
 
+
 // // Asset Routes
 
 // Real World Assets Routes
@@ -386,4 +404,4 @@ app.get('/transactions/user/:userId', (req, res) => {
     // Retrieve all transactions for a specific user
 });
 
-module.exports = app;
+module.exports = {app, Company, Investor};

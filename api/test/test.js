@@ -1,9 +1,12 @@
 const chai = require('chai');
 const chaiHttp = require('chai-http');
-const app = require('../server.js');
 const should = chai.should();
 const mongoose = require('mongoose');
 require('dotenv').config();
+
+const {app} = require('../server.js');
+const {Company} = require('../server.js'); // Import the Company model
+const {Investor} = require('../server.js'); // Import the Company model
 
 // Get variables from .env
 const PORT = process.env.PORT || 3000;
@@ -12,48 +15,38 @@ const MONGO_URI = process.env.MONGO_URI;
 
 chai.use(chaiHttp);
 
-before(function (done) {
-    // Establish a connection to the test database 
-    mongoose.connect(MONGO_URI, {
-        useNewUrlParser: true,
-        useUnifiedTopology: true,
-    }, function (err) {
-        if (err) {
-            console.error('Failed to connect to the test database:', err);
-            done(err);
-        } else {
-            // Clear the Company collection in the test database
-            Company.deleteMany({}, function (err) {
-                if (err) {
-                    console.error('Failed to clear the Company collection:', err);
-                    done(err);
-                } else {
-                    done();
-                }
-            });
-            Investor.deleteMany({}, function (err) {
-                if (err) {
-                    console.error('Failed to clear the Investor collection:', err);
-                    done(err);
-                } else {
-                    done();
-                }
-            });
-        }
-    }).catch(done());
+before(async function () {
+    try {
+        // Establish a connection to the test database
+        await mongoose.connect(MONGO_URI, {
+            useNewUrlParser: true,
+            useUnifiedTopology: true,
+        });
+
+        // Clear the Company collection in the test database
+        await Company.deleteMany();
+
+        // Clear the Investor collection in the test database
+        await Investor.deleteMany();
+
+    } catch (err) {
+        // Handle errors
+        console.error('Failed to connect or clear collections:', err);
+        throw err; // This will fail the test suite
+    }
 });
 
-after(function (done) {
-    // Close the Mongoose connection after all tests
-    mongoose.connection.close(function (err) {
-        if (err) {
-            console.error('Failed to close the Mongoose connection:', err);
-            done(err);
-        } else {
-            done();
-        }
-    }).catch(done());
+after(async function () {
+    try {
+        // Close the Mongoose connection after all tests
+        await mongoose.connection.close();
+    } catch (err) {
+        // Handle errors
+        console.error('Failed to close the Mongoose connection:', err);
+        throw err; // This will fail the test suite
+    }
 });
+
 
 describe('Company API', function () {
     let companyId; // Define companyId in the outer scope
@@ -70,7 +63,6 @@ describe('Company API', function () {
                 res.should.have.status(200);
                 res.body.should.be.a('object');
                 companyId = res.body.company._id; // Extract the ID of the registered company
-                console.log("companyId: ", companyId);
                 done();
             })
             .catch(function (err) {
@@ -109,7 +101,6 @@ describe('Company API', function () {
             .then(function (res) {
                 res.should.have.status(200);
                 res.body.should.be.a('object');
-                console.log(res.body);
                 done();
             })
             .catch(function (err) {
