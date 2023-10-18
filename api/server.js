@@ -190,6 +190,35 @@ app.post('/company/login', async (req, res) => {
 });
 
 
+// Company KYB
+app.post('/company/verify', async (req, res) => {
+    try {
+        const { companyAddress } = req.body; // Get the company's Ethereum wallet address from the request
+
+        // Mock the KYC process (assume it's done by a third party and verified)
+        const kycVerified = true; // Replace with KYC verification logic
+
+        if (kycVerified) {
+            const accounts = await web3.eth.getAccounts();
+            const contract = new web3.eth.Contract(contractAbi, contractAddress); // Replace with actual ABI and contract address
+            const ownerAccount = accounts[0]; // The Ethereum account of the contract owner
+            const gas = await contract.methods.verifyCompany(companyAddress).estimateGas();
+            const result = await contract.methods.verifyCompany(companyAddress).send({
+                from: ownerAccount,
+                gas,
+            });
+            res.status(200).json({ transactionHash: result.transactionHash });
+        } else {
+            res.status(403).send('KYC verification failed');
+        }
+    } catch (error) {
+        console.error('Error verifying company:', error);
+        res.status(500).send('Error verifying company');
+    }
+});
+
+
+
 // Retrieve company details by ID
 app.get('/company/:id', async (req, res) => {
     try {

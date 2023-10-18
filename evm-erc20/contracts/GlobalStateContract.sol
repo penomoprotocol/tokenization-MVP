@@ -3,10 +3,13 @@ pragma solidity ^0.8.20;
 
 contract GlobalStateContract {
     address public owner;
-    address[] public registeredInvestors;
+    address[] public verifiedInvestors;
+    address[] public verifiedCompanies;
+    
     uint256 public penomoFee;
 
-    event InvestorRegistered(address indexed investor);
+    event InvestorVerified(address indexed investor);
+    event CompanyVerified(address indexed company);
     event PenomoFeeUpdated(uint256 newFee);
 
     constructor(uint256 _penomoFee) {
@@ -19,10 +22,16 @@ contract GlobalStateContract {
         _;
     }
 
-    function registerInvestor(address investor) external onlyOwner {
-        require(!isRegisteredInvestor(investor), "Investor is already registered");
-        registeredInvestors.push(investor);
-        emit InvestorRegistered(investor);
+    function verifyInvestor(address investor) external onlyOwner {
+        require(!isVerifiedInvestor(investor), "Investor is already verified");
+        verifiedInvestors.push(investor);
+        emit InvestorVerified(investor);
+    }
+
+        function verifyCompany(address company) external onlyOwner {
+        require(!isVerifiedCompany(company), "Company is already verified");
+        verifiedCompanies.push(company);
+        emit CompanyVerified(company);
     }
 
     function setPenomoFee(uint256 _penomoFee) external onlyOwner {
@@ -30,12 +39,23 @@ contract GlobalStateContract {
         emit PenomoFeeUpdated(_penomoFee);
     }
 
-    function isRegisteredInvestor(address investor) public view returns(bool) {
-        for(uint i = 0; i < registeredInvestors.length; i++) {
-            if(registeredInvestors[i] == investor) {
+    function isVerifiedInvestor(address investor) public view returns(bool) {
+        for(uint i = 0; i < verifiedInvestors.length; i++) {
+            if(verifiedInvestors[i] == investor) {
                 return true;
             }
         }
         return false;
     }
+
+    function isVerifiedCompany(address company) public view returns(bool) {
+        for(uint i = 0; i < verifiedCompanies.length; i++) {
+            if(verifiedCompanies[i] == company) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+
 }
