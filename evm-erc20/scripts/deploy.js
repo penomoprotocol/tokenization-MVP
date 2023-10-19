@@ -15,7 +15,7 @@ async function main() {
   console.log(`deployed to ${globalStateContract.target}`);
 
 
-  // Deploy GlobalStateContract
+  // Deploy TokenContract
   const TokenContractERC20 = await hre.ethers.getContractFactory("TokenContractERC20");
   const tokenContractERC20 = await TokenContractERC20.deploy(
     globalStateContract.target,

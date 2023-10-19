@@ -39,11 +39,4 @@ contract GlobalStateContract {
         emit PenomoFeeUpdated(_penomoFee);
     }
 
-    function isVerifiedInvestor(address investor) public view returns (bool) {
-        return verifiedInvestors[investor];
-    }
-
-    function isVerifiedCompany(address company) public view returns (bool) {
-        return verifiedCompanies[company];
-    }
 }

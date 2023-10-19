@@ -112,7 +112,7 @@ describe('Company API', function () {
     
             // Query the Global State Contract to check if the address is in the whitelist
             const contract = new web3.eth.Contract(GCABI, GCAddress);
-            const verified = await contract.methods.isVerifiedCompany(companyWalletAddress).call();
+            const verified = await contract.methods.verifiedCompanies(companyWalletAddress).call();
             console.log("verified: ", verified);
     
             // Use chai-as-promised to make assertions on the promise result
@@ -237,7 +237,7 @@ describe('Investor API', function () {
     
             // Query the Global State Contract to check if the address is in the whitelist
             const contract = new web3.eth.Contract(GCABI, GCAddress);
-            const verified = await contract.methods.isVerifiedInvestor(investorWalletAddress).call();
+            const verified = await contract.methods.verifiedInvestors(investorWalletAddress).call();
             console.log("verified: ", verified);
     
             // Use chai-as-promised to make assertions on the promise result

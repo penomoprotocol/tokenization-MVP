@@ -51,44 +51,6 @@ const GCABI = [
 		"type": "event"
 	},
 	{
-		"inputs": [
-			{
-				"internalType": "address",
-				"name": "company",
-				"type": "address"
-			}
-		],
-		"name": "isVerifiedCompany",
-		"outputs": [
-			{
-				"internalType": "bool",
-				"name": "",
-				"type": "bool"
-			}
-		],
-		"stateMutability": "view",
-		"type": "function"
-	},
-	{
-		"inputs": [
-			{
-				"internalType": "address",
-				"name": "investor",
-				"type": "address"
-			}
-		],
-		"name": "isVerifiedInvestor",
-		"outputs": [
-			{
-				"internalType": "bool",
-				"name": "",
-				"type": "bool"
-			}
-		],
-		"stateMutability": "view",
-		"type": "function"
-	},
-	{
 		"inputs": [],
 		"name": "owner",
 		"outputs": [
@@ -130,17 +92,17 @@ const GCABI = [
 	{
 		"inputs": [
 			{
-				"internalType": "uint256",
+				"internalType": "address",
 				"name": "",
-				"type": "uint256"
+				"type": "address"
 			}
 		],
 		"name": "verifiedCompanies",
 		"outputs": [
 			{
-				"internalType": "address",
+				"internalType": "bool",
 				"name": "",
-				"type": "address"
+				"type": "bool"
 			}
 		],
 		"stateMutability": "view",
@@ -149,17 +111,17 @@ const GCABI = [
 	{
 		"inputs": [
 			{
-				"internalType": "uint256",
+				"internalType": "address",
 				"name": "",
-				"type": "uint256"
+				"type": "address"
 			}
 		],
 		"name": "verifiedInvestors",
 		"outputs": [
 			{
-				"internalType": "address",
+				"internalType": "bool",
 				"name": "",
-				"type": "address"
+				"type": "bool"
 			}
 		],
 		"stateMutability": "view",
@@ -193,7 +155,7 @@ const GCABI = [
 	}
 ];
 
-const GCAddress = '0x31e4A8Ca481BD693B8d8bA24f55C97e060899a91';
+const GCAddress = '0x13AaF783107aA2116c2A4279948868791c5C67f1';
 
 
 module.exports = {

@@ -1,12 +1,10 @@
 //const web3 = require('web3');
 const CryptoJS = require('crypto-js');
-const {web3, networkId, gasPrice} = require('./config/web3Config');
+const { web3, networkId, gasPrice } = require('./config/web3Config');
 const { GCABI, GCAddress } = require('./config/GlobalStateContract');
 
-console.log("GCABI:", GCABI);
-console.log("GCAddress:", GCAddress);
-console.log("web3:", web3);
-
+const fs = require('fs');
+const path = require('path');
 
 const express = require('express');
 const passport = require('passport');
@@ -56,7 +54,7 @@ const companySchema = new mongoose.Schema({
         type: String, // Store the encrypted private key as a string
     },
     ethereumPublicKey: {
-        type: String, 
+        type: String,
     },
 });
 
@@ -82,7 +80,7 @@ const investorSchema = new mongoose.Schema({
         type: String, // Store the encrypted private key as a string
     },
     ethereumPublicKey: {
-        type: String, 
+        type: String,
     },
     // ... 
 });
@@ -131,6 +129,48 @@ const decryptPrivateKey = (encryptedKey, SECRET_KEY) => {
     const decrypted = CryptoJS.AES.decrypt(encryptedKey, SECRET_KEY).toString(CryptoJS.enc.Utf8);
     return decrypted;
 };
+
+// // // DEPLOYMENT SCRIPTS
+
+// Deploy Token Contract
+async function deployTokenContract(DIDs, CIDs, revenueGoals, name, symbol, revenueShare, contractTerm, maxTokenSupply, tokenPrice) {
+    // Read the contract's ABI and bytecode
+    const contractPath = path.join(__dirname, 'path-to-your-build-directory', 'TokenContractERC20.json'); // Replace with your contract's build directory path
+    const contractJSON = JSON.parse(fs.readFileSync(contractPath, 'utf8'));
+    const contractABI = contractJSON.abi;
+    const contractBytecode = contractJSON.bytecode;
+
+    // Initialize the contract object
+    const contract = new web3.eth.Contract(contractABI);
+
+    // Construct constructor arguments
+    const constructorArgs = {
+        penomoWallet: MASTER_ADDRESS,
+        globalStateAddress: GCAddress,
+        serviceContractAddress: '0xYourServiceContractAddressHere', // Replace with your service contract address
+        name: name,
+        symbol: symbol,
+        revenueShare: revenueShare,
+        contractTerm: contractTerm,
+        maxTokenSupply: maxTokenSupply,
+        tokenPrice: tokenPrice
+    };
+
+    // Deploy the contract
+    const deploy = contract.deploy({
+        data: contractBytecode,
+        arguments: [constructorArgs, DIDs, CIDs, revenueGoals]
+    });
+
+    const instance = await deploy.send({
+        from: MASTER_ADDRESS,
+        gas: 6000000,  // You might need to adjust this gas limit
+        gasPrice: web3.utils.toWei(gasPrice.toString(), 'gwei')
+    });
+
+    return instance.options.address;
+}
+
 
 
 
@@ -355,7 +395,6 @@ app.post('/investor/login', async (req, res) => {
     }
 });
 
-
 // Investor KYC
 app.post('/investor/verify', async (req, res) => {
     try {
@@ -407,13 +446,9 @@ app.post('/investor/verify', async (req, res) => {
     }
 });
 
-
-
-
-
 // Handle investor token purchase
 app.post('/investor/buyToken', (req, res) => {
-    
+
 });
 
 // Retrieve investor details by ID
@@ -478,9 +513,28 @@ app.post('/asset/storeData', (req, res) => {
     // Store asset data and return CID
 });
 
-app.post('/asset/tokenize', (req, res) => {
-    // Tokenize asset and deploy contracts
+
+app.post('/asset/tokenize', async (req, res) => {
+    try {
+        // Get data from the request
+        const { DIDs, CIDs, revenueGoals, name, symbol, revenueShare, contractTerm, maxTokenSupply, tokenPrice } = req.body;
+
+        if (!DIDs || !CIDs || !revenueGoals || !name || !symbol || !revenueShare || !contractTerm || !maxTokenSupply || !tokenPrice) {
+            return res.status(400).send('Missing required parameters.');
+        }
+
+        // Deploy the contract and get its address
+        const TokenContractAddress = await deployTokenContract(DIDs, CIDs, revenueGoals, name, symbol, revenueShare, contractTerm, maxTokenSupply, tokenPrice);
+
+        // Respond with the deployed contract's address
+        res.status(200).json({ TokenContractAddress: TokenContractAddress });
+
+    } catch (error) {
+        console.error('Error deploying Token Contract:', error);
+        res.status(500).send('Failed to deploy the Token Contract.');
+    }
 });
+
 
 app.post('/asset/connectRevenueStream', (req, res) => {
     // Deploy revenue stream contract and connect to tokenization engine
@@ -520,4 +574,4 @@ app.get('/transactions/user/:userId', (req, res) => {
 
 
 // // // EXPORT
-module.exports = {app, Company, Investor};
+module.exports = { app, Company, Investor };
