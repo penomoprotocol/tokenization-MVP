@@ -202,12 +202,6 @@ app.post('/company/verify', async (req, res) => {
     try {
         const { companyWalletAddress } = req.body;
 
-        // Ensure that you are connected to the correct Ethereum network
-        // const currentNetworkId = await web3.eth.net.getId();
-        // if (currentNetworkId !== networkId) {
-        //     return res.status(400).json({ error: 'Connected to the wrong Ethereum network' });
-        // }
-
         // Prepare the contract instance
         const contract = new web3.eth.Contract(GCABI, GCAddress);
         //console.log("contract: ", contract);
@@ -244,7 +238,7 @@ app.post('/company/verify', async (req, res) => {
 
         // Check if the transaction was successful
         if (receipt.status) {
-            return res.status(200).json({ message: 'Company registered successfully' });
+            return res.status(200).json({ message: 'Company successfully verified' });
         } else {
             return res.status(500).json({ error: 'Transaction failed' });
         }
@@ -360,6 +354,62 @@ app.post('/investor/login', async (req, res) => {
         res.status(500).send('Error logging in');
     }
 });
+
+
+// Investor KYC
+app.post('/investor/verify', async (req, res) => {
+    try {
+        const { investorWalletAddress } = req.body;
+
+        // Prepare the contract instance
+        const contract = new web3.eth.Contract(GCABI, GCAddress);
+        //console.log("contract: ", contract);
+
+        // Prepare the transaction data
+        const data = contract.methods.verifyInvestor(investorWalletAddress).encodeABI();
+        //console.log("data: ", data);
+
+        // Fetch the nonce for the sender's address
+        const senderAddress = MASTER_ADDRESS; // Replace with the sender's Ethereum address
+        const nonce = await web3.eth.getTransactionCount(senderAddress);
+
+        // Prepare the transaction object
+        //const gasPrice = gasPrice; // Example gas price
+        const gasLimit = 200000; // Adjust the gas limit as needed
+        const rawTransaction = {
+            from: MASTER_ADDRESS,
+            to: GCAddress,
+            gas: gasLimit,
+            gasPrice,
+            nonce,
+            data,
+        };
+
+        // Sign the transaction with the private key
+        const signedTransaction = await web3.eth.accounts.signTransaction(rawTransaction, MASTER_PRIVATE_KEY);
+        console.log("signedTransaction: ", signedTransaction);
+
+        // Send the signed transaction to the network
+        const receipt = await web3.eth.sendSignedTransaction(signedTransaction.rawTransaction);
+
+        // Handle the transaction receipt
+        console.log('Transaction receipt:', receipt);
+
+        // Check if the transaction was successful
+        if (receipt.status) {
+            return res.status(200).json({ message: 'Investor successfully verified' });
+        } else {
+            return res.status(500).json({ error: 'Transaction failed' });
+        }
+    } catch (error) {
+        console.error('Error in investor registration:', error);
+        return res.status(500).json({ error: 'An error occurred' });
+    }
+});
+
+
+
+
 
 // Handle investor token purchase
 app.post('/investor/buyToken', (req, res) => {

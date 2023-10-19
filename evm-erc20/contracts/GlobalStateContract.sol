@@ -3,8 +3,8 @@ pragma solidity ^0.8.20;
 
 contract GlobalStateContract {
     address public owner;
-    address[] public verifiedInvestors;
-    address[] public verifiedCompanies;
+    mapping(address => bool) public verifiedInvestors;
+    mapping(address => bool) public verifiedCompanies;
     
     uint256 public penomoFee;
 
@@ -23,14 +23,14 @@ contract GlobalStateContract {
     }
 
     function verifyInvestor(address investor) external onlyOwner {
-        require(!isVerifiedInvestor(investor), "Investor is already verified");
-        verifiedInvestors.push(investor);
+        require(!verifiedInvestors[investor], "Investor is already verified");
+        verifiedInvestors[investor] = true;
         emit InvestorVerified(investor);
     }
 
-        function verifyCompany(address company) external onlyOwner {
-        require(!isVerifiedCompany(company), "Company is already verified");
-        verifiedCompanies.push(company);
+    function verifyCompany(address company) external onlyOwner {
+        require(!verifiedCompanies[company], "Company is already verified");
+        verifiedCompanies[company] = true;
         emit CompanyVerified(company);
     }
 
@@ -39,23 +39,11 @@ contract GlobalStateContract {
         emit PenomoFeeUpdated(_penomoFee);
     }
 
-    function isVerifiedInvestor(address investor) public view returns(bool) {
-        for(uint i = 0; i < verifiedInvestors.length; i++) {
-            if(verifiedInvestors[i] == investor) {
-                return true;
-            }
-        }
-        return false;
+    function isVerifiedInvestor(address investor) public view returns (bool) {
+        return verifiedInvestors[investor];
     }
 
-    function isVerifiedCompany(address company) public view returns(bool) {
-        for(uint i = 0; i < verifiedCompanies.length; i++) {
-            if(verifiedCompanies[i] == company) {
-                return true;
-            }
-        }
-        return false;
+    function isVerifiedCompany(address company) public view returns (bool) {
+        return verifiedCompanies[company];
     }
-
-
 }
