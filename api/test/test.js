@@ -303,3 +303,41 @@ describe('Investor API', function () {
     // });
 });
 
+
+describe('Asset Tokenization API', function () {
+    let tokenContractAddress;
+
+    it('should deploy a token contract successfully', async () => {
+        try {
+            const response = await chai.request(app)
+                .post('/asset/tokenize')
+                .send({
+                    DIDs: [12345], 
+                    CIDs: [67890], 
+                    revenueGoals: [1000], 
+                    name:"BatteryX" , 
+                    symbol: "BAX" , 
+                    revenueShare: 5000 , 
+                    contractTerm: 24, 
+                    maxTokenSupply: 1000000, 
+                    tokenPrice: 1n*10n**18n, 
+                });
+            
+            response.should.have.status(200);
+            response.body.should.be.a('object');
+            response.body.should.have.property('tokenContractAddress');
+            tokenContractAddress = response.body.tokenContractAddress;
+            
+            // Now let's verify if this address is a valid contract address on the Ethereum network
+            const codeAtAddress = await web3.eth.getCode(tokenContractAddress);
+            
+            // '0x' means there's no code at that address i.e., it's not a contract
+            codeAtAddress.should.not.equal('0x');
+            
+        } catch (error) {
+            // Handle errors
+            throw error;
+        }
+    });
+});
+

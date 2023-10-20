@@ -135,7 +135,7 @@ const decryptPrivateKey = (encryptedKey, SECRET_KEY) => {
 // Deploy Token Contract
 async function deployTokenContract(DIDs, CIDs, revenueGoals, name, symbol, revenueShare, contractTerm, maxTokenSupply, tokenPrice) {
     // Read the contract's ABI and bytecode
-    const contractPath = path.join(__dirname, 'path-to-your-build-directory', 'TokenContractERC20.json'); // Replace with your contract's build directory path
+    const contractPath = path.join(__dirname, '..', 'evm-erc20', 'build', 'contracts', 'TokenContractERC20.json');
     const contractJSON = JSON.parse(fs.readFileSync(contractPath, 'utf8'));
     const contractABI = contractJSON.abi;
     const contractBytecode = contractJSON.bytecode;
