@@ -115,7 +115,7 @@ contract TokenContractERC20 is ERC20 {
         uint256 amount
     ) internal {
         require(
-            globalState.isRegisteredInvestor(to),
+            globalState.verifiedInvestors(to),
             "Recipient is not whitelisted as registered investor."
         );
 

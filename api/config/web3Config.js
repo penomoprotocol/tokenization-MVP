@@ -12,8 +12,12 @@ const gasPrice = '20000000000';
 const web3 = new Web3(providerUrl);
 
 
+// Global State Contract Address
+const GSCAddress = '0x13AaF783107aA2116c2A4279948868791c5C67f1';
+
 module.exports = {
   web3,
   networkId,
   gasPrice,
+  GSCAddress
 };

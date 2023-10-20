@@ -306,8 +306,9 @@ describe('Investor API', function () {
 
 describe('Asset Tokenization API', function () {
     let tokenContractAddress;
+    let serviceContractAddress;
 
-    it('should deploy a token contract successfully', async () => {
+    it('should deploy a token contract and service contract successfully', async () => {
         try {
             const response = await chai.request(app)
                 .post('/asset/tokenize')
@@ -325,14 +326,19 @@ describe('Asset Tokenization API', function () {
             
             response.should.have.status(200);
             response.body.should.be.a('object');
-            response.body.should.have.property('tokenContractAddress');
-            tokenContractAddress = response.body.tokenContractAddress;
+            response.body.should.have.property('TokenContractAddress');
+            response.body.should.have.property('ServiceContractAddress');
+
+            tokenContractAddress = response.body.TokenContractAddress;
+            serviceContractAddress = response.body.ServiceContractAddress;
+
+            // Verify if addresses are valid contract addresses on Eth network
+            const tokenCodeAtAddress = await web3.eth.getCode(tokenContractAddress);
+            const serviceCodeAtAddress = await web3.eth.getCode(serviceContractAddress);
             
-            // Now let's verify if this address is a valid contract address on the Ethereum network
-            const codeAtAddress = await web3.eth.getCode(tokenContractAddress);
-            
-            // '0x' means there's no code at that address i.e., it's not a contract
-            codeAtAddress.should.not.equal('0x');
+            // '0x' == there's no code at that address i.e., it's not a contract
+            tokenCodeAtAddress.should.not.equal('0x');
+            serviceCodeAtAddress.should.not.equal('0x');
             
         } catch (error) {
             // Handle errors
@@ -340,4 +346,5 @@ describe('Asset Tokenization API', function () {
         }
     });
 });
+
 
