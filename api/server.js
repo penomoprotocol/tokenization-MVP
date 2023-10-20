@@ -171,7 +171,7 @@ async function deployServiceContract(GSCAddress) {
         gasPrice: currentGasPrice,  // Using the fetched gas price
         from: MASTER_ADDRESS
     };
-    
+
     const signedTx = await web3.eth.accounts.signTransaction(deployTx, MASTER_PRIVATE_KEY);
     const receipt = await web3.eth.sendSignedTransaction(signedTx.raw || signedTx.rawTransaction);
 
@@ -205,6 +205,70 @@ async function deployTokenContract(DIDs, CIDs, revenueGoals, name, symbol, reven
         from: MASTER_ADDRESS
     });
 
+
+    const bufferGas = estimatedGas * 110n / 100n;  // adding a 10% buffer
+    const roundedGas = bufferGas + (10n - bufferGas % 10n);  // rounding up to the nearest 10
+    let currentGasPrice = await getCurrentGasPrice();
+
+    const deployTx = {
+        data: deploymentData.encodeABI(),
+        gas: roundedGas.toString(),
+        gasPrice: currentGasPrice,  // Using the fetched gas price
+        from: MASTER_ADDRESS
+    };
+
+    const signedTx = await web3.eth.accounts.signTransaction(deployTx, MASTER_PRIVATE_KEY);
+    const receipt = await web3.eth.sendSignedTransaction(signedTx.raw || signedTx.rawTransaction);
+
+    return receipt.contractAddress;
+}
+
+// Deploy Liquidity Contract
+async function deployLiquidityContract(serviceContractAddress, BBWallet, PenomoWallet) {
+    const contractPath = path.join(LCBuild); // assuming LCBuild is the build path for LiquidityContract
+    const contractJSON = JSON.parse(fs.readFileSync(contractPath, 'utf8'));
+    const LiquidityContract = new web3.eth.Contract(contractJSON.abi);
+
+    const deploymentData = LiquidityContract.deploy({
+        data: contractJSON.bytecode,
+        arguments: [serviceContractAddress, BBWallet, PenomoWallet]
+    });
+
+    const estimatedGas = await deploymentData.estimateGas({
+        from: MASTER_ADDRESS
+    });
+
+    const bufferGas = estimatedGas * 110n / 100n;  // adding a 10% buffer
+    const roundedGas = bufferGas + (10n - bufferGas % 10n);  // rounding up to the nearest 10
+    let currentGasPrice = await getCurrentGasPrice();
+
+    const deployTx = {
+        data: deploymentData.encodeABI(),
+        gas: roundedGas.toString(),
+        gasPrice: currentGasPrice,  // Using the fetched gas price
+        from: MASTER_ADDRESS
+    };
+
+    const signedTx = await web3.eth.accounts.signTransaction(deployTx, MASTER_PRIVATE_KEY);
+    const receipt = await web3.eth.sendSignedTransaction(signedTx.raw || signedTx.rawTransaction);
+
+    return receipt.contractAddress;
+}
+
+// Deploy Revenue Distribution Contract
+async function deployRevenueDistributionContract(serviceContractAddress, tokenContractERC20Address, liquidityContractAddress) {
+    const contractPath = path.join(RDCBuild); // assuming RDCBuild is the build path for RevenueDistributionContract
+    const contractJSON = JSON.parse(fs.readFileSync(contractPath, 'utf8'));
+    const RevenueDistributionContract = new web3.eth.Contract(contractJSON.abi);
+
+    const deploymentData = RevenueDistributionContract.deploy({
+        data: contractJSON.bytecode,
+        arguments: [serviceContractAddress, tokenContractERC20Address, liquidityContractAddress]
+    });
+
+    const estimatedGas = await deploymentData.estimateGas({
+        from: MASTER_ADDRESS
+    });
 
     const bufferGas = estimatedGas * 110n / 100n;  // adding a 10% buffer
     const roundedGas = bufferGas + (10n - bufferGas % 10n);  // rounding up to the nearest 10
@@ -580,22 +644,45 @@ app.post('/asset/storeData', (req, res) => {
 app.post('/asset/tokenize', async (req, res) => {
     try {
         // Get data from the request
-        const { DIDs, CIDs, revenueGoals, name, symbol, revenueShare, contractTerm, maxTokenSupply, tokenPrice } = req.body;
+        const { DIDs, CIDs, revenueGoals, name, symbol, revenueShare, contractTerm, maxTokenSupply, tokenPrice, BBWalletAddress } = req.body;
 
-        if (!DIDs || !CIDs || !revenueGoals || !name || !symbol || !revenueShare || !contractTerm || !maxTokenSupply || !tokenPrice) {
+        if (!DIDs || !CIDs || !revenueGoals || !name || !symbol || !revenueShare || !contractTerm || !maxTokenSupply || !tokenPrice ||!BBWalletAddress ) {
             return res.status(400).send('Missing required parameters.');
         }
 
         // Deploy the ServiceContract and get its address
-        const ServiceContractAddress = await deployServiceContract(GSCAddress);
+        const serviceContractAddress = await deployServiceContract(GSCAddress);
 
         // Deploy the TokenContract using the ServiceContract's address
-        const TokenContractAddress = await deployTokenContract(DIDs, CIDs, revenueGoals, name, symbol, revenueShare, contractTerm, maxTokenSupply, tokenPrice, ServiceContractAddress);
+        const tokenContractAddress = await deployTokenContract(DIDs, CIDs, revenueGoals, name, symbol, revenueShare, contractTerm, maxTokenSupply, tokenPrice, serviceContractAddress);
+
+        // Deploy LiquidityContract
+        const liquidityContractAddress = await deployLiquidityContract(serviceContractAddress, BBWalletAddress, MASTER_ADDRESS);
+
+        // Deploy RevenueDistributionContract
+        const revenueDistributionContractAddress = await deployRevenueDistributionContract(serviceContractAddress, tokenContractAddress, liquidityContractAddress);
+
+
+        // // Get SC ABI
+        // const contractPath = path.join(SCBuild);
+        // const contractJSON = JSON.parse(fs.readFileSync(contractPath, 'utf8'));
+        // const SCABI = contractJSON.abi;
+
+
+        // // Set LiquidityContract and RevenueDistributionContract in ServiceContract
+        // const ServiceContract = new web3.eth.Contract(SCABI, serviceContractAddress);
+        // await ServiceContract.methods.setTokenContract(tokenContractAddress).send({ from: MASTER_ADDRESS });
+        // await ServiceContract.methods.setLiquidityContract(liquidityContractAddress).send({ from: MASTER_ADDRESS });
+        // await ServiceContract.methods.setRevenueDistributionContract(revenueDistributionContractAddress).send({ from: MASTER_ADDRESS });
+
+
 
         // Respond with the deployed contracts' addresses
         res.status(200).json({
-            TokenContractAddress: TokenContractAddress,
-            ServiceContractAddress: ServiceContractAddress
+            tokenContractAddress: tokenContractAddress,
+            serviceContractAddress: serviceContractAddress,
+            liquidityContractAddress: liquidityContractAddress,
+            revenueDistributionContractAddress: revenueDistributionContractAddress,
         });
 
     } catch (error) {

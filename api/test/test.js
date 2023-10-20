@@ -64,7 +64,7 @@ after(async function () {
 });
 
 
-describe('Company API', function () {
+describe('Test API', function () {
     let companyId; // Define companyId in the outer scope
     let companyWalletAddress;
 
@@ -119,7 +119,7 @@ describe('Company API', function () {
                 });
             response.should.have.status(200);
             response.body.should.have.property('message', 'Company successfully verified');
-    
+
             // Get ABI 
             const contractPath = path.join(GSCBuild);
             const contractJSON = JSON.parse(fs.readFileSync(contractPath, 'utf8'));
@@ -129,7 +129,7 @@ describe('Company API', function () {
             const contract = new web3.eth.Contract(GSCABI, GSCAddress);
             const verified = await contract.methods.verifiedCompanies(companyWalletAddress).call();
             console.log("verified: ", verified);
-    
+
             // Use chai-as-promised to make assertions on the promise result
             verified.should.be.true;
         } catch (error) {
@@ -138,63 +138,60 @@ describe('Company API', function () {
         }
     });
 
-        it('should get company details', (done) => {
-            chai.request(app)
-                .get(`/company/${companyId}`)
-                .send({
-                    _id: companyId,
-                })
-                .then(function (res) {
-                    res.should.have.status(200);
-                    res.body.should.be.a('object');
-                    done();
-                })
-                .catch(function (err) {
-                    // Handle errors and signal test completion in case of failure
-                    done(err);
-                });
-        });
+    it('should get company details', (done) => {
+        chai.request(app)
+            .get(`/company/${companyId}`)
+            .send({
+                _id: companyId,
+            })
+            .then(function (res) {
+                res.should.have.status(200);
+                res.body.should.be.a('object');
+                done();
+            })
+            .catch(function (err) {
+                // Handle errors and signal test completion in case of failure
+                done(err);
+            });
+    });
 
-        it('should update company details', (done) => {
-            chai.request(app)
-                .put(`/company/${companyId}`)
-                .send({
-                    _id: companyId,
-                    name: 'Updated Company Name',
-                })
-                .then(function (res) {
-                    res.should.have.status(200);
-                    res.body.should.be.a('object');
-                    res.body.should.have.property('name', 'Updated Company Name');
-                    done(); // Signal that the test is complete on success
-                })
-                .catch(function (err) {
-                    // Handle errors and signal test completion in case of failure
-                    done(err);
-                });
-        });
+    it('should update company details', (done) => {
+        chai.request(app)
+            .put(`/company/${companyId}`)
+            .send({
+                _id: companyId,
+                name: 'Updated Company Name',
+            })
+            .then(function (res) {
+                res.should.have.status(200);
+                res.body.should.be.a('object');
+                res.body.should.have.property('name', 'Updated Company Name');
+                done(); // Signal that the test is complete on success
+            })
+            .catch(function (err) {
+                // Handle errors and signal test completion in case of failure
+                done(err);
+            });
+    });
 
-        // it('should delete the company', (done) => {
-        //     chai.request(app)
-        //         .delete(`/company/${companyId}`)
-        //         .send({
-        //             _id: companyId,
-        //         })
-        //         .then(function (res) {
-        //             res.should.have.status(200);
-        //             done();
-        //         })
-        //         .catch(function (err) {
-        //             // Handle errors and signal test completion in case of failure
-        //             done(err);
-        //         });
-        // });
-
-});
+    // it('should delete the company', (done) => {
+    //     chai.request(app)
+    //         .delete(`/company/${companyId}`)
+    //         .send({
+    //             _id: companyId,
+    //         })
+    //         .then(function (res) {
+    //             res.should.have.status(200);
+    //             done();
+    //         })
+    //         .catch(function (err) {
+    //             // Handle errors and signal test completion in case of failure
+    //             done(err);
+    //         });
+    // });
 
 
 
-describe('Investor API', function () {
     let investorId; // Define investorId in the outer scope
     let investorWalletAddress;
 
@@ -259,7 +256,7 @@ describe('Investor API', function () {
             const contract = new web3.eth.Contract(GSCABI, GSCAddress);
             const verified = await contract.methods.verifiedInvestors(investorWalletAddress).call();
             console.log("verified: ", verified);
-    
+
             // Use chai-as-promised to make assertions on the promise result
             verified.should.be.true;
         } catch (error) {
@@ -321,10 +318,7 @@ describe('Investor API', function () {
     //             done(err);
     //         });
     // });
-});
 
-
-describe('Asset Tokenization API', function () {
     let tokenContractAddress;
     let serviceContractAddress;
 
@@ -333,39 +327,47 @@ describe('Asset Tokenization API', function () {
             const response = await chai.request(app)
                 .post('/asset/tokenize')
                 .send({
-                    DIDs: ["12345"], 
-                    CIDs: ["67890"], 
-                    revenueGoals: [1000n.toString()], 
-                    name: "BatteryX", 
-                    symbol: "BAX", 
-                    revenueShare: 5000n.toString(), 
-                    contractTerm: 24n.toString(), 
-                    maxTokenSupply: 1000000n.toString(), 
-                    tokenPrice: (1n*10n**18n).toString(), 
+                    DIDs: ["12345"],
+                    CIDs: ["67890"],
+                    revenueGoals: [1000n.toString()],
+                    name: "BatteryX",
+                    symbol: "BAX",
+                    revenueShare: 5000n.toString(),
+                    contractTerm: 24n.toString(),
+                    maxTokenSupply: 1000000n.toString(),
+                    tokenPrice: (1n * 10n ** 18n).toString(),
+                    BBWalletAddress: companyWalletAddress,
                 });
-                
-            
+
+
             response.should.have.status(200);
             response.body.should.be.a('object');
-            response.body.should.have.property('TokenContractAddress');
-            response.body.should.have.property('ServiceContractAddress');
+            response.body.should.have.property('tokenContractAddress');
+            response.body.should.have.property('serviceContractAddress');
+            response.body.should.have.property('liquidityContractAddress');
+            response.body.should.have.property('revenueDistributionContractAddress');
 
-            tokenContractAddress = response.body.TokenContractAddress;
-            serviceContractAddress = response.body.ServiceContractAddress;
+            tokenContractAddress = response.body.tokenContractAddress;
+            serviceContractAddress = response.body.serviceContractAddress;
+            liquidityContractAddress = response.body.liquidityContractAddress;
+            revenueDistributionContractAddress = response.body.revenueDistributionContractAddress;
+            
 
             // Verify if addresses are valid contract addresses on Eth network
             const tokenCodeAtAddress = await web3.eth.getCode(tokenContractAddress);
             const serviceCodeAtAddress = await web3.eth.getCode(serviceContractAddress);
-            
+            const liquidityCodeAtAddress = await web3.eth.getCode(liquidityContractAddress);
+            const revenueDistributionCodeAtAddress = await web3.eth.getCode(revenueDistributionContractAddress);
+
             // '0x' == there's no code at that address i.e., it's not a contract
             tokenCodeAtAddress.should.not.equal('0x');
             serviceCodeAtAddress.should.not.equal('0x');
-            
+            liquidityCodeAtAddress.should.not.equal('0x');
+            revenueDistributionCodeAtAddress.should.not.equal('0x');
+
         } catch (error) {
             // Handle errors
             throw error;
         }
     });
 });
-
-
