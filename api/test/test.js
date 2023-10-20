@@ -1,6 +1,16 @@
+const fs = require('fs');
+const path = require('path');
+
 const CryptoJS = require('crypto-js');
-const { web3, networkId, gasPrice } = require('../config/web3Config');
-const { GCABI, GCAddress } = require('../config/GlobalStateContract');
+const { web3, networkId, gasPrice, GSCAddress } = require('../config/web3Config');
+
+const GSCBuild = path.join(__dirname, '..', '..', 'evm-erc20', 'artifacts', 'contracts', 'GlobalStateContract.sol', 'GlobalStateContract.json');
+const SCBuild = path.join(__dirname, '..', '..', 'evm-erc20', 'artifacts', 'contracts', 'ServiceContract.sol', 'ServiceContract.json');
+const TCBuild = path.join(__dirname, '..', '..', 'evm-erc20', 'artifacts', 'contracts', 'TokenContract.sol', 'TokenContract.json');
+const LCBuild = path.join(__dirname, '..', '..', 'evm-erc20', 'artifacts', 'contracts', 'LiquidityContract.sol', 'LiquidityContract.json');
+const RDCBuild = path.join(__dirname, '..', '..', 'evm-erc20', 'artifacts', 'contracts', 'RevenueDistributionContract.sol', 'RevenueDistributionContract.json');
+const RSCBuild = path.join(__dirname, '..', '..', 'evm-erc20', 'artifacts', 'contracts', 'RevenueStreamContract.sol', 'RevenueStreamContract.json');
+
 
 const chai = require('chai');
 const chaiHttp = require('chai-http');
@@ -110,8 +120,13 @@ describe('Company API', function () {
             response.should.have.status(200);
             response.body.should.have.property('message', 'Company successfully verified');
     
+            // Get ABI 
+            const contractPath = path.join(GSCBuild);
+            const contractJSON = JSON.parse(fs.readFileSync(contractPath, 'utf8'));
+            const GSCABI = contractJSON.abi;
+
             // Query the Global State Contract to check if the address is in the whitelist
-            const contract = new web3.eth.Contract(GCABI, GCAddress);
+            const contract = new web3.eth.Contract(GSCABI, GSCAddress);
             const verified = await contract.methods.verifiedCompanies(companyWalletAddress).call();
             console.log("verified: ", verified);
     
@@ -234,9 +249,14 @@ describe('Investor API', function () {
                 });
             response.should.have.status(200);
             response.body.should.have.property('message', 'Investor successfully verified');
-    
+
+            // Get ABI
+            const contractPath = path.join(GSCBuild);
+            const contractJSON = JSON.parse(fs.readFileSync(contractPath, 'utf8'));
+            const GSCABI = contractJSON.abi;
+
             // Query the Global State Contract to check if the address is in the whitelist
-            const contract = new web3.eth.Contract(GCABI, GCAddress);
+            const contract = new web3.eth.Contract(GSCABI, GSCAddress);
             const verified = await contract.methods.verifiedInvestors(investorWalletAddress).call();
             console.log("verified: ", verified);
     
@@ -313,16 +333,17 @@ describe('Asset Tokenization API', function () {
             const response = await chai.request(app)
                 .post('/asset/tokenize')
                 .send({
-                    DIDs: [12345], 
-                    CIDs: [67890], 
-                    revenueGoals: [1000], 
-                    name:"BatteryX" , 
-                    symbol: "BAX" , 
-                    revenueShare: 5000 , 
-                    contractTerm: 24, 
-                    maxTokenSupply: 1000000, 
-                    tokenPrice: 1n*10n**18n, 
+                    DIDs: ["12345"], 
+                    CIDs: ["67890"], 
+                    revenueGoals: [1000n.toString()], 
+                    name: "BatteryX", 
+                    symbol: "BAX", 
+                    revenueShare: 5000n.toString(), 
+                    contractTerm: 24n.toString(), 
+                    maxTokenSupply: 1000000n.toString(), 
+                    tokenPrice: (1n*10n**18n).toString(), 
                 });
+                
             
             response.should.have.status(200);
             response.body.should.be.a('object');

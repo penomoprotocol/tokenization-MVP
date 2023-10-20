@@ -1,17 +1,17 @@
 //const web3 = require('web3');
 const CryptoJS = require('crypto-js');
-const { web3, networkId, gasPrice, GSCAddress} = require('./config/web3Config');
-//const { GSCABI, GSCByteCode, GSCAddress } = require('./config/GlobalStateContract');
-
-const GSCBuild = "../evm-erc20/artifacts/contracts/GlobalStateContract.sol/GlobalStateContract.json"
-const SCBuild = "../evm-erc20/artifacts/contracts/ServiceContract.sol/ServiceContract.json"
-const TCBuild = "../evm-erc20/artifacts/contracts/TokenContract.sol/TokenContract.json"
-const LCBuild = "../evm-erc20/artifacts/contracts/LiquidityContract.sol/LiquidityContract.json"
-const RDCBuild = "../evm-erc20/artifacts/contracts/RevenueDistributionContract.sol/RevenueDistributionContract.json"
-const RSCBuild = "../evm-erc20/artifacts/contracts/RevenueStreamContract.sol/RevenueStreamContract.json"
+const { web3, networkId, GSCAddress } = require('./config/web3Config');
 
 const fs = require('fs');
 const path = require('path');
+
+const GSCBuild = path.join(__dirname, '..', 'evm-erc20', 'artifacts', 'contracts', 'GlobalStateContract.sol', 'GlobalStateContract.json');
+const SCBuild = path.join(__dirname, '..', 'evm-erc20', 'artifacts', 'contracts', 'ServiceContract.sol', 'ServiceContract.json');
+const TCBuild = path.join(__dirname, '..', 'evm-erc20', 'artifacts', 'contracts', 'TokenContractERC20.sol', 'TokenContractERC20.json');
+const LCBuild = path.join(__dirname, '..', 'evm-erc20', 'artifacts', 'contracts', 'LiquidityContract.sol', 'LiquidityContract.json');
+const RDCBuild = path.join(__dirname, '..', 'evm-erc20', 'artifacts', 'contracts', 'RevenueDistributionContract.sol', 'RevenueDistributionContract.json');
+const RSCBuild = path.join(__dirname, '..', 'evm-erc20', 'artifacts', 'contracts', 'RevenueStreamContract.sol', 'RevenueStreamContract.json');
+
 
 const express = require('express');
 const passport = require('passport');
@@ -93,7 +93,7 @@ const investorSchema = new mongoose.Schema({
 });
 const Investor = mongoose.model('Investor', investorSchema);
 
-// Import database models -> DEBUG IMPORT / TIMEOUT ERROR!
+// Import database models -> TO DO: IMPORT 
 // const Company = require('../database/models/Company');
 // const Investor = require('../database/models/Investor');
 // const Asset = require('../database/models/Asset');
@@ -119,6 +119,13 @@ app.listen(PORT, () => {
 
 // // // FUNCTIONS
 
+// Get gas price
+async function getCurrentGasPrice() {
+    let gasPrice = await web3.eth.getGasPrice(); // This will get the current gas price in wei
+    return gasPrice;
+}
+
+
 // Function to create a new Ethereum wallet and return the private key
 const createWallet = () => {
     const wallet = web3.eth.accounts.create();
@@ -137,47 +144,46 @@ const decryptPrivateKey = (encryptedKey, SECRET_KEY) => {
     return decrypted;
 };
 
-// // // DEPLOYMENT SCRIPTS
+// // // DEPLOYMENT SCRIPTS // TODO: Refactor into separate file and import
 
 // Deploy Service Contract
 async function deployServiceContract(GSCAddress) {
     const contractPath = path.join(SCBuild);
-    
     const contractJSON = JSON.parse(fs.readFileSync(contractPath, 'utf8'));
+    const ServiceContract = new web3.eth.Contract(contractJSON.abi);
 
-    const contractABI = contractJSON.abi;
-
-    const contractBytecode = contractJSON.bytecode;
-
-    const ServiceContract = new web3.eth.Contract(contractABI);
-
-    const deployOptions = {
-        data: contractBytecode,
+    const deploymentData = ServiceContract.deploy({
+        data: contractJSON.bytecode,
         arguments: [GSCAddress]
-    };
+    });
 
-    const sendOptions = {
-        from: MASTER_ADDRESS,
-        gas: await ServiceContract.deploy(deployOptions).estimateGas()
-    };
+    const estimatedGas = await deploymentData.estimateGas({
+        from: MASTER_ADDRESS
+    });
 
-    const instance = await ServiceContract.deploy(deployOptions).send(sendOptions);
-    return instance.options.address;
+    const bufferGas = estimatedGas * 110n / 100n;  // adding a 10% buffer
+    const roundedGas = bufferGas + (10n - bufferGas % 10n);  // rounding up to the nearest 10
+    let currentGasPrice = await getCurrentGasPrice();
+
+    const deployTx = {
+        data: deploymentData.encodeABI(),
+        gas: roundedGas.toString(),
+        gasPrice: currentGasPrice,  // Using the fetched gas price
+        from: MASTER_ADDRESS
+    };
+    
+    const signedTx = await web3.eth.accounts.signTransaction(deployTx, MASTER_PRIVATE_KEY);
+    const receipt = await web3.eth.sendSignedTransaction(signedTx.raw || signedTx.rawTransaction);
+
+    return receipt.contractAddress;
 }
-
 
 // Deploy Token Contract
 async function deployTokenContract(DIDs, CIDs, revenueGoals, name, symbol, revenueShare, contractTerm, maxTokenSupply, tokenPrice, serviceContractAddress) {
-    // Read the contract's ABI and bytecode
     const contractPath = path.join(TCBuild);
     const contractJSON = JSON.parse(fs.readFileSync(contractPath, 'utf8'));
-    const contractABI = contractJSON.abi;
-    const contractBytecode = contractJSON.bytecode;
+    const TokenContract = new web3.eth.Contract(contractJSON.abi);
 
-    // Initialize the contract object
-    const contract = new web3.eth.Contract(contractABI);
-
-    // Construct constructor arguments
     const constructorArgs = {
         penomoWallet: MASTER_ADDRESS,
         globalStateAddress: GSCAddress,
@@ -190,19 +196,31 @@ async function deployTokenContract(DIDs, CIDs, revenueGoals, name, symbol, reven
         tokenPrice: tokenPrice
     };
 
-    // Deploy the contract
-    const deploy = contract.deploy({
-        data: contractBytecode,
+    const deploymentData = TokenContract.deploy({
+        data: contractJSON.bytecode,
         arguments: [constructorArgs, DIDs, CIDs, revenueGoals]
     });
 
-    const instance = await deploy.send({
-        from: MASTER_ADDRESS,
-        gas: 6000000,  // You might need to adjust this gas limit
-        gasPrice: web3.utils.toWei(gasPrice.toString(), 'gwei')
+    const estimatedGas = await deploymentData.estimateGas({
+        from: MASTER_ADDRESS
     });
 
-    return instance.options.address;
+
+    const bufferGas = estimatedGas * 110n / 100n;  // adding a 10% buffer
+    const roundedGas = bufferGas + (10n - bufferGas % 10n);  // rounding up to the nearest 10
+    let currentGasPrice = await getCurrentGasPrice();
+
+    const deployTx = {
+        data: deploymentData.encodeABI(),
+        gas: roundedGas.toString(),
+        gasPrice: currentGasPrice,  // Using the fetched gas price
+        from: MASTER_ADDRESS
+    };
+
+    const signedTx = await web3.eth.accounts.signTransaction(deployTx, MASTER_PRIVATE_KEY);
+    const receipt = await web3.eth.sendSignedTransaction(signedTx.raw || signedTx.rawTransaction);
+
+    return receipt.contractAddress;
 }
 
 
@@ -275,6 +293,11 @@ app.post('/company/verify', async (req, res) => {
     try {
         const { companyWalletAddress } = req.body;
 
+        // Get GSC ABI
+        const contractPath = path.join(GSCBuild);
+        const contractJSON = JSON.parse(fs.readFileSync(contractPath, 'utf8'));
+        const GSCABI = contractJSON.abi;
+
         // Prepare the contract instance
         const contract = new web3.eth.Contract(GSCABI, GSCAddress);
         //console.log("contract: ", contract);
@@ -288,13 +311,14 @@ app.post('/company/verify', async (req, res) => {
         const nonce = await web3.eth.getTransactionCount(senderAddress);
 
         // Prepare the transaction object
-        //const gasPrice = gasPrice; // Example gas price
+        let currentGasPrice = await getCurrentGasPrice();
+
         const gasLimit = 200000; // Adjust the gas limit as needed
         const rawTransaction = {
             from: MASTER_ADDRESS,
             to: GSCAddress,
             gas: gasLimit,
-            gasPrice,
+            gasPrice: currentGasPrice,
             nonce,
             data,
         };
@@ -433,6 +457,11 @@ app.post('/investor/verify', async (req, res) => {
     try {
         const { investorWalletAddress } = req.body;
 
+        // Get GSC ABI
+        const contractPath = path.join(GSCBuild);
+        const contractJSON = JSON.parse(fs.readFileSync(contractPath, 'utf8'));
+        const GSCABI = contractJSON.abi;
+
         // Prepare the contract instance
         const contract = new web3.eth.Contract(GSCABI, GSCAddress);
         //console.log("contract: ", contract);
@@ -446,13 +475,14 @@ app.post('/investor/verify', async (req, res) => {
         const nonce = await web3.eth.getTransactionCount(senderAddress);
 
         // Prepare the transaction object
-        //const gasPrice = gasPrice; // Example gas price
+        let currentGasPrice = await getCurrentGasPrice();
+
         const gasLimit = 200000; // Adjust the gas limit as needed
         const rawTransaction = {
             from: MASTER_ADDRESS,
             to: GSCAddress,
             gas: gasLimit,
-            gasPrice,
+            gasPrice: currentGasPrice,
             nonce,
             data,
         };
@@ -563,9 +593,9 @@ app.post('/asset/tokenize', async (req, res) => {
         const TokenContractAddress = await deployTokenContract(DIDs, CIDs, revenueGoals, name, symbol, revenueShare, contractTerm, maxTokenSupply, tokenPrice, ServiceContractAddress);
 
         // Respond with the deployed contracts' addresses
-        res.status(200).json({ 
-            TokenContractAddress: TokenContractAddress, 
-            ServiceContractAddress: ServiceContractAddress 
+        res.status(200).json({
+            TokenContractAddress: TokenContractAddress,
+            ServiceContractAddress: ServiceContractAddress
         });
 
     } catch (error) {
