@@ -128,7 +128,7 @@ async function getCurrentGasPrice() {
 
 // Helper function to estimate and send the transaction
 async function estimateAndSend(transaction, fromAddress, toAddress) {
-    
+
     // Fetch the current nonce
     let currentNonce = await web3.eth.getTransactionCount(MASTER_ADDRESS, 'pending');
 
@@ -608,8 +608,50 @@ app.post('/investor/verify', async (req, res) => {
 });
 
 // Handle investor token purchase
-app.post('/investor/buyToken', (req, res) => {
+app.post('/investor/buyToken', async (req, res) => {
+    try {
+        const { investorWallet, privateKey, tokenAmount } = req.body;
 
+        if (!investorWallet || !privateKey || !tokenAmount) {
+            return res.status(400).send('Missing required parameters.');
+        }
+
+        const contractPath = path.join(SCBuild);
+        const contractJSON = JSON.parse(fs.readFileSync(contractPath, 'utf8'));
+        const SCABI = contractJSON.abi;
+
+        // Create a ServiceContract instance
+        const ServiceContract = new web3.eth.Contract(SCABI, "SERVICE_CONTRACT_ADDRESS_HERE"); // Replace with your deployed ServiceContract address
+
+        const tokenPrice = await ServiceContract.methods.tokenContractERC20().methods.tokenPrice().call();
+
+        // Calculate required Ether to buy desired amount of tokens
+        const requiredEther = BigInt(tokenPrice) * BigInt(tokenAmount);
+
+        // Prepare transaction
+        const txData = {
+            to: "SERVICE_CONTRACT_ADDRESS_HERE", // Replace with your deployed ServiceContract address
+            data: ServiceContract.methods.buyTokens(tokenAmount).encodeABI(),
+            value: requiredEther.toString(),
+            gasPrice: await web3.eth.getGasPrice(),
+            nonce: await web3.eth.getTransactionCount(investorWallet)
+        };
+
+        // Estimate gas for the transaction
+        txData.gas = await web3.eth.estimateGas(txData);
+
+        // Sign transaction
+        const signedTx = await web3.eth.accounts.signTransaction(txData, privateKey);
+
+        // Send signed transaction
+        const txReceipt = await web3.eth.sendSignedTransaction(signedTx.rawTransaction);
+
+        res.status(200).json({ txHash: txReceipt.transactionHash });
+
+    } catch (error) {
+        console.error('Error purchasing tokens:', error);
+        res.status(500).send('Failed to purchase the tokens.');
+    }
 });
 
 // Retrieve investor details by ID

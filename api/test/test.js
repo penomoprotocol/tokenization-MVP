@@ -335,7 +335,7 @@ describe('Test API', function () {
                     revenueShare: 5000n.toString(),
                     contractTerm: 24n.toString(),
                     maxTokenSupply: 1000000n.toString(),
-                    tokenPrice: (1n * 10n ** 18n).toString(),
+                    tokenPrice: (1n/100n * 10n ** 18n).toString(),
                     BBWalletAddress: companyWalletAddress,
                 });
 
