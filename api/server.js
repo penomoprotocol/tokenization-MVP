@@ -126,6 +126,40 @@ async function getCurrentGasPrice() {
 }
 
 
+// Helper function to estimate and send the transaction
+async function estimateAndSend(transaction, fromAddress, toAddress) {
+    
+    // Fetch the current nonce
+    let currentNonce = await web3.eth.getTransactionCount(MASTER_ADDRESS, 'pending');
+
+    // Estimate gas for the transaction
+    const estimatedGas = await transaction.estimateGas({ from: fromAddress });
+
+    const bufferGas = estimatedGas * 110n / 100n;  // adding a 10% buffer
+    const roundedGas = bufferGas + (10n - bufferGas % 10n);  // rounding up to the nearest 10
+    let currentGasPrice = await getCurrentGasPrice();
+
+    // Prepare the transaction data with nonce
+    const txData = {
+        from: fromAddress,
+        to: toAddress,
+        data: transaction.encodeABI(),
+        gas: roundedGas.toString(),
+        gasPrice: currentGasPrice,
+        nonce: currentNonce
+    };
+
+    // Increment the nonce for the next transaction
+    currentNonce++;
+
+    // Sign the transaction
+    const signedTx = await web3.eth.accounts.signTransaction(txData, MASTER_PRIVATE_KEY);
+
+    // Send the signed transaction
+    return web3.eth.sendSignedTransaction(signedTx.rawTransaction);
+}
+
+
 // Function to create a new Ethereum wallet and return the private key
 const createWallet = () => {
     const wallet = web3.eth.accounts.create();
@@ -646,7 +680,7 @@ app.post('/asset/tokenize', async (req, res) => {
         // Get data from the request
         const { DIDs, CIDs, revenueGoals, name, symbol, revenueShare, contractTerm, maxTokenSupply, tokenPrice, BBWalletAddress } = req.body;
 
-        if (!DIDs || !CIDs || !revenueGoals || !name || !symbol || !revenueShare || !contractTerm || !maxTokenSupply || !tokenPrice ||!BBWalletAddress ) {
+        if (!DIDs || !CIDs || !revenueGoals || !name || !symbol || !revenueShare || !contractTerm || !maxTokenSupply || !tokenPrice || !BBWalletAddress) {
             return res.status(400).send('Missing required parameters.');
         }
 
@@ -663,19 +697,17 @@ app.post('/asset/tokenize', async (req, res) => {
         const revenueDistributionContractAddress = await deployRevenueDistributionContract(serviceContractAddress, tokenContractAddress, liquidityContractAddress);
 
 
-        // // Get SC ABI
-        // const contractPath = path.join(SCBuild);
-        // const contractJSON = JSON.parse(fs.readFileSync(contractPath, 'utf8'));
-        // const SCABI = contractJSON.abi;
+        // Get SC ABI
+        const contractPath = path.join(SCBuild);
+        const contractJSON = JSON.parse(fs.readFileSync(contractPath, 'utf8'));
+        const SCABI = contractJSON.abi;
+
+        // Create a ServiceContract instance
+        const ServiceContract = new web3.eth.Contract(SCABI, serviceContractAddress);
 
 
-        // // Set LiquidityContract and RevenueDistributionContract in ServiceContract
-        // const ServiceContract = new web3.eth.Contract(SCABI, serviceContractAddress);
-        // await ServiceContract.methods.setTokenContract(tokenContractAddress).send({ from: MASTER_ADDRESS });
-        // await ServiceContract.methods.setLiquidityContract(liquidityContractAddress).send({ from: MASTER_ADDRESS });
-        // await ServiceContract.methods.setRevenueDistributionContract(revenueDistributionContractAddress).send({ from: MASTER_ADDRESS });
-
-
+        // Call setTokenContract with gas estimation and send
+        await estimateAndSend(ServiceContract.methods.setContractAddresses(tokenContractAddress, liquidityContractAddress, revenueDistributionContractAddress), MASTER_ADDRESS, serviceContractAddress);
 
         // Respond with the deployed contracts' addresses
         res.status(200).json({

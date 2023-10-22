@@ -27,38 +27,16 @@ contract ServiceContract {
         _;
     }
 
-    function setTokenContract(
-        address _tokenContractERC20Address
+    function setContractAddresses(
+        address _tokenContractERC20Address, address _liquidityContractAddress, address _revenueDistributionContractAddress
     ) external onlyOwner {
-        require(
-            address(tokenContractERC20) == address(0),
-            "TokenContractERC20 address already set!"
-        );
         tokenContractERC20 = TokenContractERC20(_tokenContractERC20Address);
         revenueSharePercentage = tokenContractERC20.revenueShare();
-    }
-
-    function setLiquidityContract(
-        address _liquidityContractAddress
-    ) external onlyOwner {
-        require(
-            address(liquidityContract) == address(0),
-            "LiquidityContract address already set!"
-        );
         liquidityContract = LiquidityContract(_liquidityContractAddress);
+        revenueDistributionContract = RevenueDistributionContract(_revenueDistributionContractAddress);
     }
 
-    function setRevenueDistributionContract(
-        address _revenueDistributionContractAddress
-    ) external onlyOwner {
-        require(
-            address(revenueDistributionContract) == address(0),
-            "RevenueDistributionContract address already set!"
-        );
-        revenueDistributionContract = RevenueDistributionContract(
-            _revenueDistributionContractAddress
-        );
-    }
+
 
     function buyTokens(uint256 amount) public payable {
         
