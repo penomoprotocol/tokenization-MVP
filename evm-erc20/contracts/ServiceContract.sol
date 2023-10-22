@@ -93,4 +93,13 @@ contract ServiceContract {
     function getBalance() external view returns (uint256) {
         return address(this).balance;
     }
+
+    function getContractAddresses() external view returns (address, address, address, address) {
+    return (
+        address(tokenContractERC20),
+        address(liquidityContract),
+        address(revenueDistributionContract),
+        address(globalState)
+    );
+}
 }
