@@ -703,8 +703,6 @@ app.delete('/investor/:id', async (req, res) => {
     }
 });
 
-
-
 // // Asset Routes
 
 // Real World Assets Routes
@@ -738,7 +736,6 @@ app.post('/asset/tokenize', async (req, res) => {
         // Deploy RevenueDistributionContract
         const revenueDistributionContractAddress = await deployRevenueDistributionContract(serviceContractAddress, tokenContractAddress, liquidityContractAddress);
 
-
         // Get SC ABI
         const contractPath = path.join(SCBuild);
         const contractJSON = JSON.parse(fs.readFileSync(contractPath, 'utf8'));
@@ -764,8 +761,6 @@ app.post('/asset/tokenize', async (req, res) => {
         res.status(500).send('Failed to deploy the contracts.');
     }
 });
-
-
 
 app.post('/asset/connectRevenueStream', (req, res) => {
     // Deploy revenue stream contract and connect to tokenization engine

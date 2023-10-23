@@ -335,7 +335,7 @@ describe('Test API', function () {
                     revenueShare: 5000n.toString(),
                     contractTerm: 24n.toString(),
                     maxTokenSupply: 1000000n.toString(),
-                    tokenPrice: (1n/100n * 10n ** 18n).toString(),
+                    tokenPrice: (1n / 100n * 10n ** 18n).toString(),
                     BBWalletAddress: companyWalletAddress,
                 });
 
@@ -351,7 +351,7 @@ describe('Test API', function () {
             serviceContractAddress = response.body.serviceContractAddress;
             liquidityContractAddress = response.body.liquidityContractAddress;
             revenueDistributionContractAddress = response.body.revenueDistributionContractAddress;
-            
+
 
             // Verify if addresses are valid contract addresses on Eth network
             const tokenCodeAtAddress = await web3.eth.getCode(tokenContractAddress);
@@ -364,6 +364,52 @@ describe('Test API', function () {
             serviceCodeAtAddress.should.not.equal('0x');
             liquidityCodeAtAddress.should.not.equal('0x');
             revenueDistributionCodeAtAddress.should.not.equal('0x');
+
+        } catch (error) {
+            // Handle errors
+            throw error;
+        }
+    });
+
+    let investorTokenBalanceBeforePurchase;
+    let investorEtherBalanceBeforePurchase;
+    const purchaseAmountEther = web3.utils.toWei("1", "ether"); // 1 ETH for example, adjust as needed
+    
+    it('should allow an investor to purchase tokens', async () => {
+        try {
+            // Get investor's token and ether balance before purchase
+            const tokenContractPath = path.join(TCBuild);
+            const tokenContractJSON = JSON.parse(fs.readFileSync(tokenContractPath, 'utf8'));
+            const TokenABI = tokenContractJSON.abi;
+
+            const tokenContract = new web3.eth.Contract(TokenABI, tokenContractAddress);
+            investorTokenBalanceBeforePurchase = await tokenContract.methods.balanceOf(investorWalletAddress).call();
+            investorEtherBalanceBeforePurchase = await web3.eth.getBalance(investorWalletAddress);
+
+            // Purchase tokens
+            const response = await chai.request(app)
+                .post('/investor/purchaseTokens')
+                .send({
+                    investorWalletAddress: investorWalletAddress,
+                    amountEther: purchaseAmountEther,
+                    tokenContractAddress: tokenContractAddress
+                });
+
+            response.should.have.status(200);
+            response.body.should.be.a('object');
+            response.body.should.have.property('tokensPurchased');
+
+            // Verify token balance increased
+            const investorTokenBalanceAfterPurchase = await tokenContract.methods.balanceOf(investorWalletAddress).call();
+            const tokensReceived = BigInt(investorTokenBalanceAfterPurchase) - BigInt(investorTokenBalanceBeforePurchase);
+
+            tokensReceived.should.equal(BigInt(response.body.tokensPurchased));
+
+            // Verify ether balance decreased
+            const investorEtherBalanceAfterPurchase = await web3.eth.getBalance(investorWalletAddress);
+            const etherSpent = BigInt(investorEtherBalanceBeforePurchase) - BigInt(investorEtherBalanceAfterPurchase);
+
+            etherSpent.should.be.closeTo(BigInt(purchaseAmountEther), BigInt(web3.utils.toWei("0.01", "ether"))); // Allowing a small variance for gas
 
         } catch (error) {
             // Handle errors
