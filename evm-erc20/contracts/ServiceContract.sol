@@ -17,6 +17,10 @@ contract ServiceContract {
     event TokensPurchased(address indexed investor, uint256 amount);
     event ReceivedFundsFromRevenueStream(address indexed from, uint256 amount);
 
+    // For debugging
+    event EtherReceived(uint256 value);
+    event EtherRequired(uint256 requiredEther);
+
     constructor(address _globalStateAddress) {
         owner = msg.sender;
         globalState = GlobalStateContract(_globalStateAddress);
@@ -28,21 +32,26 @@ contract ServiceContract {
     }
 
     function setContractAddresses(
-        address _tokenContractERC20Address, address _liquidityContractAddress, address _revenueDistributionContractAddress
+        address _tokenContractERC20Address,
+        address _liquidityContractAddress,
+        address _revenueDistributionContractAddress
     ) external onlyOwner {
         tokenContractERC20 = TokenContractERC20(_tokenContractERC20Address);
         revenueSharePercentage = tokenContractERC20.revenueShare();
         liquidityContract = LiquidityContract(_liquidityContractAddress);
-        revenueDistributionContract = RevenueDistributionContract(_revenueDistributionContractAddress);
+        revenueDistributionContract = RevenueDistributionContract(
+            _revenueDistributionContractAddress
+        );
     }
 
-
-
     function buyTokens(uint256 amount) public payable {
-        
         // Ensure the correct amount of ether is sent
         uint256 requiredEther = amount * tokenContractERC20.tokenPrice();
         require(msg.value == requiredEther, "Incorrect Ether sent");
+
+        // For debugging
+        emit EtherReceived(msg.value);
+        emit EtherRequired(requiredEther);
 
         // Transfer the tokens to the investor
         tokenContractERC20.transferFrom(
@@ -76,10 +85,10 @@ contract ServiceContract {
         uint256 amountForLC = amountAfterFee - amountForRDC;
 
         // Send the funds
-        RevenueDistributionContract(revenueDistributionContract)
-            .receiveFunds{value: amountForRDC}();
-        LiquidityContract(liquidityContract).receiveFunds{
-            value: amountForLC}();
+        RevenueDistributionContract(revenueDistributionContract).receiveFunds{
+            value: amountForRDC
+        }();
+        LiquidityContract(liquidityContract).receiveFunds{value: amountForLC}();
 
         emit ReceivedFundsFromRevenueStream(msg.sender, msg.value);
     }
@@ -94,12 +103,16 @@ contract ServiceContract {
         return address(this).balance;
     }
 
-    function getContractAddresses() external view returns (address, address, address, address) {
-    return (
-        address(tokenContractERC20),
-        address(liquidityContract),
-        address(revenueDistributionContract),
-        address(globalState)
-    );
-}
+    function getContractAddresses()
+        external
+        view
+        returns (address, address, address, address)
+    {
+        return (
+            address(tokenContractERC20),
+            address(liquidityContract),
+            address(revenueDistributionContract),
+            address(globalState)
+        );
+    }
 }
