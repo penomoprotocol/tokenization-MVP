@@ -210,13 +210,13 @@ describe('Test API', function () {
                 investorWalletAddress = res.body.investor.ethereumPublicKey; // Extract the wallet address
     
                 // Funding the investor's wallet
-                const amountWei = (2n / 100n * 10n ** 18n).toString(); // Calculating the desired amount
+                const amountWei = (20n / 100n * 10n ** 18n).toString(); // Calculating the desired amount
     
                 // Estimating gas for a simple transfer
                 const estimatedGas = await web3.eth.estimateGas({
                     from: MASTER_ADDRESS,
                     to: investorWalletAddress,
-                    value: amountWei
+                    value: 20000000000000000
                 });
                 const bufferGas = BigInt(estimatedGas) * 110n / 100n;  // adding a 10% buffer
                 const roundedGas = bufferGas + (10n - bufferGas % 10n);  // rounding up to the nearest 10
@@ -225,7 +225,7 @@ describe('Test API', function () {
                 const tx = {
                     from: MASTER_ADDRESS,
                     to: investorWalletAddress,
-                    value: web3.utils.toHex(amountWei),
+                    value: 20000000000000000,
                     gas: roundedGas.toString(),
                     gasPrice: currentGasPrice 
                 };

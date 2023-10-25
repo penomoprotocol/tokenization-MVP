@@ -94,20 +94,20 @@ contract TokenContractERC20 is ERC20 {
         return true;
     }
 
-    // Override the transferFrom function
-    function transferFrom(
-        address sender,
-        address recipient,
-        uint256 amount
-    ) public override returns (bool) {
-        // Call the _beforeTokenTransfer hook
-        _beforeTokenTransfer(sender, recipient, amount);
+    // // Override the transferFrom function
+    // function transferFrom(
+    //     address sender,
+    //     address recipient,
+    //     uint256 amount
+    // ) public override returns (bool) {
+    //     // Call the _beforeTokenTransfer hook
+    //     _beforeTokenTransfer(sender, recipient, amount);
 
-        // Call the original transferFrom function from the parent ERC20 contract
-        super.transferFrom(sender, recipient, amount);
+    //     // Call the original transferFrom function from the parent ERC20 contract
+    //     super.transferFrom(sender, recipient, amount);
 
-        return true;
-    }
+    //     return true;
+    // }
 
     function _beforeTokenTransfer(
         address from,
