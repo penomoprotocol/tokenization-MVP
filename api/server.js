@@ -610,40 +610,61 @@ app.post('/investor/verify', async (req, res) => {
 // Handle investor token purchase
 app.post('/investor/buyToken', async (req, res) => {
     try {
-        const { investorWallet, privateKey, tokenAmount } = req.body;
+        const { investorId, password, tokenAmount, serviceContractAddress } = req.body;
 
-        if (!investorWallet || !privateKey || !tokenAmount) {
-            return res.status(400).send('Missing required parameters.');
+        if (!serviceContractAddress) {
+            return res.status(400).send('Missing service contract address.');
         }
 
-        const contractPath = path.join(SCBuild);
-        const contractJSON = JSON.parse(fs.readFileSync(contractPath, 'utf8'));
-        const SCABI = contractJSON.abi;
+        // Step 1: Get the investor from the database using the provided investorId
+        const investor = await Investor.findById(investorId);
+        if (!investor) {
+            console.log('Investor not found:', investorId);
+            return res.status(401).send('Investor not found');
+        }
 
-        // Create a ServiceContract instance
-        const ServiceContract = new web3.eth.Contract(SCABI, "SERVICE_CONTRACT_ADDRESS_HERE"); // Replace with your deployed ServiceContract address
+        // Step 2: Verify password
+        const isPasswordValid = await bcrypt.compare(password, investor.password);
+        if (!isPasswordValid) {
+            console.log('Invalid credentials for investor ID:', investorId);
+            return res.status(401).send('Invalid credentials');
+        }
 
-        const tokenPrice = await ServiceContract.methods.tokenContractERC20().methods.tokenPrice().call();
+        console.log("investor.ethereumPublicKey: ", investor.ethereumPublicKey);
+        
+        // Step 3: Decrypt the private key
+        const decryptedPrivateKey = decryptPrivateKey(investor.ethereumPrivateKey, SECRET_KEY);
 
-        // Calculate required Ether to buy desired amount of tokens
+        // The rest of the code remains the same for processing the transaction...
+        const SCcontractPath = path.join(SCBuild);
+        const SCcontractJSON = JSON.parse(fs.readFileSync(SCcontractPath, 'utf8'));
+        const SCABI = SCcontractJSON.abi;
+
+        // Get TC ABI
+        const TCcontractPath = path.join(TCBuild);
+        const TCcontractJSON = JSON.parse(fs.readFileSync(TCcontractPath, 'utf8'));
+        const TCABI = TCcontractJSON.abi;
+
+        const ServiceContract = new web3.eth.Contract(SCABI, serviceContractAddress);
+
+        const tokenContractERC20Address = await ServiceContract.methods.tokenContractERC20().call();
+        const tokenContractInstance = new web3.eth.Contract(TCABI, tokenContractERC20Address);
+        const tokenPrice = await tokenContractInstance.methods.tokenPrice().call();
+
+        //const tokenPrice = await ServiceContract.methods.tokenContractERC20().methods.tokenPrice().call();
+        
         const requiredEther = BigInt(tokenPrice) * BigInt(tokenAmount);
 
-        // Prepare transaction
         const txData = {
-            to: "SERVICE_CONTRACT_ADDRESS_HERE", // Replace with your deployed ServiceContract address
+            to: serviceContractAddress,
             data: ServiceContract.methods.buyTokens(tokenAmount).encodeABI(),
             value: requiredEther.toString(),
             gasPrice: await web3.eth.getGasPrice(),
-            nonce: await web3.eth.getTransactionCount(investorWallet)
+            nonce: await web3.eth.getTransactionCount(investor.ethereumPublicKey)  // Use the public key (wallet address) of the investor
         };
 
-        // Estimate gas for the transaction
         txData.gas = await web3.eth.estimateGas(txData);
-
-        // Sign transaction
-        const signedTx = await web3.eth.accounts.signTransaction(txData, privateKey);
-
-        // Send signed transaction
+        const signedTx = await web3.eth.accounts.signTransaction(txData, decryptedPrivateKey);
         const txReceipt = await web3.eth.sendSignedTransaction(signedTx.rawTransaction);
 
         res.status(200).json({ txHash: txReceipt.transactionHash });
@@ -653,6 +674,7 @@ app.post('/investor/buyToken', async (req, res) => {
         res.status(500).send('Failed to purchase the tokens.');
     }
 });
+
 
 // Retrieve investor details by ID
 app.get('/investor/:id', async (req, res) => {
