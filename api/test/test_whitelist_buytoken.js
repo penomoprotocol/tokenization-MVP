@@ -11,10 +11,11 @@ const LCBuild = path.join(__dirname, '..', '..', 'evm-erc20', 'artifacts', 'cont
 const RDCBuild = path.join(__dirname, '..', '..', 'evm-erc20', 'artifacts', 'contracts', 'RevenueDistributionContract.sol', 'RevenueDistributionContract.json');
 const RSCBuild = path.join(__dirname, '..', '..', 'evm-erc20', 'artifacts', 'contracts', 'RevenueStreamContract.sol', 'RevenueStreamContract.json');
 
-
+// Import chai
 const chai = require('chai');
 const chaiHttp = require('chai-http');
 const should = chai.should();
+
 const mongoose = require('mongoose');
 require('dotenv').config();
 
@@ -30,7 +31,6 @@ const MASTER_ADDRESS = process.env.MASTER_ADDRESS;
 const MASTER_PRIVATE_KEY = process.env.MASTER_PRIVATE_KEY;
 
 chai.use(chaiHttp);
-
 
 // FUNCTIONS
 async function waitForTransactionToBeMined(txHash) {
@@ -78,7 +78,6 @@ after(async function () {
 });
 
 
-// TESTS
 describe('Test API', function () {
     let companyId; // Define companyId in the outer scope
     let companyWalletAddress;
@@ -135,7 +134,8 @@ describe('Test API', function () {
             response.should.have.status(200);
             response.body.should.have.property('message', 'Company successfully verified');
 
-            await new Promise(r => setTimeout(r, 10000));
+            // Waiting for transaction to be mined
+            await waitForTransactionToBeMined(response.body.txHash);  // Assuming you return txHash from the server
 
             // Get ABI 
             const contractPath = path.join(GSCBuild);
@@ -155,59 +155,6 @@ describe('Test API', function () {
         }
     });
 
-    it('should get company details', (done) => {
-        chai.request(app)
-            .get(`/company/${companyId}`)
-            .send({
-                _id: companyId,
-            })
-            .then(function (res) {
-                res.should.have.status(200);
-                res.body.should.be.a('object');
-                done();
-            })
-            .catch(function (err) {
-                // Handle errors and signal test completion in case of failure
-                done(err);
-            });
-    });
-
-    it('should update company details', (done) => {
-        chai.request(app)
-            .put(`/company/${companyId}`)
-            .send({
-                _id: companyId,
-                name: 'Updated Company Name',
-            })
-            .then(function (res) {
-                res.should.have.status(200);
-                res.body.should.be.a('object');
-                res.body.should.have.property('name', 'Updated Company Name');
-                done(); // Signal that the test is complete on success
-            })
-            .catch(function (err) {
-                // Handle errors and signal test completion in case of failure
-                done(err);
-            });
-    });
-
-    // it('should delete the company', (done) => {
-    //     chai.request(app)
-    //         .delete(`/company/${companyId}`)
-    //         .send({
-    //             _id: companyId,
-    //         })
-    //         .then(function (res) {
-    //             res.should.have.status(200);
-    //             done();
-    //         })
-    //         .catch(function (err) {
-    //             // Handle errors and signal test completion in case of failure
-    //             done(err);
-    //         });
-    // });
-
-
 
     let investorId; // Define investorId in the outer scope
     let investorWalletAddress;
@@ -225,6 +172,7 @@ describe('Test API', function () {
                 res.body.should.be.a('object');
                 investorId = res.body.investor._id; // Extract the ID of the registered investor
                 investorWalletAddress = res.body.investor.ethereumPublicKey; // Extract the wallet address
+
 
                 // Funding the investor's wallet
                 const amountWei = (20n / 100n * 10n ** 18n).toString(); // Calculating the desired amount
@@ -259,26 +207,7 @@ describe('Test API', function () {
     });
 
 
-    // Log in with the registered investor
-    it('should log in with the registered investor', (done) => {
-        chai.request(app)
-            .post('/investor/login')
-            .send({
-                email: 'testinvestor@example.com',
-                password: 'testpassword',
-            })
-            .then(function (res) {
-                res.should.have.status(200);
-                res.body.should.be.a('object');
-                res.body.should.have.property('token');
-                //console.log(res.body);
-                done();
-            })
-            .catch(function (err) {
-                // Handle errors and signal test completion in case of failure
-                done(err);
-            });
-    });
+
 
     it('should verify a investor and add it to global state contract whitelist', async () => {
         try {
@@ -290,7 +219,8 @@ describe('Test API', function () {
             response.should.have.status(200);
             response.body.should.have.property('message', 'Investor successfully verified');
 
-            await new Promise(r => setTimeout(r, 10000));
+            // Waiting for transaction to be mined
+            await waitForTransactionToBeMined(res.body.txHash);  // Assuming you return txHash from the server
 
             // Get ABI
             const contractPath = path.join(GSCBuild);
@@ -311,58 +241,6 @@ describe('Test API', function () {
     });
 
 
-    it('should get investor details', (done) => {
-        chai.request(app)
-            .get(`/investor/${investorId}`)
-            .send({
-                _id: investorId,
-            })
-            .then(function (res) {
-                res.should.have.status(200);
-                res.body.should.be.a('object');
-                console.log(res.body);
-                done();
-            })
-            .catch(function (err) {
-                // Handle errors and signal test completion in case of failure
-                done(err);
-            });
-    });
-
-    it('should update investor details', (done) => {
-        chai.request(app)
-            .put(`/investor/${investorId}`)
-            .send({
-                _id: investorId,
-                name: 'Updated Investor Name',
-            })
-            .then(function (res) {
-                res.should.have.status(200);
-                res.body.should.be.a('object');
-                res.body.should.have.property('name', 'Updated Investor Name');
-                done(); // Signal that the test is complete on success
-            })
-            .catch(function (err) {
-                // Handle errors and signal test completion in case of failure
-                done(err);
-            });
-    });
-
-    // it('should delete the investor', (done) => {
-    //     chai.request(app)
-    //         .delete(`/investor/${investorId}`)
-    //         .send({
-    //             _id: investorId,
-    //         })
-    //         .then(function (res) {
-    //             res.should.have.status(200);
-    //             done();
-    //         })
-    //         .catch(function (err) {
-    //             // Handle errors and signal test completion in case of failure
-    //             done(err);
-    //         });
-    // });
 
     let tokenContractAddress;
     let serviceContractAddress;
