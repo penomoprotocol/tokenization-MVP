@@ -227,7 +227,7 @@ async function deployTokenContract(DIDs, CIDs, revenueGoals, name, symbol, reven
         revenueShare: revenueShare,
         contractTerm: contractTerm,
         maxTokenSupply: maxTokenSupply,
-        tokenPrice: tokenPrice
+        tokenPrice: tokenPrice*10**18
     };
 
     const deploymentData = TokenContract.deploy({
@@ -655,12 +655,12 @@ app.post('/investor/buyToken', async (req, res) => {
 
         //const tokenPrice = await ServiceContract.methods.tokenContractERC20().methods.tokenPrice().call();
         
-        const requiredEther = BigInt(tokenPrice) * BigInt(tokenAmount);
+        const requiredWei = BigInt(tokenPrice) * BigInt(tokenAmount);
 
         const txData = {
             to: serviceContractAddress,
-            data: ServiceContract.methods.buyTokens(tokenAmount).encodeABI(),
-            value: requiredEther.toString(),
+            data: ServiceContract.methods.buyTokens(tokenAmount*10**18).encodeABI(),
+            value: requiredWei.toString(),
             gasPrice: await web3.eth.getGasPrice(),
             nonce: await web3.eth.getTransactionCount(investor.ethereumPublicKey)  // Use the public key (wallet address) of the investor
         };
