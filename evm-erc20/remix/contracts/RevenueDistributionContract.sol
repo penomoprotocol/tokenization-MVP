@@ -48,7 +48,8 @@ contract RevenueDistributionContract {
         for (uint256 i = 0; i < tokenHolders.length; i++) {
             address holder = tokenHolders[i];
             uint256 holderBalance = tokenContractERC20.balanceOf(holder);
-            uint256 holderShare = (receivedFunds * holderBalance) / totalSupply;
+            uint256 holderShare = (receivedFunds * holderBalance) /
+                totalSupply;
             payable(holder).transfer(holderShare);
             emit DistributedRevenue(holder, holderShare);
         }

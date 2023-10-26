@@ -11,7 +11,7 @@ const LCBuild = path.join(__dirname, '..', '..', 'evm-erc20', 'artifacts', 'cont
 const RDCBuild = path.join(__dirname, '..', '..', 'evm-erc20', 'artifacts', 'contracts', 'RevenueDistributionContract.sol', 'RevenueDistributionContract.json');
 const RSCBuild = path.join(__dirname, '..', '..', 'evm-erc20', 'artifacts', 'contracts', 'RevenueStreamContract.sol', 'RevenueStreamContract.json');
 
-
+const ethers  = require('ethers');
 const chai = require('chai');
 const chaiHttp = require('chai-http');
 const should = chai.should();
@@ -360,8 +360,8 @@ describe('Test API', function () {
                     symbol: "BAX",
                     revenueShare: 5000n.toString(),
                     contractTerm: 24n.toString(),
-                    maxTokenSupply: 1000000n.toString(),
-                    tokenPrice: (1n / 100n * 10n ** 18n).toString(),
+                    maxTokenSupply: 100n.toString(),
+                    tokenPrice: ethers.utils.parseEther("0.1"),
                     BBWalletAddress: companyWalletAddress,
                 });
 

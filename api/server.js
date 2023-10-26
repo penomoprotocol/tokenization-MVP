@@ -505,6 +505,7 @@ app.post('/investor/register', async (req, res) => {
         // Create a new Ethereum wallet and get the private key
         const wallet = createWallet();
         const privateKey = wallet.privateKey;
+        console.log("Original privateKey: ", privateKey);
         const publicKey = wallet.address; // Get the public key (wallet address)
 
         // Encrypt the private key with the user's password
@@ -634,6 +635,7 @@ app.post('/investor/buyToken', async (req, res) => {
         
         // Step 3: Decrypt the private key
         const decryptedPrivateKey = decryptPrivateKey(investor.ethereumPrivateKey, SECRET_KEY);
+        console.log("decryptedPrivateKey: ", decryptedPrivateKey);
 
         // The rest of the code remains the same for processing the transaction...
         const SCcontractPath = path.join(SCBuild);

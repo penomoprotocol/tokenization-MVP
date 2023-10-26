@@ -29,7 +29,7 @@ describe("Token Contract ERC20", function () {
             revenueShare: 5000,
             contractTerm: 12,
             maxTokenSupply: 1000000,
-            tokenPrice: 1
+            tokenPrice: ethers.utils.parseEther("0.1")
         };
         tokenERC20 = await TokenERC20.deploy(constructorArgs, [], [], []);
 

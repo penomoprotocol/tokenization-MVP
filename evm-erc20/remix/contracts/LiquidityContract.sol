@@ -10,11 +10,7 @@ contract LiquidityContract {
     event ReceivedFunds(address indexed from, uint256 amount);
     event WithdrawnFunds(address indexed to, uint256 amount);
 
-    constructor(
-        address _serviceContract,
-        address _BBWallet,
-        address _PenomoWallet
-    ) {
+    constructor(address _serviceContract, address _BBWallet, address _PenomoWallet) {
         serviceContract = _serviceContract;
         BBWallet = _BBWallet;
         PenomoWallet = _PenomoWallet;
@@ -22,19 +18,13 @@ contract LiquidityContract {
 
     // Modifier to ensure only the ServiceContract can send funds
     modifier onlyServiceContract() {
-        require(
-            msg.sender == serviceContract,
-            "Only the ServiceContract can send funds"
-        );
+        require(msg.sender == serviceContract, "Only the ServiceContract can send funds");
         _;
     }
 
     // Modifier to ensure only the BBWallet or PenomoWallet can withdraw funds
     modifier onlyOwners() {
-        require(
-            msg.sender == BBWallet || msg.sender == PenomoWallet,
-            "Only the BBWallet or PenomoWallet can withdraw funds"
-        );
+        require(msg.sender == BBWallet || msg.sender == PenomoWallet, "Only the BBWallet or PenomoWallet can withdraw funds");
         _;
     }
 
@@ -45,10 +35,7 @@ contract LiquidityContract {
 
     // Function to withdraw funds by the BBWallet or PenomoWallet
     function withdrawFunds(uint256 amount) external onlyOwners {
-        require(
-            address(this).balance >= amount,
-            "Insufficient funds in the contract"
-        );
+        require(address(this).balance >= amount, "Insufficient funds in the contract");
         payable(msg.sender).transfer(amount);
         emit WithdrawnFunds(msg.sender, amount);
     }

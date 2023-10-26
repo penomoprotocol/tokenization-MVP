@@ -5,7 +5,7 @@ contract GlobalStateContract {
     address public owner;
     mapping(address => bool) public verifiedInvestors;
     mapping(address => bool) public verifiedCompanies;
-
+    
     uint256 public penomoFee;
 
     event InvestorVerified(address indexed investor);
@@ -38,4 +38,5 @@ contract GlobalStateContract {
         penomoFee = _penomoFee;
         emit PenomoFeeUpdated(_penomoFee);
     }
+
 }

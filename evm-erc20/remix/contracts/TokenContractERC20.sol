@@ -36,18 +36,13 @@ contract TokenContractERC20 is ERC20 {
         uint256 tokenPrice;
     }
 
-    constructor(
-        ConstructorArgs memory args,
-        string[] memory DIDs,
-        string[] memory CIDs,
-        uint256[] memory revenueGoals
-    ) ERC20(args.name, args.symbol) {
+    constructor(ConstructorArgs memory args, string[] memory DIDs, string[] memory CIDs, uint256[] memory revenueGoals) ERC20(args.name, args.symbol) {
         penomoWallet = args.penomoWallet;
         globalState = GlobalStateContract(args.globalStateAddress);
         serviceContract = args.serviceContractAddress;
         revenueShare = args.revenueShare;
         contractTerm = args.contractTerm;
-        maxTokenSupply = args.maxTokenSupply * 10 ** 18;
+        maxTokenSupply = args.maxTokenSupply*10**18;
         tokenPrice = args.tokenPrice;
 
         for (uint i = 0; i < DIDs.length; i++) {
@@ -61,6 +56,7 @@ contract TokenContractERC20 is ERC20 {
 
         // Mint the maximum supply of tokens to the contract's address upon construction
         _mint(address(this), maxTokenSupply);
+
 
         // Set the allowance for the ServiceContract
         _approve(address(this), args.serviceContractAddress, maxTokenSupply);
@@ -117,8 +113,8 @@ contract TokenContractERC20 is ERC20 {
     function _beforeTokenTransfer(
         //address from,
         address to
-    ) internal //uint256 amount
-    {
+        //uint256 amount
+    ) internal {
         require(
             globalState.verifiedInvestors(to),
             "Recipient is not whitelisted as registered investor."

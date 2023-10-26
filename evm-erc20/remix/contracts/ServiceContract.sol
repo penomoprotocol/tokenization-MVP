@@ -46,8 +46,7 @@ contract ServiceContract {
 
     function buyTokens(uint256 amount) public payable {
         // Ensure the correct amount of wei is sent to receive amount of tokens (also in wei).
-        uint256 requiredWei = (amount * tokenContractERC20.tokenPrice()) /
-            10 ** 18;
+        uint256 requiredWei = amount * tokenContractERC20.tokenPrice()/10**18;
         require(msg.value == requiredWei, "Incorrect Wei sent");
 
         // For debugging
@@ -65,6 +64,7 @@ contract ServiceContract {
             msg.sender,
             amount
         );
+
 
         // Calculate Penomo's fee from the GlobalStateContract and the amount to send to the LiquidityContract
         uint256 feeAmount = (msg.value * globalState.penomoFee()) / 10000;
@@ -112,7 +112,12 @@ contract ServiceContract {
     function getContractAddresses()
         external
         view
-        returns (address, address, address, address)
+        returns (
+            address,
+            address,
+            address,
+            address
+        )
     {
         return (
             address(tokenContractERC20),
