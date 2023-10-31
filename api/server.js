@@ -72,12 +72,6 @@ const options = {
 }
 
 const openapiSpecification = swaggerJsdoc(options);
-app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(openapiSpecification));
-
-// Add a root route
-app.get('/', (req, res) => {
-    res.send('Welcome to the API. Visit /api-docs for documentation.');
-});
 
 // Import and use routes
 const companyRoutes = require('./routes/company');
@@ -85,10 +79,12 @@ const investorRoutes = require('./routes/investor');
 const assetRoutes = require('./routes/asset');
 const transactionRoutes = require('./routes/transaction');
 
-app.use(companyRoutes);
-app.use(investorRoutes);
-app.use(assetRoutes);
-app.use(transactionRoutes);
+app.use('/', swaggerUi.serve, swaggerUi.setup(openapiSpecification));
+
+app.use('/api', companyRoutes);
+app.use('/api', investorRoutes);
+app.use('/api', assetRoutes);
+app.use('/api', transactionRoutes);
 
 // Start the server
 app.listen(PORT, () => {

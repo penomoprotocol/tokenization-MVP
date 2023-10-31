@@ -303,7 +303,7 @@ router.post('/company/verify', async (req, res) => {
  *     - Company
  *     parameters:
  *       - in: path
- *         name: _id
+ *         name: id
  *         required: true
  *         description: The ID of the company to retrieve.
  *     responses:
@@ -322,7 +322,7 @@ router.post('/company/verify', async (req, res) => {
 // Retrieve company details by ID
 router.get('/company/:id', async (req, res) => {
     try {
-        const companyId = req._id;
+        const companyId = req.params.id;
         console.log('Retrieving company details for ID:', companyId); // Add this line for debugging
         const company = await Company.findById(companyId);
         if (!company) {
@@ -367,7 +367,7 @@ router.get('/company/:id', async (req, res) => {
 // Update company details by ID
 router.put('/company/:id', async (req, res) => {
     try {
-        const companyId = req.body._id;
+        const companyId = req.params.id;
         const updates = req.body;
         const updatedCompany = await Company.findByIdAndUpdate(companyId, updates, { new: true });
         if (!updatedCompany) {
@@ -404,7 +404,7 @@ router.put('/company/:id', async (req, res) => {
 // Delete company by ID
 router.delete('/company/:id', async (req, res) => {
     try {
-        const companyId = req.body._id;
+        const companyId = req.params.id;
         const deletedCompany = await Company.findByIdAndRemove(companyId);
         if (!deletedCompany) {
             return res.status(404).send('Company not found');

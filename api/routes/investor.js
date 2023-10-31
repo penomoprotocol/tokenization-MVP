@@ -447,7 +447,7 @@ router.post('/investor/sellToken', (req, res) => {
 // Retrieve investor details by ID
 router.get('/investor/:id', async (req, res) => {
     try {
-        const investorId = req.body._id;
+        const investorId = req.params.id;
         console.log('Retrieving investor details for ID:', investorId); // Add this line for debugging
         const investor = await Investor.findById(investorId);
         if (!investor) {
@@ -512,7 +512,7 @@ router.get('/investor/:id', async (req, res) => {
 // Update investor details by ID
 router.put('/investor/:id', async (req, res) => {
     try {
-        const investorId = req.body._id;
+        const investorId = req.params.id;
         const updates = req.body;
         const updatedInvestor = await Investor.findByIdAndUpdate(investorId, updates, { new: true });
         if (!updatedInvestor) {
@@ -569,7 +569,7 @@ router.put('/investor/:id', async (req, res) => {
 // Delete investor by ID
 router.delete('/investor/:id', async (req, res) => {
     try {
-        const investorId = req.body._id;
+        const investorId = req.params.id;
         const deletedInvestor = await Investor.findByIdAndRemove(investorId);
         if (!deletedInvestor) {
             return res.status(404).send('Investor not found');
