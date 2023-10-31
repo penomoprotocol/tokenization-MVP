@@ -152,6 +152,8 @@ async function deployRevenueDistributionContract(serviceContractAddress, tokenCo
  * /asset/register:
  *   post:
  *     summary: Register an asset
+ *     tags: 
+ *     - Asset
  *     requestBody:
  *       required: true
  *       content:
@@ -177,6 +179,8 @@ router.post('/asset/register', (req, res) => {
  * /asset/storeData:
  *   post:
  *     summary: Store asset data
+ *     tags: 
+ *     - Asset
  *     requestBody:
  *       required: true
  *       content:
@@ -202,6 +206,8 @@ router.post('/asset/storeData', (req, res) => {
  * /asset/tokenize:
  *   post:
  *     summary: Tokenize an asset
+ *     tags: 
+ *     - Asset
  *     requestBody:
  *       required: true
  *       content:
@@ -296,6 +302,8 @@ router.post('/asset/tokenize', async (req, res) => {
  * /asset/connectRevenueStream:
  *   post:
  *     summary: Connect a revenue stream to the tokenization engine
+ *     tags: 
+ *     - Asset
  *     requestBody:
  *       required: true
  *       content:
@@ -321,6 +329,8 @@ router.post('/asset/connectRevenueStream', (req, res) => {
  * /asset/{did}:
  *   get:
  *     summary: Retrieve asset details by DID
+ *     tags: 
+ *     - Asset
  *     parameters:
  *       - in: path
  *         name: did
@@ -344,6 +354,8 @@ router.get('/asset/:did', (req, res) => {
  * /asset/{did}:
  *   put:
  *     summary: Update asset details by DID
+ *     tags: 
+ *     - Asset
  *     parameters:
  *       - in: path
  *         name: did
@@ -376,6 +388,8 @@ router.put('/asset/:did', (req, res) => {
  * /asset/{id}:
  *   delete:
  *     summary: Delete asset by ID
+ *     tags: 
+ *     - Asset
  *     parameters:
  *       - in: path
  *         name: id

@@ -6,6 +6,8 @@ const router = express.Router();
  * /transactions:
  *   post:
  *     summary: Log a new transaction
+ *     tags: 
+ *     - Transaction
  *     requestBody:
  *       required: true
  *       content:
@@ -37,6 +39,8 @@ router.post('/transactions', (req, res) => {
  * /transactions:
  *   get:
  *     summary: Retrieve all transactions
+ *     tags: 
+ *     - Transaction
  *     responses:
  *       200:
  *         description: Successfully retrieved all transactions.
@@ -52,6 +56,8 @@ router.get('/transactions', (req, res) => {
  * /transactions/{id}:
  *   get:
  *     summary: Retrieve specific transaction by ID
+ *     tags: 
+ *     - Transaction
  *     parameters:
  *       - in: path
  *         name: id
@@ -74,6 +80,8 @@ router.get('/transactions/:id', (req, res) => {
  * /transactions/user/{userId}:
  *   get:
  *     summary: Retrieve all transactions for a specific user
+ *     tags: 
+ *     - Transaction
  *     parameters:
  *       - in: path
  *         name: userId

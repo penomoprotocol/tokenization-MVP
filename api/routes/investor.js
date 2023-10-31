@@ -96,6 +96,8 @@ const decryptPrivateKey = (encryptedKey, SECRET_KEY) => {
  * /investor/register:
  *   post:
  *     summary: Register an investor
+ *     tags: 
+ *     - Investor
  *     requestBody:
  *       required: true
  *       content:
@@ -153,6 +155,8 @@ router.post('/investor/register', async (req, res) => {
  * /investor/login:
  *   post:
  *     summary: Login an investor
+ *     tags: 
+ *     - Investor
  *     requestBody:
  *       required: true
  *       content:
@@ -208,6 +212,8 @@ router.post('/investor/login', async (req, res) => {
  * /investor/verify:
  *   post:
  *     summary: Verify an investor's KYC on the blockchain
+ *     tags: 
+ *     - Investor
  *     requestBody:
  *       required: true
  *       content:
@@ -286,6 +292,8 @@ router.post('/investor/verify', async (req, res) => {
  * /investor/buyToken:
  *   post:
  *     summary: Investor buys tokens
+ *     tags: 
+ *     - Investor
  *     requestBody:
  *       required: true
  *       content:
@@ -376,6 +384,8 @@ router.post('/investor/buyToken', async (req, res) => {
  * /investor/sellToken:
  *   post:
  *     summary: Investor sells tokens
+ *     tags: 
+ *     - Investor
  *     requestBody:
  *       required: true
  *       content:
@@ -406,6 +416,8 @@ router.post('/investor/sellToken', (req, res) => {
  * /investor/{id}:
  *   get:
  *     summary: Retrieve investor details by ID
+ *     tags: 
+ *     - Investor
  *     parameters:
  *       - in: path
  *         name: id
@@ -454,6 +466,8 @@ router.get('/investor/:id', async (req, res) => {
  * /investor/{id}:
  *   put:
  *     summary: Update investor details by ID
+ *     tags: 
+ *     - Investor
  *     parameters:
  *       - in: path
  *         name: id
@@ -515,6 +529,8 @@ router.put('/investor/:id', async (req, res) => {
  * /investor/{id}:
  *   delete:
  *     summary: Delete investor by ID
+ *     tags: 
+ *     - Investor
  *     parameters:
  *       - in: path
  *         name: id

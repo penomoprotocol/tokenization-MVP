@@ -47,9 +47,30 @@ const options = {
             title: 'Express API with Swagger',
             version: '1.0.0',
         },
+        tags: [
+            {
+                name: 'Company',
+                description: 'Endpoints related to companies'
+            },
+            {
+                name: 'Investor',
+                description: 'Endpoints related to investors'
+            },
+            {
+                name: 'Asset',
+                description: 'Endpoints related to assets'
+            },
+            {
+                name: 'Transaction',
+                description: 'Endpoints related to transactions'
+            },
+            
+        ]
     },
-    apis: ['./routes/*.js'],
-};
+    apis: ['./routes/*.js'], // files containing annotations
+}
+
+
 const openapiSpecification = swaggerJsdoc(options);
 app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(openapiSpecification));
 

@@ -96,6 +96,8 @@ const decryptPrivateKey = (encryptedKey, SECRET_KEY) => {
  * /company/register:
  *   post:
  *     summary: Register a company
+ *     tags: 
+ *     - Company
  *     requestBody:
  *       required: true
  *       content:
@@ -152,6 +154,8 @@ router.post('/company/register', async (req, res) => {
  * /company/login:
  *   post:
  *     summary: Login a company
+ *     tags: 
+ *     - Company
  *     requestBody:
  *       required: true
  *       content:
@@ -207,6 +211,8 @@ router.post('/company/login', async (req, res) => {
  * /company/verify:
  *   post:
  *     summary: Verify a company's KYC on the blockchain
+ *     tags: 
+ *     - Company
  *     requestBody:
  *       required: true
  *       content:
@@ -285,6 +291,8 @@ router.post('/company/verify', async (req, res) => {
  * /company/{id}:
  *   get:
  *     summary: Retrieve company details by ID
+ *     tags: 
+ *     - Company
  *     parameters:
  *       - in: path
  *         name: id
@@ -326,6 +334,8 @@ router.get('/company/:id', async (req, res) => {
  * /company/{id}:
  *   put:
  *     summary: Update company details by ID
+ *     tags: 
+ *     - Company
  *     parameters:
  *       - in: path
  *         name: id
@@ -367,6 +377,8 @@ router.put('/company/:id', async (req, res) => {
  * /company/{id}:
  *   delete:
  *     summary: Delete company by ID
+ *     tags: 
+ *     - Company
  *     parameters:
  *       - in: path
  *         name: id
