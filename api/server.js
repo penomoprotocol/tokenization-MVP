@@ -13,7 +13,6 @@ const RDCBuild = path.join(__dirname, '..', 'evm-erc20', 'artifacts', 'contracts
 const RSCBuild = path.join(__dirname, '..', 'evm-erc20', 'artifacts', 'contracts', 'RevenueStreamContract.sol', 'RevenueStreamContract.json');
 
 
-const express = require('express');
 const passport = require('passport');
 const JwtStrategy = require('passport-jwt').Strategy;
 const ExtractJwt = require('passport-jwt').ExtractJwt;
@@ -21,6 +20,12 @@ const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const mongoose = require('mongoose');
 require('dotenv').config();
+
+
+const express = require('express');
+const swaggerJsdoc = require('swagger-jsdoc');
+const swaggerUi = require('swagger-ui-express');
+
 
 
 // // // INITIALIZE
@@ -35,7 +40,29 @@ const MASTER_PRIVATE_KEY = process.env.MASTER_PRIVATE_KEY;
 
 // Initialize app
 const app = express();
+const port = 3000;
 app.use(express.json());
+
+
+// Configurate OpenAPI
+const options = {
+    definition: {
+        openapi: '3.0.0',
+        info: {
+            title: 'Express API with Swagger',
+            version: '1.0.0',
+        },
+    },
+    apis: ['./routes/*.js'], // files containing annotations as above
+}
+
+const openapiSpecification = swaggerJsdoc(options);
+app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(openapiSpecification));
+
+app.listen(port, () => {
+  console.log(`Server is running at http://localhost:${port}`);
+});
+
 
 // Connect to MongoDB
 mongoose.connect(MONGO_URI, { useNewUrlParser: true, useUnifiedTopology: true })
@@ -227,7 +254,7 @@ async function deployTokenContract(DIDs, CIDs, revenueGoals, name, symbol, reven
         revenueShare: revenueShare,
         contractTerm: contractTerm,
         maxTokenSupply: maxTokenSupply,
-        tokenPrice: tokenPrice*10**18
+        tokenPrice: tokenPrice * 10 ** 18
     };
 
     const deploymentData = TokenContract.deploy({
@@ -632,7 +659,7 @@ app.post('/investor/buyToken', async (req, res) => {
         }
 
         console.log("investor.ethereumPublicKey: ", investor.ethereumPublicKey);
-        
+
         // Step 3: Decrypt the private key
         const decryptedPrivateKey = decryptPrivateKey(investor.ethereumPrivateKey, SECRET_KEY);
         console.log("decryptedPrivateKey: ", decryptedPrivateKey);
@@ -654,12 +681,12 @@ app.post('/investor/buyToken', async (req, res) => {
         const tokenPrice = await tokenContractInstance.methods.tokenPrice().call();
 
         //const tokenPrice = await ServiceContract.methods.tokenContractERC20().methods.tokenPrice().call();
-        
+
         const requiredWei = BigInt(tokenPrice) * BigInt(tokenAmount);
 
         const txData = {
             to: serviceContractAddress,
-            data: ServiceContract.methods.buyTokens(tokenAmount*10**18).encodeABI(),
+            data: ServiceContract.methods.buyTokens(tokenAmount * 10 ** 18).encodeABI(),
             value: requiredWei.toString(),
             gasPrice: await web3.eth.getGasPrice(),
             nonce: await web3.eth.getTransactionCount(investor.ethereumPublicKey)  // Use the public key (wallet address) of the investor
