@@ -1,5 +1,95 @@
+//const web3 = require('web3');
+const CryptoJS = require('crypto-js');
+const { web3, networkId, GSCAddress } = require('../config/web3Config');
+
+const fs = require('fs');
+const path = require('path');
+
+const GSCBuild = path.join(__dirname, '..', 'evm-erc20', 'artifacts', 'contracts', 'GlobalStateContract.sol', 'GlobalStateContract.json');
+const SCBuild = path.join(__dirname, '..', 'evm-erc20', 'artifacts', 'contracts', 'ServiceContract.sol', 'ServiceContract.json');
+const TCBuild = path.join(__dirname, '..', 'evm-erc20', 'artifacts', 'contracts', 'TokenContractERC20.sol', 'TokenContractERC20.json');
+const LCBuild = path.join(__dirname, '..', 'evm-erc20', 'artifacts', 'contracts', 'LiquidityContract.sol', 'LiquidityContract.json');
+const RDCBuild = path.join(__dirname, '..', 'evm-erc20', 'artifacts', 'contracts', 'RevenueDistributionContract.sol', 'RevenueDistributionContract.json');
+const RSCBuild = path.join(__dirname, '..', 'evm-erc20', 'artifacts', 'contracts', 'RevenueStreamContract.sol', 'RevenueStreamContract.json');
+
+
+const passport = require('passport');
+const JwtStrategy = require('passport-jwt').Strategy;
+const ExtractJwt = require('passport-jwt').ExtractJwt;
+const bcrypt = require('bcryptjs');
+const jwt = require('jsonwebtoken');
+const mongoose = require('mongoose');
+require('dotenv').config();
+
+
+const swaggerJsdoc = require('swagger-jsdoc');
+const swaggerUi = require('swagger-ui-express');
+
 const express = require('express');
 const router = express.Router();
+
+
+
+// // // FUNCTIONS
+
+// Get gas price
+async function getCurrentGasPrice() {
+    let gasPrice = await web3.eth.getGasPrice(); // This will get the current gas price in wei
+    return gasPrice;
+}
+
+
+// Helper function to estimate and send the transaction
+async function estimateAndSend(transaction, fromAddress, toAddress) {
+
+    // Fetch the current nonce
+    let currentNonce = await web3.eth.getTransactionCount(MASTER_ADDRESS, 'pending');
+
+    // Estimate gas for the transaction
+    const estimatedGas = await transaction.estimateGas({ from: fromAddress });
+
+    const bufferGas = estimatedGas * 110n / 100n;  // adding a 10% buffer
+    const roundedGas = bufferGas + (10n - bufferGas % 10n);  // rounding up to the nearest 10
+    let currentGasPrice = await getCurrentGasPrice();
+
+    // Prepare the transaction data with nonce
+    const txData = {
+        from: fromAddress,
+        to: toAddress,
+        data: transaction.encodeABI(),
+        gas: roundedGas.toString(),
+        gasPrice: currentGasPrice,
+        nonce: currentNonce
+    };
+
+    // Increment the nonce for the next transaction
+    currentNonce++;
+
+    // Sign the transaction
+    const signedTx = await web3.eth.accounts.signTransaction(txData, MASTER_PRIVATE_KEY);
+
+    // Send the signed transaction
+    return web3.eth.sendSignedTransaction(signedTx.rawTransaction);
+}
+
+// Function to create a new Ethereum wallet and return the private key
+const createWallet = () => {
+    const wallet = web3.eth.accounts.create();
+    console.log("privateKey: ", wallet.privateKey);
+    return wallet;
+};
+
+// Function to encrypt and decrypt private keys
+const encryptPrivateKey = (privateKey, SECRET_KEY) => {
+    const encrypted = CryptoJS.AES.encrypt(privateKey, SECRET_KEY).toString();
+    return encrypted;
+};
+
+const decryptPrivateKey = (encryptedKey, SECRET_KEY) => {
+    const decrypted = CryptoJS.AES.decrypt(encryptedKey, SECRET_KEY).toString(CryptoJS.enc.Utf8);
+    return decrypted;
+};
+
 
 /**
  * @swagger
@@ -27,7 +117,7 @@ const router = express.Router();
  */
 
 // Company Registration
-app.post('/company/register', async (req, res) => {
+router.post('/company/register', async (req, res) => {
     try {
         const { name, email, password } = req.body;
         const hashedPassword = await bcrypt.hash(password, 10);
@@ -90,7 +180,7 @@ app.post('/company/register', async (req, res) => {
  */
 
 // Company Login
-app.post('/company/login', async (req, res) => {
+router.post('/company/login', async (req, res) => {
     try {
         const company = await Company.findOne({ email: req.body.email });
         if (!company) {
@@ -134,7 +224,7 @@ app.post('/company/login', async (req, res) => {
  */
 
 // Company KYC
-app.post('/company/verify', async (req, res) => {
+router.post('/company/verify', async (req, res) => {
     try {
         const { companyWalletAddress } = req.body;
 
@@ -214,7 +304,7 @@ app.post('/company/verify', async (req, res) => {
  */
 
 // Retrieve company details by ID
-app.get('/company/:id', async (req, res) => {
+router.get('/company/:id', async (req, res) => {
     try {
         const companyId = req.body._id;
         console.log('Retrieving company details for ID:', companyId); // Add this line for debugging
@@ -257,7 +347,7 @@ app.get('/company/:id', async (req, res) => {
  */
 
 // Update company details by ID
-app.put('/company/:id', async (req, res) => {
+router.put('/company/:id', async (req, res) => {
     try {
         const companyId = req.body._id;
         const updates = req.body;
@@ -292,7 +382,7 @@ app.put('/company/:id', async (req, res) => {
  */
 
 // Delete company by ID
-app.delete('/company/:id', async (req, res) => {
+router.delete('/company/:id', async (req, res) => {
     try {
         const companyId = req.body._id;
         const deletedCompany = await Company.findByIdAndRemove(companyId);

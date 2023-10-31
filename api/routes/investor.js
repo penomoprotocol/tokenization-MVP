@@ -1,5 +1,95 @@
+//const web3 = require('web3');
+const CryptoJS = require('crypto-js');
+const { web3, networkId, GSCAddress } = require('../config/web3Config');
+
+const fs = require('fs');
+const path = require('path');
+
+const GSCBuild = path.join(__dirname, '..', 'evm-erc20', 'artifacts', 'contracts', 'GlobalStateContract.sol', 'GlobalStateContract.json');
+const SCBuild = path.join(__dirname, '..', 'evm-erc20', 'artifacts', 'contracts', 'ServiceContract.sol', 'ServiceContract.json');
+const TCBuild = path.join(__dirname, '..', 'evm-erc20', 'artifacts', 'contracts', 'TokenContractERC20.sol', 'TokenContractERC20.json');
+const LCBuild = path.join(__dirname, '..', 'evm-erc20', 'artifacts', 'contracts', 'LiquidityContract.sol', 'LiquidityContract.json');
+const RDCBuild = path.join(__dirname, '..', 'evm-erc20', 'artifacts', 'contracts', 'RevenueDistributionContract.sol', 'RevenueDistributionContract.json');
+const RSCBuild = path.join(__dirname, '..', 'evm-erc20', 'artifacts', 'contracts', 'RevenueStreamContract.sol', 'RevenueStreamContract.json');
+
+
+const passport = require('passport');
+const JwtStrategy = require('passport-jwt').Strategy;
+const ExtractJwt = require('passport-jwt').ExtractJwt;
+const bcrypt = require('bcryptjs');
+const jwt = require('jsonwebtoken');
+const mongoose = require('mongoose');
+require('dotenv').config();
+
+
+const swaggerJsdoc = require('swagger-jsdoc');
+const swaggerUi = require('swagger-ui-express');
+
 const express = require('express');
-const app = express.Router();
+const router = express.Router();
+
+
+
+// // // FUNCTIONS
+
+// Get gas price
+async function getCurrentGasPrice() {
+    let gasPrice = await web3.eth.getGasPrice(); // This will get the current gas price in wei
+    return gasPrice;
+}
+
+
+// Helper function to estimate and send the transaction
+async function estimateAndSend(transaction, fromAddress, toAddress) {
+
+    // Fetch the current nonce
+    let currentNonce = await web3.eth.getTransactionCount(MASTER_ADDRESS, 'pending');
+
+    // Estimate gas for the transaction
+    const estimatedGas = await transaction.estimateGas({ from: fromAddress });
+
+    const bufferGas = estimatedGas * 110n / 100n;  // adding a 10% buffer
+    const roundedGas = bufferGas + (10n - bufferGas % 10n);  // rounding up to the nearest 10
+    let currentGasPrice = await getCurrentGasPrice();
+
+    // Prepare the transaction data with nonce
+    const txData = {
+        from: fromAddress,
+        to: toAddress,
+        data: transaction.encodeABI(),
+        gas: roundedGas.toString(),
+        gasPrice: currentGasPrice,
+        nonce: currentNonce
+    };
+
+    // Increment the nonce for the next transaction
+    currentNonce++;
+
+    // Sign the transaction
+    const signedTx = await web3.eth.accounts.signTransaction(txData, MASTER_PRIVATE_KEY);
+
+    // Send the signed transaction
+    return web3.eth.sendSignedTransaction(signedTx.rawTransaction);
+}
+
+// Function to create a new Ethereum wallet and return the private key
+const createWallet = () => {
+    const wallet = web3.eth.accounts.create();
+    console.log("privateKey: ", wallet.privateKey);
+    return wallet;
+};
+
+// Function to encrypt and decrypt private keys
+const encryptPrivateKey = (privateKey, SECRET_KEY) => {
+    const encrypted = CryptoJS.AES.encrypt(privateKey, SECRET_KEY).toString();
+    return encrypted;
+};
+
+const decryptPrivateKey = (encryptedKey, SECRET_KEY) => {
+    const decrypted = CryptoJS.AES.decrypt(encryptedKey, SECRET_KEY).toString(CryptoJS.enc.Utf8);
+    return decrypted;
+};
+
 
 /**
  * @swagger
@@ -27,7 +117,7 @@ const app = express.Router();
  */
 
 // Investor Registration
-app.post('/investor/register', async (req, res) => {
+router.post('/investor/register', async (req, res) => {
     try {
         const { name, email, password } = req.body;
         const hashedPassword = await bcrypt.hash(password, 10);
@@ -91,7 +181,7 @@ app.post('/investor/register', async (req, res) => {
  */
 
 //Investor Login
-app.post('/investor/login', async (req, res) => {
+router.post('/investor/login', async (req, res) => {
     try {
         const investor = await Investor.findOne({ email: req.body.email });
         if (!investor) {
@@ -135,7 +225,7 @@ app.post('/investor/login', async (req, res) => {
  */
 
 // Investor KYC
-app.post('/investor/verify', async (req, res) => {
+router.post('/investor/verify', async (req, res) => {
     try {
         const { investorWalletAddress } = req.body;
 
@@ -213,7 +303,7 @@ app.post('/investor/verify', async (req, res) => {
  */
 
 // Handle investor token purchase
-app.post('/investor/buyToken', async (req, res) => {
+router.post('/investor/buyToken', async (req, res) => {
     try {
         const { investorId, password, tokenAmount, serviceContractAddress } = req.body;
 
@@ -303,7 +393,7 @@ app.post('/investor/buyToken', async (req, res) => {
  */
 
 // Handle investor token sell
-app.post('/investor/sellToken', (req, res) => {
+router.post('/investor/sellToken', (req, res) => {
     // Sell token via orderbook (has priority over tokens held by contract)
     // -> indicate amount to sell 
     // -> creates listing in SC (mapping of address -> amount)
@@ -342,7 +432,7 @@ app.post('/investor/sellToken', (req, res) => {
  */
 
 // Retrieve investor details by ID
-app.get('/investor/:id', async (req, res) => {
+router.get('/investor/:id', async (req, res) => {
     try {
         const investorId = req.body._id;
         console.log('Retrieving investor details for ID:', investorId); // Add this line for debugging
@@ -405,7 +495,7 @@ app.get('/investor/:id', async (req, res) => {
  */
 
 // Update investor details by ID
-app.put('/investor/:id', async (req, res) => {
+router.put('/investor/:id', async (req, res) => {
     try {
         const investorId = req.body._id;
         const updates = req.body;
@@ -460,7 +550,7 @@ app.put('/investor/:id', async (req, res) => {
  */
 
 // Delete investor by ID
-app.delete('/investor/:id', async (req, res) => {
+router.delete('/investor/:id', async (req, res) => {
     try {
         const investorId = req.body._id;
         const deletedInvestor = await Investor.findByIdAndRemove(investorId);
@@ -475,4 +565,4 @@ app.delete('/investor/:id', async (req, res) => {
 });
 
 
-module.exports = app;
+module.exports = router;
