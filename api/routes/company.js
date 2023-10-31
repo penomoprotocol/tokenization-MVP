@@ -1,0 +1,309 @@
+const express = require('express');
+const router = express.Router();
+
+/**
+ * @swagger
+ * /company/register:
+ *   post:
+ *     summary: Register a company
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               name:
+ *                 type: string
+ *               email:
+ *                 type: string
+ *               password:
+ *                 type: string
+ *     responses:
+ *       200:
+ *         description: Successfully registered company.
+ *       500:
+ *         description: Error registering company.
+ */
+
+// Company Registration
+app.post('/company/register', async (req, res) => {
+    try {
+        const { name, email, password } = req.body;
+        const hashedPassword = await bcrypt.hash(password, 10);
+
+        // Create a new Ethereum wallet and get the private key
+        const wallet = createWallet();
+        const privateKey = wallet.privateKey;
+        const publicKey = wallet.address; // Get the public key (wallet address)
+
+        // Encrypt the private key with the user's password
+        const encryptedPrivateKey = encryptPrivateKey(privateKey, SECRET_KEY);
+
+        const company = new Company({
+            name,
+            email,
+            password: hashedPassword,
+            ethereumPrivateKey: encryptedPrivateKey, // Store the encrypted private key
+            ethereumPublicKey: publicKey, // Store the public key (wallet address)
+        });
+
+        await company.save();
+        console.log("Added company instance: ", company);
+        res.status(200).json({ company });
+    } catch (error) {
+        console.error('Error while registering company:', error);
+        res.status(500).send('Error registering company');
+    }
+});
+
+/**
+ * @swagger
+ * /company/login:
+ *   post:
+ *     summary: Login a company
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               email:
+ *                 type: string
+ *               password:
+ *                 type: string
+ *     responses:
+ *       200:
+ *         description: Successfully logged in.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 token:
+ *                   type: string
+ *       401:
+ *         description: Company not found or Invalid credentials.
+ *       500:
+ *         description: Error logging in.
+ */
+
+// Company Login
+app.post('/company/login', async (req, res) => {
+    try {
+        const company = await Company.findOne({ email: req.body.email });
+        if (!company) {
+            console.log('Company not found:', req.body.email); // Add this line for debugging
+            return res.status(401).send('Company not found');
+        }
+        const isPasswordValid = await bcrypt.compare(req.body.password, company.password);
+        if (isPasswordValid) {
+            console.log('Login successful:', company.email); // Add this line for debugging
+            const token = jwt.sign({ id: company._id }, SECRET_KEY);
+            res.json({ token });
+        } else {
+            console.log('Invalid credentials:', req.body.email); // Add this line for debugging
+            res.status(401).send('Invalid credentials');
+        }
+    } catch (error) {
+        console.error('Error logging in:', error);
+        res.status(500).send('Error logging in');
+    }
+});
+
+/**
+ * @swagger
+ * /company/verify:
+ *   post:
+ *     summary: Verify a company's KYC on the blockchain
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               companyWalletAddress:
+ *                 type: string
+ *     responses:
+ *       200:
+ *         description: Company successfully verified.
+ *       500:
+ *         description: An error occurred or transaction failed.
+ */
+
+// Company KYC
+app.post('/company/verify', async (req, res) => {
+    try {
+        const { companyWalletAddress } = req.body;
+
+        // Get GSC ABI
+        const contractPath = path.join(GSCBuild);
+        const contractJSON = JSON.parse(fs.readFileSync(contractPath, 'utf8'));
+        const GSCABI = contractJSON.abi;
+
+        // Prepare the contract instance
+        const contract = new web3.eth.Contract(GSCABI, GSCAddress);
+        //console.log("contract: ", contract);
+
+        // Prepare the transaction data
+        const data = contract.methods.verifyCompany(companyWalletAddress).encodeABI();
+        //console.log("data: ", data);
+
+        // Fetch the nonce for the sender's address
+        const senderAddress = MASTER_ADDRESS; // Replace with the sender's Ethereum address
+        const nonce = await web3.eth.getTransactionCount(senderAddress);
+
+        // Prepare the transaction object
+        let currentGasPrice = await getCurrentGasPrice();
+
+        const gasLimit = 200000; // Adjust the gas limit as needed
+        const rawTransaction = {
+            from: MASTER_ADDRESS,
+            to: GSCAddress,
+            gas: gasLimit,
+            gasPrice: currentGasPrice,
+            nonce,
+            data,
+        };
+
+        // Sign the transaction with the private key
+        const signedTransaction = await web3.eth.accounts.signTransaction(rawTransaction, MASTER_PRIVATE_KEY);
+        console.log("signedTransaction: ", signedTransaction);
+
+        // Send the signed transaction to the network
+        const receipt = await web3.eth.sendSignedTransaction(signedTransaction.rawTransaction);
+
+        // Handle the transaction receipt
+        console.log('Transaction receipt:', receipt);
+
+        // Check if the transaction was successful
+        if (receipt.status) {
+            return res.status(200).json({ message: 'Company successfully verified' });
+        } else {
+            return res.status(500).json({ error: 'Transaction failed' });
+        }
+    } catch (error) {
+        console.error('Error in company registration:', error);
+        return res.status(500).json({ error: 'An error occurred' });
+    }
+});
+
+/**
+ * @swagger
+ * /company/{id}:
+ *   get:
+ *     summary: Retrieve company details by ID
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         description: The ID of the company to retrieve.
+ *     responses:
+ *       200:
+ *         description: Details of the company.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Company'
+ *       404:
+ *         description: Company not found.
+ *       500:
+ *         description: Error retrieving company.
+ */
+
+// Retrieve company details by ID
+app.get('/company/:id', async (req, res) => {
+    try {
+        const companyId = req.body._id;
+        console.log('Retrieving company details for ID:', companyId); // Add this line for debugging
+        const company = await Company.findById(companyId);
+        if (!company) {
+            console.log('Company not found:', companyId); // Add this line for debugging
+            return res.status(404).send('Company not found');
+        }
+        console.log('Company details retrieved:', company); // Add this line for debugging
+        res.json(company);
+    } catch (error) {
+        console.error('Error retrieving company:', error);
+        res.status(500).send('Error retrieving company');
+    }
+});
+
+/**
+ * @swagger
+ * /company/{id}:
+ *   put:
+ *     summary: Update company details by ID
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         description: The ID of the company to update.
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             $ref: '#/components/schemas/CompanyUpdate'
+ *     responses:
+ *       200:
+ *         description: Details of the updated company.
+ *       404:
+ *         description: Company not found.
+ *       500:
+ *         description: Error updating company.
+ */
+
+// Update company details by ID
+app.put('/company/:id', async (req, res) => {
+    try {
+        const companyId = req.body._id;
+        const updates = req.body;
+        const updatedCompany = await Company.findByIdAndUpdate(companyId, updates, { new: true });
+        if (!updatedCompany) {
+            return res.status(404).send('Company not found');
+        }
+        res.json(updatedCompany);
+    } catch (error) {
+        console.error('Error updating company:', error);
+        res.status(500).send('Error updating company');
+    }
+});
+
+/**
+ * @swagger
+ * /company/{id}:
+ *   delete:
+ *     summary: Delete company by ID
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         description: The ID of the company to delete.
+ *     responses:
+ *       200:
+ *         description: Details of the deleted company.
+ *       404:
+ *         description: Company not found.
+ *       500:
+ *         description: Error deleting company.
+ */
+
+// Delete company by ID
+app.delete('/company/:id', async (req, res) => {
+    try {
+        const companyId = req.body._id;
+        const deletedCompany = await Company.findByIdAndRemove(companyId);
+        if (!deletedCompany) {
+            return res.status(404).send('Company not found');
+        }
+        res.json(deletedCompany);
+    } catch (error) {
+        console.error('Error deleting company:', error);
+        res.status(500).send('Error deleting company');
+    }
+});
+
+module.exports = router;

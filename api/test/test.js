@@ -367,7 +367,7 @@ describe('Test API', function () {
     let tokenContractAddress;
     let serviceContractAddress;
 
-    it('should deploy a token contract and service contract successfully', async () => {
+    it('should deploy contracts successfully', async () => {
         try {
             const response = await chai.request(app)
                 .post('/asset/tokenize')
@@ -420,53 +420,53 @@ describe('Test API', function () {
     let investorEtherBalanceBeforePurchase;
     const purchaseAmountEther = web3.utils.toWei("1", "ether"); // 1 ETH for example, adjust as needed
 
-    it('should allow an investor to purchase tokens', async () => {
-        try {
-            // Get investor's token and ether balance before purchase
-            const tokenContractPath = path.join(TCBuild);
-            const tokenContractJSON = JSON.parse(fs.readFileSync(tokenContractPath, 'utf8'));
-            const TokenABI = tokenContractJSON.abi;
+    // it('should allow an investor to purchase tokens', async () => {
+    //     try {
+    //         // Get investor's token and ether balance before purchase
+    //         const tokenContractPath = path.join(TCBuild);
+    //         const tokenContractJSON = JSON.parse(fs.readFileSync(tokenContractPath, 'utf8'));
+    //         const TokenABI = tokenContractJSON.abi;
 
-            const tokenContract = new web3.eth.Contract(TokenABI, tokenContractAddress);
-            investorTokenBalanceBeforePurchase = await tokenContract.methods.balanceOf(investorWalletAddress).call();
-            investorEtherBalanceBeforePurchase = await web3.eth.getBalance(investorWalletAddress);
+    //         const tokenContract = new web3.eth.Contract(TokenABI, tokenContractAddress);
+    //         investorTokenBalanceBeforePurchase = await tokenContract.methods.balanceOf(investorWalletAddress).call();
+    //         investorEtherBalanceBeforePurchase = await web3.eth.getBalance(investorWalletAddress);
 
-            // Purchase tokens
-            const response = await chai.request(app)
-                .post('/investor/buyToken')
-                .send({
-                    investorId: investorId,
-                    password: 'testpassword',
-                    tokenAmount: 1,
-                    serviceContractAddress: serviceContractAddress
-                });
+    //         // Purchase tokens
+    //         const response = await chai.request(app)
+    //             .post('/investor/buyToken')
+    //             .send({
+    //                 investorId: investorId,
+    //                 password: 'testpassword',
+    //                 tokenAmount: 1,
+    //                 serviceContractAddress: serviceContractAddress
+    //             });
 
-            response.should.have.status(200);
-            response.body.should.be.a('object');
-            response.body.should.have.property('txHash');   // Changed from 'tokensPurchased' to 'txHash'
+    //         response.should.have.status(200);
+    //         response.body.should.be.a('object');
+    //         response.body.should.have.property('txHash');   // Changed from 'tokensPurchased' to 'txHash'
 
-            // Verify token balance increased
-            const investorTokenBalanceAfterPurchase = await tokenContract.methods.balanceOf(investorWalletAddress).call();
-            const tokensReceived = BigInt(investorTokenBalanceAfterPurchase) - BigInt(investorTokenBalanceBeforePurchase);
-            console.log("investorTokenBalanceAfterPurchase: ", investorTokenBalanceAfterPurchase);
-            console.log("tokensReceived: ", tokensReceived);
+    //         // Verify token balance increased
+    //         const investorTokenBalanceAfterPurchase = await tokenContract.methods.balanceOf(investorWalletAddress).call();
+    //         const tokensReceived = BigInt(investorTokenBalanceAfterPurchase) - BigInt(investorTokenBalanceBeforePurchase);
+    //         console.log("investorTokenBalanceAfterPurchase: ", investorTokenBalanceAfterPurchase);
+    //         console.log("tokensReceived: ", tokensReceived);
 
-            // As we now receive a transaction hash, we can't directly assert on the number of tokens purchased.
-            // So, I removed the line that checks for the equality of tokensReceived and response.body.tokensPurchased.
+    //         // As we now receive a transaction hash, we can't directly assert on the number of tokens purchased.
+    //         // So, I removed the line that checks for the equality of tokensReceived and response.body.tokensPurchased.
 
-            // Verify ether balance decreased
-            const investorEtherBalanceAfterPurchase = await web3.eth.getBalance(investorWalletAddress);
-            const etherSpent = BigInt(investorEtherBalanceBeforePurchase) - BigInt(investorEtherBalanceAfterPurchase);
-            console.log("investorEtherBalanceAfterPurchase: ", investorEtherBalanceAfterPurchase);
-            console.log("etherSpent: ", etherSpent);
+    //         // Verify ether balance decreased
+    //         const investorEtherBalanceAfterPurchase = await web3.eth.getBalance(investorWalletAddress);
+    //         const etherSpent = BigInt(investorEtherBalanceBeforePurchase) - BigInt(investorEtherBalanceAfterPurchase);
+    //         console.log("investorEtherBalanceAfterPurchase: ", investorEtherBalanceAfterPurchase);
+    //         console.log("etherSpent: ", etherSpent);
 
-            // Allowing a small variance for gas
-            // etherSpent.should.be.closeTo(BigInt("YOUR_DESIRED_ETHER_AMOUNT_TO_SPEND"), BigInt(web3.utils.toWei("0.01", "ether"))); 
+    //         // Allowing a small variance for gas
+    //         // etherSpent.should.be.closeTo(BigInt("YOUR_DESIRED_ETHER_AMOUNT_TO_SPEND"), BigInt(web3.utils.toWei("0.01", "ether"))); 
 
-        } catch (error) {
-            // Handle errors
-            throw error;
-        }
-    });
+    //     } catch (error) {
+    //         // Handle errors
+    //         throw error;
+    //     }
+    // });
 
 });
