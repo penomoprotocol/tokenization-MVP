@@ -677,6 +677,15 @@ app.post('/investor/buyToken', async (req, res) => {
     }
 });
 
+// Handle investor token sell
+app.post('/investor/sellToken', (req, res) => {
+    // Sell token via orderbook (has priority over tokens held by contract)
+    // -> indicate amount to sell 
+    // -> creates listing in SC (mapping of address -> amount)
+    // -> gives allowance over amount to SC
+    // -> If somebody wants to buy a token, first check open listings from other investors
+});
+
 
 // Retrieve investor details by ID
 app.get('/investor/:id', async (req, res) => {
@@ -799,12 +808,12 @@ app.put('/asset/:did', (req, res) => {
 });
 
 app.delete('/asset/:id', (req, res) => {
-    // Delete asset
+    // Delete asset 
 });
 
 
 
-// // Transactions Routes (Nice to have for book keeping & analytics)
+// // Transactions Routes (For book keeping & analytics)
 
 app.post('/transactions', (req, res) => {
     // Log a new transaction
