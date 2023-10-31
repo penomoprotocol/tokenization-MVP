@@ -28,6 +28,7 @@ const swaggerUi = require('swagger-ui-express');
 const express = require('express');
 const router = express.Router();
 
+const Investor = require('../models/Investor');
 
 
 // // // FUNCTIONS

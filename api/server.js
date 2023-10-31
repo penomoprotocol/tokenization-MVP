@@ -20,18 +20,20 @@ const MASTER_ADDRESS = process.env.MASTER_ADDRESS;
 const MASTER_PRIVATE_KEY = process.env.MASTER_PRIVATE_KEY;
 
 const app = express();
-app.use(express.json()); // Use JSON middleware
-
-
-const jwtOptions = {
-    jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
-    secretOrKey: SECRET_KEY
-};
+app.use(express.json());
 
 // Connect to MongoDB
 mongoose.connect(MONGO_URI, { useNewUrlParser: true, useUnifiedTopology: true })
     .then(() => console.log('Connected to MongoDB'))
     .catch(err => console.error('Could not connect to MongoDB', err));
+
+
+
+// JWT configuration
+const jwtOptions = {
+    jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
+    secretOrKey: SECRET_KEY
+};
 
 // Initialize passport
 passport.use(new JwtStrategy(jwtOptions, (jwtPayload, done) => {
@@ -44,7 +46,7 @@ const options = {
     definition: {
         openapi: '3.0.0',
         info: {
-            title: 'Express API with Swagger',
+            title: 'penomo Protocol API',
             version: '1.0.0',
         },
         tags: [
@@ -64,12 +66,10 @@ const options = {
                 name: 'Transaction',
                 description: 'Endpoints related to transactions'
             },
-            
         ]
     },
-    apis: ['./routes/*.js'], // files containing annotations
+    apis: ['./routes/*.js'],
 }
-
 
 const openapiSpecification = swaggerJsdoc(options);
 app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(openapiSpecification));
@@ -96,4 +96,4 @@ app.listen(PORT, () => {
 });
 
 // Export modules
-module.exports = { app, companyRoutes, investorRoutes, assetRoutes};
+module.exports = { app, companyRoutes, investorRoutes, assetRoutes };

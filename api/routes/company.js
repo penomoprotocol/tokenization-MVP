@@ -29,6 +29,14 @@ const express = require('express');
 const router = express.Router();
 
 
+const SECRET_KEY = process.env.SECRET_KEY;
+const MONGO_URI = process.env.MONGO_URI;
+const MASTER_ADDRESS = process.env.MASTER_ADDRESS;
+const MASTER_PRIVATE_KEY = process.env.MASTER_PRIVATE_KEY;
+
+const Company = require('../models/Company');
+
+
 
 // // // FUNCTIONS
 
