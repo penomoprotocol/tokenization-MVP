@@ -5,12 +5,12 @@ const { web3, networkId, GSCAddress } = require('../config/web3Config');
 const fs = require('fs');
 const path = require('path');
 
-const GSCBuild = path.join(__dirname, '..', 'evm-erc20', 'artifacts', 'contracts', 'GlobalStateContract.sol', 'GlobalStateContract.json');
-const SCBuild = path.join(__dirname, '..', 'evm-erc20', 'artifacts', 'contracts', 'ServiceContract.sol', 'ServiceContract.json');
-const TCBuild = path.join(__dirname, '..', 'evm-erc20', 'artifacts', 'contracts', 'TokenContractERC20.sol', 'TokenContractERC20.json');
-const LCBuild = path.join(__dirname, '..', 'evm-erc20', 'artifacts', 'contracts', 'LiquidityContract.sol', 'LiquidityContract.json');
-const RDCBuild = path.join(__dirname, '..', 'evm-erc20', 'artifacts', 'contracts', 'RevenueDistributionContract.sol', 'RevenueDistributionContract.json');
-const RSCBuild = path.join(__dirname, '..', 'evm-erc20', 'artifacts', 'contracts', 'RevenueStreamContract.sol', 'RevenueStreamContract.json');
+const GSCBuild = path.join(__dirname, '..', '..', 'evm-erc20', 'artifacts', 'contracts', 'GlobalStateContract.sol', 'GlobalStateContract.json');
+const SCBuild = path.join(__dirname, '..', '..', 'evm-erc20', 'artifacts', 'contracts', 'ServiceContract.sol', 'ServiceContract.json');
+const TCBuild = path.join(__dirname, '..', '..', 'evm-erc20', 'artifacts', 'contracts', 'TokenContractERC20.sol', 'TokenContractERC20.json');
+const LCBuild = path.join(__dirname, '..', '..', 'evm-erc20', 'artifacts', 'contracts', 'LiquidityContract.sol', 'LiquidityContract.json');
+const RDCBuild = path.join(__dirname, '..', '..', 'evm-erc20', 'artifacts', 'contracts', 'RevenueDistributionContract.sol', 'RevenueDistributionContract.json');
+const RSCBuild = path.join(__dirname, '..', '..', 'evm-erc20', 'artifacts', 'contracts', 'RevenueStreamContract.sol', 'RevenueStreamContract.json');
 
 
 const passport = require('passport');
@@ -303,7 +303,7 @@ router.post('/company/verify', async (req, res) => {
  *     - Company
  *     parameters:
  *       - in: path
- *         name: id
+ *         name: _id
  *         required: true
  *         description: The ID of the company to retrieve.
  *     responses:
@@ -322,7 +322,7 @@ router.post('/company/verify', async (req, res) => {
 // Retrieve company details by ID
 router.get('/company/:id', async (req, res) => {
     try {
-        const companyId = req.body._id;
+        const companyId = req._id;
         console.log('Retrieving company details for ID:', companyId); // Add this line for debugging
         const company = await Company.findById(companyId);
         if (!company) {
