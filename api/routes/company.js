@@ -34,7 +34,12 @@ const MONGO_URI = process.env.MONGO_URI;
 const MASTER_ADDRESS = process.env.MASTER_ADDRESS;
 const MASTER_PRIVATE_KEY = process.env.MASTER_PRIVATE_KEY;
 
-const Company = require('../models/Company');
+// Connect to MongoDB
+mongoose.connect(MONGO_URI, { useNewUrlParser: true, useUnifiedTopology: true })
+    .then(() => console.log('Connected to MongoDB'))
+    .catch(err => console.error('Could not connect to MongoDB', err));
+
+const Company = require('../models/CompanyModel');
 
 
 
@@ -405,7 +410,7 @@ router.put('/company/:id', async (req, res) => {
 router.delete('/company/:id', async (req, res) => {
     try {
         const companyId = req.params.id;
-        const deletedCompany = await Company.findByIdAndRemove(companyId);
+        const deletedCompany = await Company.findByIdAndDelete(companyId);
         if (!deletedCompany) {
             return res.status(404).send('Company not found');
         }
