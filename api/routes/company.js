@@ -19,8 +19,6 @@ const ExtractJwt = require('passport-jwt').ExtractJwt;
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const mongoose = require('mongoose');
-require('dotenv').config();
-
 
 const swaggerJsdoc = require('swagger-jsdoc');
 const swaggerUi = require('swagger-ui-express');
@@ -28,7 +26,7 @@ const swaggerUi = require('swagger-ui-express');
 const express = require('express');
 const router = express.Router();
 
-
+require('dotenv').config();
 const SECRET_KEY = process.env.SECRET_KEY;
 const MONGO_URI = process.env.MONGO_URI;
 const MASTER_ADDRESS = process.env.MASTER_ADDRESS;
@@ -106,29 +104,51 @@ const decryptPrivateKey = (encryptedKey, SECRET_KEY) => {
 
 /**
  * @swagger
- * /company/register:
+ * /api/company/register:
  *   post:
- *     summary: Register a company
- *     tags: 
- *     - Company
+ *     summary: Register a new company
+ *     tags: [Company]
  *     requestBody:
  *       required: true
  *       content:
  *         application/json:
  *           schema:
  *             type: object
+ *             required:
+ *               - name
+ *               - email
+ *               - password
  *             properties:
  *               name:
  *                 type: string
+ *                 description: Name of the company
  *               email:
  *                 type: string
+ *                 format: email
+ *                 description: Email of the company
  *               password:
  *                 type: string
+ *                 format: password
+ *                 description: Password for the company account
  *     responses:
  *       200:
- *         description: Successfully registered company.
- *       500:
- *         description: Error registering company.
+ *         description: Company successfully registered
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 name:
+ *                   type: string
+ *                 email:
+ *                   type: string
+ *                 password:
+ *                   type: string
+ *                   format: password
+ *                 ethereumPrivateKey:
+ *                   type: string
+ *       400:
+ *         description: Invalid input
  */
 
 // Company Registration
@@ -164,7 +184,7 @@ router.post('/company/register', async (req, res) => {
 
 /**
  * @swagger
- * /company/login:
+ * /api/company/login:
  *   post:
  *     summary: Login a company
  *     tags: 
@@ -221,7 +241,7 @@ router.post('/company/login', async (req, res) => {
 
 /**
  * @swagger
- * /company/verify:
+ * /api/company/verify:
  *   post:
  *     summary: Verify a company's KYC on the blockchain
  *     tags: 
@@ -301,7 +321,7 @@ router.post('/company/verify', async (req, res) => {
 
 /**
  * @swagger
- * /company/{id}:
+ * /api/company/{id}:
  *   get:
  *     summary: Retrieve company details by ID
  *     tags: 
@@ -314,10 +334,6 @@ router.post('/company/verify', async (req, res) => {
  *     responses:
  *       200:
  *         description: Details of the company.
- *         content:
- *           application/json:
- *             schema:
- *               $ref: '#/components/schemas/Company'
  *       404:
  *         description: Company not found.
  *       500:
@@ -344,7 +360,7 @@ router.get('/company/:id', async (req, res) => {
 
 /**
  * @swagger
- * /company/{id}:
+ * /api/company/{id}:
  *   put:
  *     summary: Update company details by ID
  *     tags: 
@@ -359,7 +375,23 @@ router.get('/company/:id', async (req, res) => {
  *       content:
  *         application/json:
  *           schema:
- *             $ref: '#/components/schemas/CompanyUpdate'
+ *             type: object
+ *             required:
+ *               - name
+ *               - email
+ *               - password
+ *             properties:
+ *               name:
+ *                 type: string
+ *                 description: Name of the company
+ *               email:
+ *                 type: string
+ *                 format: email
+ *                 description: Email of the company
+ *               password:
+ *                 type: string
+ *                 format: password
+ *                 description: Password for the company account
  *     responses:
  *       200:
  *         description: Details of the updated company.
@@ -387,7 +419,7 @@ router.put('/company/:id', async (req, res) => {
 
 /**
  * @swagger
- * /company/{id}:
+ * /api/company/{id}:
  *   delete:
  *     summary: Delete company by ID
  *     tags: 

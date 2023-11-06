@@ -3,7 +3,7 @@ const router = express.Router();
 
 /**
  * @swagger
- * /transactions:
+ * /api/transactions:
  *   post:
  *     summary: Log a new transaction
  *     tags: 
@@ -36,7 +36,7 @@ router.post('/transactions', (req, res) => {
 
 /**
  * @swagger
- * /transactions:
+ * /api/transactions:
  *   get:
  *     summary: Retrieve all transactions
  *     tags: 
@@ -53,7 +53,7 @@ router.get('/transactions', (req, res) => {
 
 /**
  * @swagger
- * /transactions/{id}:
+ * /api/transactions/{id}:
  *   get:
  *     summary: Retrieve specific transaction by ID
  *     tags: 
@@ -77,7 +77,7 @@ router.get('/transactions/:id', (req, res) => {
 
 /**
  * @swagger
- * /transactions/user/{userId}:
+ * /api/transactions/user/{userId}:
  *   get:
  *     summary: Retrieve all transactions for a specific user
  *     tags: 

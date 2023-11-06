@@ -1,5 +1,44 @@
+//const web3 = require('web3');
+const CryptoJS = require('crypto-js');
+const { web3, networkId, GSCAddress } = require('../config/web3Config');
+
+const fs = require('fs');
+const path = require('path');
+
+const GSCBuild = path.join(__dirname, '..', '..', 'evm-erc20', 'artifacts', 'contracts', 'GlobalStateContract.sol', 'GlobalStateContract.json');
+const SCBuild = path.join(__dirname, '..', '..', 'evm-erc20', 'artifacts', 'contracts', 'ServiceContract.sol', 'ServiceContract.json');
+const TCBuild = path.join(__dirname, '..', '..', 'evm-erc20', 'artifacts', 'contracts', 'TokenContractERC20.sol', 'TokenContractERC20.json');
+const LCBuild = path.join(__dirname, '..', '..', 'evm-erc20', 'artifacts', 'contracts', 'LiquidityContract.sol', 'LiquidityContract.json');
+const RDCBuild = path.join(__dirname, '..', '..', 'evm-erc20', 'artifacts', 'contracts', 'RevenueDistributionContract.sol', 'RevenueDistributionContract.json');
+const RSCBuild = path.join(__dirname, '..', '..', 'evm-erc20', 'artifacts', 'contracts', 'RevenueStreamContract.sol', 'RevenueStreamContract.json');
+
+
+const passport = require('passport');
+const JwtStrategy = require('passport-jwt').Strategy;
+const ExtractJwt = require('passport-jwt').ExtractJwt;
+const bcrypt = require('bcryptjs');
+const jwt = require('jsonwebtoken');
+const mongoose = require('mongoose');
+
+const swaggerJsdoc = require('swagger-jsdoc');
+const swaggerUi = require('swagger-ui-express');
+
 const express = require('express');
 const router = express.Router();
+
+require('dotenv').config();
+const SECRET_KEY = process.env.SECRET_KEY;
+const MONGO_URI = process.env.MONGO_URI;
+const MASTER_ADDRESS = process.env.MASTER_ADDRESS;
+const MASTER_PRIVATE_KEY = process.env.MASTER_PRIVATE_KEY;
+
+// Connect to MongoDB
+mongoose.connect(MONGO_URI, { useNewUrlParser: true, useUnifiedTopology: true })
+    .then(() => console.log('Connected to MongoDB'))
+    .catch(err => console.error('Could not connect to MongoDB', err));
+
+//TO DO:
+//const Company = require('../models/AssetModel');
 
 // // // DEPLOYMENT SCRIPTS // TODO: Refactor into separate file and import
 
@@ -149,7 +188,7 @@ async function deployRevenueDistributionContract(serviceContractAddress, tokenCo
 
 /**
  * @swagger
- * /asset/register:
+ * /api/asset/register:
  *   post:
  *     summary: Register an asset
  *     tags: 
@@ -176,7 +215,7 @@ router.post('/asset/register', (req, res) => {
 
 /**
  * @swagger
- * /asset/storeData:
+ * /api/asset/storeData:
  *   post:
  *     summary: Store asset data
  *     tags: 
@@ -203,7 +242,7 @@ router.post('/asset/storeData', (req, res) => {
 
 /**
  * @swagger
- * /asset/tokenize:
+ * /api/asset/tokenize:
  *   post:
  *     summary: Tokenize an asset
  *     tags: 
@@ -299,7 +338,7 @@ router.post('/asset/tokenize', async (req, res) => {
 
 /**
  * @swagger
- * /asset/connectRevenueStream:
+ * /api/asset/connectRevenueStream:
  *   post:
  *     summary: Connect a revenue stream to the tokenization engine
  *     tags: 
@@ -326,7 +365,7 @@ router.post('/asset/connectRevenueStream', (req, res) => {
 
 /**
  * @swagger
- * /asset/{did}:
+ * /api/asset/{did}:
  *   get:
  *     summary: Retrieve asset details by DID
  *     tags: 
@@ -351,7 +390,7 @@ router.get('/asset/:did', (req, res) => {
 
 /**
  * @swagger
- * /asset/{did}:
+ * /api/asset/{did}:
  *   put:
  *     summary: Update asset details by DID
  *     tags: 
@@ -385,7 +424,7 @@ router.put('/asset/:did', (req, res) => {
 
 /**
  * @swagger
- * /asset/{id}:
+ * /api/asset/{id}:
  *   delete:
  *     summary: Delete asset by ID
  *     tags: 

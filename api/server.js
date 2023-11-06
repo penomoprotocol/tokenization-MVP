@@ -28,7 +28,6 @@ const options = {
     },
     apis: ['./routes/*.js'],
 }
-
 const openapiSpecification = swaggerJsdoc(options);
 
 const express = require('express');
@@ -87,8 +86,14 @@ app.use('/api', investorRoutes);
 app.use('/api', assetRoutes);
 app.use('/api', transactionRoutes);
 
-// Serve Swagger UI at the root or another route like '/docs'
-app.use('/', swaggerUi.serve, swaggerUi.setup(openapiSpecification));
+// Serve Swagger UI on a specific path
+app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(openapiSpecification));
+
+// Optional: Catch-all route to handle undefined routes, after all other routes
+app.use('*', (req, res) => {
+  res.status(404).send('API endpoint does not exist');
+});
+
 
 // Start the server
 app.listen(PORT, (err) => {

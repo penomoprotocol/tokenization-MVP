@@ -19,7 +19,12 @@ const ExtractJwt = require('passport-jwt').ExtractJwt;
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const mongoose = require('mongoose');
+
 require('dotenv').config();
+const SECRET_KEY = process.env.SECRET_KEY;
+const MONGO_URI = process.env.MONGO_URI;
+const MASTER_ADDRESS = process.env.MASTER_ADDRESS;
+const MASTER_PRIVATE_KEY = process.env.MASTER_PRIVATE_KEY;
 
 
 const swaggerJsdoc = require('swagger-jsdoc');
@@ -94,7 +99,7 @@ const decryptPrivateKey = (encryptedKey, SECRET_KEY) => {
 
 /**
  * @swagger
- * /investor/register:
+ * /api/investor/register:
  *   post:
  *     summary: Register an investor
  *     tags: 
@@ -153,7 +158,7 @@ router.post('/investor/register', async (req, res) => {
 
 /**
  * @swagger
- * /investor/login:
+ * /api/investor/login:
  *   post:
  *     summary: Login an investor
  *     tags: 
@@ -210,7 +215,7 @@ router.post('/investor/login', async (req, res) => {
 
 /**
  * @swagger
- * /investor/verify:
+ * /api/investor/verify:
  *   post:
  *     summary: Verify an investor's KYC on the blockchain
  *     tags: 
@@ -290,7 +295,7 @@ router.post('/investor/verify', async (req, res) => {
 
 /**
  * @swagger
- * /investor/buyToken:
+ * /api/investor/buyToken:
  *   post:
  *     summary: Investor buys tokens
  *     tags: 
@@ -382,7 +387,7 @@ router.post('/investor/buyToken', async (req, res) => {
 
 /**
  * @swagger
- * /investor/sellToken:
+ * /api/investor/sellToken:
  *   post:
  *     summary: Investor sells tokens
  *     tags: 
@@ -414,7 +419,7 @@ router.post('/investor/sellToken', (req, res) => {
 
 /**
  * @swagger
- * /investor/{id}:
+ * /api/investor/{id}:
  *   get:
  *     summary: Retrieve investor details by ID
  *     tags: 
@@ -464,7 +469,7 @@ router.get('/investor/:id', async (req, res) => {
 
 /**
  * @swagger
- * /investor/{id}:
+ * /api/investor/{id}:
  *   put:
  *     summary: Update investor details by ID
  *     tags: 
@@ -527,7 +532,7 @@ router.put('/investor/:id', async (req, res) => {
 
 /**
  * @swagger
- * /investor/{id}:
+ * /api/investor/{id}:
  *   delete:
  *     summary: Delete investor by ID
  *     tags: 
