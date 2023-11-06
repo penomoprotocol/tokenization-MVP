@@ -40,6 +40,68 @@ mongoose.connect(MONGO_URI, { useNewUrlParser: true, useUnifiedTopology: true })
 //TO DO:
 //const Company = require('../models/AssetModel');
 
+// // // FUNCTIONS
+
+// Get gas price
+async function getCurrentGasPrice() {
+    let gasPrice = await web3.eth.getGasPrice(); // This will get the current gas price in wei
+    return gasPrice;
+}
+
+
+// Helper function to estimate and send the transaction
+async function estimateAndSend(transaction, fromAddress, toAddress) {
+
+    // Fetch the current nonce
+    let currentNonce = await web3.eth.getTransactionCount(MASTER_ADDRESS, 'pending');
+
+    // Estimate gas for the transaction
+    const estimatedGas = await transaction.estimateGas({ from: fromAddress });
+
+    const bufferGas = estimatedGas * 110n / 100n;  // adding a 10% buffer
+    const roundedGas = bufferGas + (10n - bufferGas % 10n);  // rounding up to the nearest 10
+    let currentGasPrice = await getCurrentGasPrice();
+
+    // Prepare the transaction data with nonce
+    const txData = {
+        from: fromAddress,
+        to: toAddress,
+        data: transaction.encodeABI(),
+        gas: roundedGas.toString(),
+        gasPrice: currentGasPrice,
+        nonce: currentNonce
+    };
+
+    // Increment the nonce for the next transaction
+    currentNonce++;
+
+    // Sign the transaction
+    const signedTx = await web3.eth.accounts.signTransaction(txData, MASTER_PRIVATE_KEY);
+
+    // Send the signed transaction
+    return web3.eth.sendSignedTransaction(signedTx.rawTransaction);
+}
+
+// Function to create a new Ethereum wallet and return the private key
+const createWallet = () => {
+    const wallet = web3.eth.accounts.create();
+    console.log("privateKey: ", wallet.privateKey);
+    return wallet;
+};
+
+// Function to encrypt and decrypt private keys
+const encryptPrivateKey = (privateKey, SECRET_KEY) => {
+    const encrypted = CryptoJS.AES.encrypt(privateKey, SECRET_KEY).toString();
+    return encrypted;
+};
+
+const decryptPrivateKey = (encryptedKey, SECRET_KEY) => {
+    const decrypted = CryptoJS.AES.decrypt(encryptedKey, SECRET_KEY).toString(CryptoJS.enc.Utf8);
+    return decrypted;
+};
+
+
+
 // // // DEPLOYMENT SCRIPTS // TODO: Refactor into separate file and import
 
 // Deploy Service Contract
