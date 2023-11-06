@@ -381,13 +381,16 @@ router.post('/investor/buyToken', async (req, res) => {
         const tokenContractInstance = new web3.eth.Contract(TCABI, tokenContractERC20Address);
         const tokenPrice = await tokenContractInstance.methods.tokenPrice().call();
 
-        //const tokenPrice = await ServiceContract.methods.tokenContractERC20().methods.tokenPrice().call();
+        const requiredWei = BigInt(tokenPrice) * BigInt(tokenAmount) / BigInt(10**18);
 
-        const requiredWei = BigInt(tokenPrice) * BigInt(tokenAmount);
+        
+        console.log("tokenPrice: ", tokenPrice);
+        console.log("requiredWei: ", requiredWei);
+        console.log("tokenAmount: ", tokenAmount);
 
         const txData = {
             to: serviceContractAddress,
-            data: ServiceContract.methods.buyTokens(tokenAmount * 10 ** 18).encodeABI(),
+            data: ServiceContract.methods.buyTokens(tokenAmount).encodeABI(),
             value: requiredWei.toString(),
             gasPrice: await web3.eth.getGasPrice(),
             nonce: await web3.eth.getTransactionCount(investor.ethereumPublicKey)  // Use the public key (wallet address) of the investor

@@ -151,7 +151,7 @@ async function deployTokenContract(DIDs, CIDs, revenueGoals, name, symbol, reven
         revenueShare: revenueShare,
         contractTerm: contractTerm,
         maxTokenSupply: maxTokenSupply,
-        tokenPrice: tokenPrice * 10 ** 18
+        tokenPrice: tokenPrice
     };
 
     const deploymentData = TokenContract.deploy({
