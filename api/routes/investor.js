@@ -298,22 +298,43 @@ router.post('/investor/verify', async (req, res) => {
  *   post:
  *     summary: Investor buys tokens
  *     tags: 
- *     - Investor
+ *       - Investor
  *     requestBody:
  *       required: true
  *       content:
  *         application/json:
  *           schema:
  *             type: object
+ *             required:
+ *               - investorId
+ *               - password
+ *               - tokenAmount
+ *               - serviceContractAddress
  *             properties:
- *               amount:
+ *               investorId:
+ *                 type: string
+ *                 description: The ID of the investor
+ *               password:
+ *                 type: string
+ *                 format: password
+ *                 description: The password to verify investor's identity
+ *               tokenAmount:
  *                 type: number
+ *                 description: The amount of tokens the investor wishes to buy
+ *               serviceContractAddress:
+ *                 type: string
+ *                 description: The smart contract address to handle the token purchase
  *     responses:
  *       200:
  *         description: Successfully bought tokens.
+ *       400:
+ *         description: Bad request if service contract address is missing.
+ *       401:
+ *         description: Unauthorized if investor is not found or invalid credentials.
  *       500:
  *         description: Error buying tokens.
  */
+
 
 // Handle investor token purchase
 router.post('/investor/buyToken', async (req, res) => {
