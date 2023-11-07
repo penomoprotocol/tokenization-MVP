@@ -320,6 +320,86 @@ router.post('/company/verify', async (req, res) => {
 });
 
 /**
+* @swagger
+* /api/company/withdrawFunds:
+*   post:
+*     summary: Withdraw funds from the Liquidity Contract
+*     tags: [Company]
+*     requestBody:
+*       required: true
+*       content:
+*         application/json:
+*           schema:
+*             type: object
+*             required:
+*               - companyId
+*               - password
+*               - tokenAmount
+*               - liquidityContractAddress
+*             properties:
+*               companyId:
+*                 type: string
+*                 description: The ID of the company
+*               password:
+*                 type: string
+*                 format: password
+*                 description: Password for the company account
+*               tokenAmount:
+*                 type: string
+*                 description: The amount of tokens to withdraw
+*               liquidityContractAddress:
+*                 type: string
+*                 description: The address of the Liquidity Contract
+*     responses:
+*       200:
+*         description: Successfully withdrawn funds
+*       400:
+*         description: Invalid input or operation failed
+*/
+
+router.post('/api/company/withdrawFunds', async (req, res) => {
+    try {
+        const { companyId, password, tokenAmount, liquidityContractAddress } = req.body;
+
+        // Get LC ABI
+        const contractPath = path.join(LCBuild);
+        const contractJSON = JSON.parse(fs.readFileSync(contractPath, 'utf8'));
+        const LiquidityContractABI = contractJSON.abi;
+
+        // Authenticate the company
+        const company = await Company.findById(companyId);
+        if (!company) {
+            return res.status(404).send('Company not found');
+        }
+
+        // Validate the password
+        const isMatch = await bcrypt.compare(password, company.password);
+        if (!isMatch) {
+            return res.status(401).send('Invalid password');
+        }
+
+        // Decrypt the private key
+        const decryptedPrivateKey = decryptPrivateKey(company.ethereumPrivateKey, SECRET_KEY);
+
+        // Load the contract
+        const liquidityContract = new web3.eth.Contract(LiquidityContractABI, liquidityContractAddress);
+
+        // Prepare transaction
+        const transaction = liquidityContract.methods.withdrawFunds(web3.utils.toWei(tokenAmount, 'ether'));
+
+        // Estimate and send the transaction
+        const receipt = await estimateAndSend(transaction, company.ethereumPublicKey, liquidityContractAddress, decryptedPrivateKey);
+
+        // If the transaction is successful
+        return res.status(200).json({ receipt: receipt });
+
+    } catch (error) {
+        console.error('Error while withdrawing funds:', error);
+        res.status(500).send('Error withdrawing funds');
+    }
+});
+
+/**
  * @swagger
  * /api/company/{id}:
  *   get:

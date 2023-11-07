@@ -55,11 +55,6 @@ contract ServiceContract {
         emit EtherRequired(requiredWei);
 
         // Transfer the tokens to the investor
-        //tokenContractERC20.transferFrom(
-        //    address(tokenContractERC20),
-        //    msg.sender,
-        //    amount
-        //);
         tokenContractERC20.transferFrom(
             address(tokenContractERC20),
             msg.sender,
