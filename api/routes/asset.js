@@ -26,6 +26,10 @@ const swaggerUi = require('swagger-ui-express');
 const express = require('express');
 const router = express.Router();
 
+const ipfsClient = require('ipfs-http-client');
+const ipfs = ipfsClient({ host: 'localhost', port: '5001', protocol: 'http' }); // adjust if you're connecting to a different IPFS node
+
+
 require('dotenv').config();
 const SECRET_KEY = process.env.SECRET_KEY;
 const MONGO_URI = process.env.MONGO_URI;
@@ -298,9 +302,34 @@ router.post('/asset/register', (req, res) => {
  *         description: Error storing asset data.
  */
 
-router.post('/asset/storeData', (req, res) => {
-    // Store asset data and return CID
+
+router.post('/asset/storeData', async (req, res) => {
+    try {
+        // Validate the request body to ensure required fields are present
+        const { batteryType, capacity, voltage } = req.body;
+        if (!batteryType || !capacity || !voltage) {
+            return res.status(400).json({ error: 'Missing required battery data fields' });
+        }
+
+        // Prepare the data to be stored
+        const batteryData = {
+            batteryType,
+            capacity,
+            voltage,
+            // Include additional technical data as required
+        };
+
+        // Store the data in IPFS
+        const { cid } = await ipfs.add(JSON.stringify(batteryData));
+        
+        // Return the CID in the response
+        res.status(200).json({ cid: cid.toString() });
+    } catch (error) {
+        console.error('Error storing data on IPFS:', error);
+        res.status(500).json({ error: 'Failed to store data on IPFS' });
+    }
 });
+
 
 /**
  * @swagger
