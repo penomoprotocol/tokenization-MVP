@@ -44,11 +44,11 @@ async function getCurrentGasPrice() {
 }
 
 
-// Helper function to estimate and send the transaction
-async function estimateAndSend(transaction, fromAddress, toAddress) {
+// Helper function to estimate gas and send a transaction
+async function estimateAndSend(transaction, fromAddress, fromPrivateKey, toAddress) {
 
     // Fetch the current nonce
-    let currentNonce = await web3.eth.getTransactionCount(MASTER_ADDRESS, 'pending');
+    let currentNonce = await web3.eth.getTransactionCount(fromAddress, 'pending');
 
     // Estimate gas for the transaction
     const estimatedGas = await transaction.estimateGas({ from: fromAddress });
@@ -71,7 +71,7 @@ async function estimateAndSend(transaction, fromAddress, toAddress) {
     currentNonce++;
 
     // Sign the transaction
-    const signedTx = await web3.eth.accounts.signTransaction(txData, MASTER_PRIVATE_KEY);
+    const signedTx = await web3.eth.accounts.signTransaction(txData, fromPrivateKey);
 
     // Send the signed transaction
     return web3.eth.sendSignedTransaction(signedTx.rawTransaction);

@@ -68,11 +68,11 @@ async function getCurrentGasPrice() {
 }
 
 
-// Helper function to estimate and send the transaction
-async function estimateAndSend(transaction, fromAddress, toAddress) {
+// Helper function to estimate gas and send a transaction
+async function estimateAndSend(transaction, fromAddress, fromPrivateKey, toAddress) {
 
     // Fetch the current nonce
-    let currentNonce = await web3.eth.getTransactionCount(MASTER_ADDRESS, 'pending');
+    let currentNonce = await web3.eth.getTransactionCount(fromAddress, 'pending');
 
     // Estimate gas for the transaction
     const estimatedGas = await transaction.estimateGas({ from: fromAddress });
@@ -95,7 +95,7 @@ async function estimateAndSend(transaction, fromAddress, toAddress) {
     currentNonce++;
 
     // Sign the transaction
-    const signedTx = await web3.eth.accounts.signTransaction(txData, MASTER_PRIVATE_KEY);
+    const signedTx = await web3.eth.accounts.signTransaction(txData, fromPrivateKey);
 
     // Send the signed transaction
     return web3.eth.sendSignedTransaction(signedTx.rawTransaction);
@@ -428,7 +428,7 @@ router.post('/asset/storeData', async (req, res) => {
         );
 
         // Send the transaction using the estimateAndSend helper function
-        const receipt = await estimateAndSend(transaction, MASTER_ADDRESS, DIDContractAddress);
+        const receipt = await estimateAndSend(transaction, MASTER_ADDRESS, MASTER_PRIVATE_KEY, DIDContractAddress);
 
         // Respond with the IPFS CID and transaction receipt
         res.status(200).json({
@@ -523,7 +523,7 @@ router.post('/asset/tokenize', async (req, res) => {
 
 
         // Call setTokenContract with gas estimation and send
-        await estimateAndSend(ServiceContract.methods.setContractAddresses(tokenContractAddress, liquidityContractAddress, revenueDistributionContractAddress), MASTER_ADDRESS, serviceContractAddress);
+        await estimateAndSend(ServiceContract.methods.setContractAddresses(tokenContractAddress, liquidityContractAddress, revenueDistributionContractAddress), MASTER_ADDRESS, MASTER_PRIVATE_KEY, serviceContractAddress);
 
         // Respond with the deployed contracts' addresses
         res.status(200).json({
