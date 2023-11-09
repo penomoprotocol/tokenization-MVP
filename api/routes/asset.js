@@ -275,10 +275,36 @@ async function deployRevenueDistributionContract(serviceContractAddress, tokenCo
  *         description: Error registering asset.
  */
 
-router.post('/asset/register', (req, res) => {
-    // Register asset and return DID
-});
-
+router.post('/asset/register', async (req, res) => {
+    try {
+      const { name } = req.body;
+      // Normally, you would secure the seed phrase and not generate a new one each time
+      const seed = generateMnemonicSeed();
+  
+      // Ensure the seed has a balance before creating the DID
+      // This would typically be done off-line or in a secure environment, not within an API call
+      const didHash = await createPeaqDID(name, seed);
+  
+      // The DID document will be created and stored on the blockchain, retrieve it using the hash
+      const sdkInstance = await Sdk.createInstance({
+        baseUrl: 'wss://wsspc1-qa.agung.peaq.network',
+        seed,
+      });
+  
+      const didDocument = await sdkInstance.did.read(name);
+      await sdkInstance.disconnect();
+  
+      // Return the DID hash and the DID document to the caller
+      res.status(200).json({
+        didHash,
+        didDocument
+      });
+  
+    } catch (error) {
+      console.error('Error registering asset:', error);
+      res.status(500).send('Error registering asset.');
+    }
+  });
 /**
  * @swagger
  * /api/asset/storeData:
