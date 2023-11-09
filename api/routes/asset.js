@@ -257,9 +257,10 @@ async function deployRevenueDistributionContract(serviceContractAddress, tokenCo
  * @swagger
  * /api/asset/register:
  *   post:
- *     summary: Register an asset
+ *     summary: Register a new asset and create its DID.
  *     tags: 
- *     - Asset
+ *       - Asset
+ *     description: This endpoint registers a new asset, generates a mnemonic seed securely, and creates a DID for the asset. It then returns the DID hash and the newly created DID document.
  *     requestBody:
  *       required: true
  *       content:
@@ -269,11 +270,28 @@ async function deployRevenueDistributionContract(serviceContractAddress, tokenCo
  *             properties:
  *               name:
  *                 type: string
+ *                 description: The name of the asset to register.
+ *               controllerDid:
+ *                 type: string
+ *                 description: The DID of the entity that will control the new asset's DID.
  *     responses:
  *       200:
- *         description: Successfully registered asset and returned DID.
+ *         description: Successfully registered the asset and returned DID information.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 didHash:
+ *                   type: string
+ *                   description: The hash of the DID document.
+ *                 didDocument:
+ *                   type: object
+ *                   description: The newly created DID document for the asset.
+ *       400:
+ *         description: Missing required fields in the request.
  *       500:
- *         description: Error registering asset.
+ *         description: Error occurred while registering the asset.
  */
 
 router.post('/asset/register', async (req, res) => {
@@ -317,50 +335,102 @@ router.post('/asset/register', async (req, res) => {
  * @swagger
  * /api/asset/storeData:
  *   post:
- *     summary: Store asset data
+ *     summary: Store asset data in IPFS and update the asset's DID document.
  *     tags: 
- *     - Asset
+ *       - Asset
+ *     description: This endpoint stores asset-related data on IPFS and then updates the asset's DID document with a reference to this data. It requires the DID of the asset and the company's private key for authentication.
  *     requestBody:
  *       required: true
  *       content:
  *         application/json:
  *           schema:
  *             type: object
+ *             required:
+ *               - batteryType
+ *               - capacity
+ *               - voltage
+ *               - didName
+ *               - companySeed
  *             properties:
- *               data:
+ *               batteryType:
  *                 type: string
+ *                 description: The type of the battery.
+ *               capacity:
+ *                 type: string
+ *                 description: The capacity of the battery.
+ *               voltage:
+ *                 type: string
+ *                 description: The voltage of the battery.
+ *               didName:
+ *                 type: string
+ *                 description: The DID of the asset to be updated.
+ *               companySeed:
+ *                 type: string
+ *                 description: The company's private key for authentication purposes.
  *     responses:
  *       200:
- *         description: Successfully stored asset data and returned CID.
+ *         description: Successfully stored asset data and updated the DID document.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 cid:
+ *                   type: string
+ *                   description: The Content Identifier (CID) of the stored data in IPFS.
+ *                 message:
+ *                   type: string
+ *                   description: Confirmation message about the DID document update.
+ *       400:
+ *         description: Missing required fields in the request.
  *       500:
- *         description: Error storing asset data.
+ *         description: Error occurred while storing data or updating the DID document.
  */
-
-
 router.post('/asset/storeData', async (req, res) => {
     try {
-        // Validate the request body to ensure required fields are present
-        const { batteryType, capacity, voltage } = req.body;
-        if (!batteryType || !capacity || !voltage) {
-            return res.status(400).json({ error: 'Missing required battery data fields' });
+        const { batteryType, capacity, voltage, didName, companySeed } = req.body;
+
+        if (!batteryType || !capacity || !voltage || !didName || !companySeed) {
+            return res.status(400).json({ error: 'Missing required fields' });
         }
 
-        // Prepare the data to be stored
         const batteryData = {
             batteryType,
             capacity,
             voltage,
-            // Include additional technical data as required
         };
 
-        // Store the data in IPFS
         const { cid } = await ipfs.add(JSON.stringify(batteryData));
 
-        // Return the CID in the response
-        res.status(200).json({ cid: cid.toString() });
+        const sdkInstance = await Sdk.createInstance({
+            baseUrl: 'wss://wsspc1-qa.agung.peaq.network',
+            seed: companySeed, // Ensure this is managed securely
+        });
+
+        const didDocument = await sdkInstance.did.read(didName);
+
+        // Instead of directly pushing to servicesList, use the SDK's methods
+        // Example using a hypothetical addAttribute method (the actual method name or parameters might differ)
+        const attributeKey = 'BatteryDataStorage';
+        const attributeValue = `ipfs://${cid}`;
+
+        await sdkInstance.did.addAttribute({
+            name: didName,
+            key: attributeKey,
+            value: attributeValue,
+            validity: 0 // or appropriate validity period
+        });
+
+        await sdkInstance.disconnect();
+
+        res.status(200).json({
+            cid: cid.toString(),
+            message: 'DID document updated with new battery data CID'
+        });
+
     } catch (error) {
-        console.error('Error storing data on IPFS:', error);
-        res.status(500).json({ error: 'Failed to store data on IPFS' });
+        console.error('Error updating DID document with battery data:', error);
+        res.status(500).json({ error: 'Failed to update DID document with battery data' });
     }
 });
 
@@ -414,6 +484,7 @@ router.post('/asset/storeData', async (req, res) => {
  *         description: Failed to deploy the contracts.
  */
 
+// TODO: Modify endpoint & contract to only take in DID (because CID with battery data is stored in DID document)
 router.post('/asset/tokenize', async (req, res) => {
     try {
         // Get data from the request
