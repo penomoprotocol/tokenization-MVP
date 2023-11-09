@@ -29,6 +29,8 @@ const router = express.Router();
 const ipfsClient = require('ipfs-http-client');
 const ipfs = ipfsClient({ host: 'localhost', port: '5001', protocol: 'http' }); // adjust if you're connecting to a different IPFS node
 
+const { Sdk } = require('@peaq-network/sdk');
+const { mnemonicGenerate } = require('@polkadot/util-crypto');
 
 require('dotenv').config();
 const SECRET_KEY = process.env.SECRET_KEY;
@@ -104,7 +106,19 @@ const decryptPrivateKey = (encryptedKey, SECRET_KEY) => {
     return decrypted;
 };
 
+// Function to create a new DID on peaq network
+const createPeaqDID = async (name, seed) => {
+    const sdkInstance = await Sdk.createInstance({
+        baseUrl: 'wss://wsspc1-qa.agung.peaq.network',
+        seed,
+    });
 
+    // Use the SDK to create the DID
+    const { hash } = await sdkInstance.did.create({ name });
+
+    await sdkInstance.disconnect();
+    return hash;
+};
 
 // // // DEPLOYMENT SCRIPTS // TODO: Refactor into separate file and import
 
@@ -277,34 +291,40 @@ async function deployRevenueDistributionContract(serviceContractAddress, tokenCo
 
 router.post('/asset/register', async (req, res) => {
     try {
-      const { name } = req.body;
-      // Normally, you would secure the seed phrase and not generate a new one each time
-      const seed = generateMnemonicSeed();
-  
-      // Ensure the seed has a balance before creating the DID
-      // This would typically be done off-line or in a secure environment, not within an API call
-      const didHash = await createPeaqDID(name, seed);
-  
-      // The DID document will be created and stored on the blockchain, retrieve it using the hash
-      const sdkInstance = await Sdk.createInstance({
-        baseUrl: 'wss://wsspc1-qa.agung.peaq.network',
-        seed,
-      });
-  
-      const didDocument = await sdkInstance.did.read(name);
-      await sdkInstance.disconnect();
-  
-      // Return the DID hash and the DID document to the caller
-      res.status(200).json({
-        didHash,
-        didDocument
-      });
-  
+        const { name } = req.body;
+
+        // Generate a mnemonic seed. In a production environment, ensure this is done securely.
+        const generateMnemonicSeed = () => mnemonicGenerate();
+
+        // Normally, you would secure the seed phrase and not generate a new one each time
+        const seed = generateMnemonicSeed();
+
+        // Ensure the seed has a balance before creating the DID
+        // This would typically be done off-line or in a secure environment, not within an API call
+        const didHash = await createPeaqDID(name, seed);
+
+        // The DID document will be created and stored on the blockchain, retrieve it using the hash
+        const sdkInstance = await Sdk.createInstance({
+            baseUrl: 'wss://wsspc1-qa.agung.peaq.network',
+            seed,
+        });
+
+        const didDocument = await sdkInstance.did.read(name);
+        await sdkInstance.disconnect();
+
+        // Return the DID hash and the DID document to the caller
+        res.status(200).json({
+            didHash,
+            didDocument
+        });
+
     } catch (error) {
-      console.error('Error registering asset:', error);
-      res.status(500).send('Error registering asset.');
+        console.error('Error registering asset:', error);
+        res.status(500).send('Error registering asset.');
     }
-  });
+});
+
+
 /**
  * @swagger
  * /api/asset/storeData:
@@ -347,7 +367,7 @@ router.post('/asset/storeData', async (req, res) => {
 
         // Store the data in IPFS
         const { cid } = await ipfs.add(JSON.stringify(batteryData));
-        
+
         // Return the CID in the response
         res.status(200).json({ cid: cid.toString() });
     } catch (error) {
