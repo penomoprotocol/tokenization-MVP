@@ -11,7 +11,7 @@ const TCBuild = path.join(__dirname, '..', '..', 'evm-erc20', 'artifacts', 'cont
 const LCBuild = path.join(__dirname, '..', '..', 'evm-erc20', 'artifacts', 'contracts', 'LiquidityContract.sol', 'LiquidityContract.json');
 const RDCBuild = path.join(__dirname, '..', '..', 'evm-erc20', 'artifacts', 'contracts', 'RevenueDistributionContract.sol', 'RevenueDistributionContract.json');
 const RSCBuild = path.join(__dirname, '..', '..', 'evm-erc20', 'artifacts', 'contracts', 'RevenueStreamContract.sol', 'RevenueStreamContract.json');
-
+const DIDBuild = path.join(__dirname, '..', '..', 'evm-erc20', 'artifacts', 'contracts', 'DID.sol', 'DID.json');
 
 const passport = require('passport');
 const JwtStrategy = require('passport-jwt').Strategy;
@@ -45,6 +45,19 @@ mongoose.connect(MONGO_URI, { useNewUrlParser: true, useUnifiedTopology: true })
 
 //TO DO:
 //const Company = require('../models/AssetModel');
+
+
+// Set up DID contract
+// Read the contract's ABI
+const contractPath = path.join(DIDBuild);
+const contractJSON = JSON.parse(fs.readFileSync(contractPath, 'utf8'));
+const DIDABI = contractJSON.abi;
+
+// The address of the deployed DID contract (replace with actual address)
+const DIDContractAddress = '0x0000000000000000000000000000000000000800';
+
+// Initialize the contract with web3
+const DIDContract = new web3.eth.Contract(DIDABI, DIDContractAddress);
 
 // // // FUNCTIONS
 
@@ -388,52 +401,46 @@ router.post('/asset/register', async (req, res) => {
  */
 router.post('/asset/storeData', async (req, res) => {
     try {
-        const { batteryType, capacity, voltage, didName, companySeed } = req.body;
+        const { batteryType, capacity, voltage, didAccount, companySeed } = req.body;
 
-        if (!batteryType || !capacity || !voltage || !didName || !companySeed) {
+        if (!batteryType || !capacity || !voltage || !didAccount || !companySeed) {
             return res.status(400).json({ error: 'Missing required fields' });
         }
 
+        // Store battery data on IPFS
         const batteryData = {
             batteryType,
             capacity,
             voltage,
         };
-
         const { cid } = await ipfs.add(JSON.stringify(batteryData));
 
-        const sdkInstance = await Sdk.createInstance({
-            baseUrl: 'wss://wsspc1-qa.agung.peaq.network',
-            seed: companySeed, // Ensure this is managed securely
-        });
-
-        const didDocument = await sdkInstance.did.read(didName);
-
-        // Instead of directly pushing to servicesList, use the SDK's methods
-        // Example using a hypothetical addAttribute method (the actual method name or parameters might differ)
-        const attributeKey = 'BatteryDataStorage';
+        // Prepare the attribute data
+        const attributeKey = web3.utils.sha3('BatteryDataStorage');
         const attributeValue = `ipfs://${cid}`;
 
-        await sdkInstance.did.addAttribute({
-            name: didName,
-            key: attributeKey,
-            value: attributeValue,
-            validity: 0 // or appropriate validity period
-        });
+        // Create a transaction object
+        const transaction = DIDContract.methods.add_attribute(
+            web3.utils.asciiToHex(didAccount), // DID account in hex
+            attributeKey, // Attribute key as bytes32
+            web3.utils.asciiToHex(attributeValue), // Attribute value as hex
+            0 // Validity (0 if not applicable)
+        );
 
-        await sdkInstance.disconnect();
+        // Send the transaction using the estimateAndSend helper function
+        const receipt = await estimateAndSend(transaction, MASTER_ADDRESS, DIDContractAddress);
 
+        // Respond with the IPFS CID and transaction receipt
         res.status(200).json({
             cid: cid.toString(),
-            message: 'DID document updated with new battery data CID'
+            message: 'DID document updated with new battery data CID',
+            transactionReceipt: receipt
         });
-
     } catch (error) {
         console.error('Error updating DID document with battery data:', error);
         res.status(500).json({ error: 'Failed to update DID document with battery data' });
     }
 });
-
 
 /**
  * @swagger
