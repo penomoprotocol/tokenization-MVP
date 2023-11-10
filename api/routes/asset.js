@@ -307,34 +307,58 @@ async function deployRevenueDistributionContract(serviceContractAddress, tokenCo
  *         description: Error occurred while registering the asset.
  */
 
+// TODO: Implement sdk integration once migrated to peaq testnet
 router.post('/asset/register', async (req, res) => {
     try {
-        const { name, controllerDid } = req.body;
+        const { batteryName, companyId, companyPassword } = req.body;
 
-        // Generate a mnemonic seed. In a production environment, ensure this is done securely.
-        const generateMnemonicSeed = () => mnemonicGenerate();
+        // Step 1: Get the company from the database using the provided companyId
+        const company = await Company.findById(companyId);
+        if (!company) {
+            console.log('Company not found:', companyId);
+            return res.status(401).send('Company not found');
+        }
 
-        // Normally, you would secure the seed phrase and not generate a new one each time
-        const seed = generateMnemonicSeed();
+        // Step 2: Verify password
+        const isPasswordValid = await bcrypt.compare(companyPassword, company.password);
+        if (!isPasswordValid) {
+            console.log('Invalid credentials for company ID:', companyId);
+            return res.status(401).send('Invalid credentials');
+        }
 
-        // Ensure the seed has a balance before creating the DID
-        // This would typically be done off-line or in a secure environment, not within an API call
-        const sdkInstance = await Sdk.createInstance({
-            baseUrl: 'wss://wsspc1-qa.agung.peaq.network',
-            seed,
-        });
-        
-          const { hash } = await sdkInstance.did.create({
-            name,
-            controller: controllerDid, // Set the controller to the company's DID
-          });
-        
-          await sdkInstance.disconnect();
+        console.log("company.ethereumPublicKey: ", company.ethereumPublicKey);
+
+        // Step 3: Decrypt the private key (not secure method!)
+        const decryptedPrivateKey = decryptPrivateKey(company.ethereumPrivateKey, SECRET_KEY);
+        console.log("decryptedPrivateKey: ", decryptedPrivateKey);
+
+
+
+        // // Generate a mnemonic seed. In a production environment, ensure this is done securely.
+        // const generateMnemonicSeed = () => mnemonicGenerate();
+
+        // // Normally, you would secure the seed phrase and not generate a new one each time
+        // const seed = generateMnemonicSeed();
+
+        // // Ensure the seed has a balance before creating the DID
+        // // This would typically be done off-line or in a secure environment, not within an API call
+        // const sdkInstance = await Sdk.createInstance({
+        //     baseUrl: 'wss://wsspc1-qa.agung.peaq.network',
+        //     seed,
+        // });
+
+        //   const { didHash } = await sdkInstance.did.create({
+        //     name,
+        //     controller: controllerDid, // Set the controller to the company's DID
+        //   });
+
+        //   await sdkInstance.disconnect();
+
+        const did = "did:peaq:5GrwvaEF5zXb26Fz9rcQpDWS57CtERHpNehXCPcNoHGKutQY"
 
         // Return the DID hash and the DID document to the caller
         res.status(200).json({
-            didHash,
-            didDocument
+            did
         });
 
     } catch (error) {
@@ -401,9 +425,9 @@ router.post('/asset/register', async (req, res) => {
  */
 router.post('/asset/storeData', async (req, res) => {
     try {
-        const { batteryType, capacity, voltage, didAccount, companySeed } = req.body;
+        const { batteryType, capacity, voltage, batteryDid, companyId, companyPassword } = req.body;
 
-        if (!batteryType || !capacity || !voltage || !didAccount || !companySeed) {
+        if (!batteryType || !capacity || !voltage || !batteryDid || !companyId || companyPassword) {
             return res.status(400).json({ error: 'Missing required fields' });
         }
 
@@ -415,26 +439,26 @@ router.post('/asset/storeData', async (req, res) => {
         };
         const { cid } = await ipfs.add(JSON.stringify(batteryData));
 
-        // Prepare the attribute data
-        const attributeKey = web3.utils.sha3('BatteryDataStorage');
-        const attributeValue = `ipfs://${cid}`;
+        // // Prepare the attribute data
+        // const attributeKey = web3.utils.sha3('BatteryDataStorage');
+        // const attributeValue = `ipfs://${cid}`;
 
-        // Create a transaction object
-        const transaction = DIDContract.methods.add_attribute(
-            web3.utils.asciiToHex(didAccount), // DID account in hex
-            attributeKey, // Attribute key as bytes32
-            web3.utils.asciiToHex(attributeValue), // Attribute value as hex
-            0 // Validity (0 if not applicable)
-        );
+        // // Create a transaction object
+        // const transaction = DIDContract.methods.add_attribute(
+        //     web3.utils.asciiToHex(batteryDid), // DID account in hex
+        //     attributeKey, // Attribute key as bytes32
+        //     web3.utils.asciiToHex(attributeValue), // Attribute value as hex
+        //     0 // Validity (0 if not applicable)
+        // );
 
-        // Send the transaction using the estimateAndSend helper function
-        const receipt = await estimateAndSend(transaction, MASTER_ADDRESS, MASTER_PRIVATE_KEY, DIDContractAddress);
+        // // Send the transaction using the estimateAndSend helper function
+        // const receipt = await estimateAndSend(transaction, MASTER_ADDRESS, MASTER_PRIVATE_KEY, DIDContractAddress);
 
         // Respond with the IPFS CID and transaction receipt
         res.status(200).json({
             cid: cid.toString(),
             message: 'DID document updated with new battery data CID',
-            transactionReceipt: receipt
+            // transactionReceipt: receipt
         });
     } catch (error) {
         console.error('Error updating DID document with battery data:', error);
