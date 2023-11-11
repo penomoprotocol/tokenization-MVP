@@ -45,16 +45,15 @@ async function getCurrentGasPrice() {
 
 
 // Helper function to estimate gas and send a transaction
-async function estimateAndSend(transaction, fromAddress, fromPrivateKey, toAddress) {
-
+async function estimateAndSend(transaction, fromAddress, fromPrivateKey, toAddress, amountInWei) {
     // Fetch the current nonce
     let currentNonce = await web3.eth.getTransactionCount(fromAddress, 'pending');
 
     // Estimate gas for the transaction
     const estimatedGas = await transaction.estimateGas({ from: fromAddress });
 
-    const bufferGas = estimatedGas * 110n / 100n;  // adding a 10% buffer
-    const roundedGas = bufferGas + (10n - bufferGas % 10n);  // rounding up to the nearest 10
+    const bufferGas = estimatedGas * 110n / 100n;  // Adding a 10% buffer
+    const roundedGas = bufferGas + (10n - bufferGas % 10n);  // Rounding up to the nearest 10
     let currentGasPrice = await getCurrentGasPrice();
 
     // Prepare the transaction data with nonce
@@ -62,13 +61,11 @@ async function estimateAndSend(transaction, fromAddress, fromPrivateKey, toAddre
         from: fromAddress,
         to: toAddress,
         data: transaction.encodeABI(),
+        value: amountInWei, // Adding the value field for the amount being sent
         gas: roundedGas.toString(),
         gasPrice: currentGasPrice,
         nonce: currentNonce
     };
-
-    // Increment the nonce for the next transaction
-    currentNonce++;
 
     // Sign the transaction
     const signedTx = await web3.eth.accounts.signTransaction(txData, fromPrivateKey);
@@ -76,6 +73,7 @@ async function estimateAndSend(transaction, fromAddress, fromPrivateKey, toAddre
     // Send the signed transaction
     return web3.eth.sendSignedTransaction(signedTx.rawTransaction);
 }
+
 
 // Function to create a new Ethereum wallet and return the private key
 const createWallet = () => {
@@ -365,7 +363,7 @@ router.post('/investor/buyToken', async (req, res) => {
         const decryptedPrivateKey = decryptPrivateKey(investor.ethereumPrivateKey, SECRET_KEY);
         console.log("decryptedPrivateKey: ", decryptedPrivateKey);
 
-        // The rest of the code remains the same for processing the transaction...
+        // Get SC ABI
         const SCcontractPath = path.join(SCBuild);
         const SCcontractJSON = JSON.parse(fs.readFileSync(SCcontractPath, 'utf8'));
         const SCABI = SCcontractJSON.abi;
@@ -381,26 +379,33 @@ router.post('/investor/buyToken', async (req, res) => {
         const tokenContractInstance = new web3.eth.Contract(TCABI, tokenContractERC20Address);
         const tokenPrice = await tokenContractInstance.methods.tokenPrice().call();
 
-        const requiredWei = BigInt(tokenPrice) * BigInt(tokenAmount) / BigInt(10**18);
+        const requiredWei = BigInt(tokenPrice) * BigInt(tokenAmount) / BigInt(10 ** 18);
 
-        
+
         console.log("tokenPrice: ", tokenPrice);
         console.log("requiredWei: ", requiredWei);
         console.log("tokenAmount: ", tokenAmount);
 
-        const txData = {
-            to: serviceContractAddress,
-            data: ServiceContract.methods.buyTokens(tokenAmount).encodeABI(),
-            value: requiredWei.toString(),
-            gasPrice: await web3.eth.getGasPrice(),
-            nonce: await web3.eth.getTransactionCount(investor.ethereumPublicKey)  // Use the public key (wallet address) of the investor
-        };
+        // const txData = {
+        //     to: serviceContractAddress,
+        //     data: ServiceContract.methods.buyTokens(tokenAmount).encodeABI(),
+        //     value: requiredWei.toString(),
+        //     gasPrice: await web3.eth.getGasPrice(),
+        //     nonce: await web3.eth.getTransactionCount(investor.ethereumPublicKey)  // Use the public key (wallet address) of the investor
+        // };
 
-        txData.gas = await web3.eth.estimateGas(txData);
-        const signedTx = await web3.eth.accounts.signTransaction(txData, decryptedPrivateKey);
-        const txReceipt = await web3.eth.sendSignedTransaction(signedTx.rawTransaction);
+        // Prepare transaction
+        const transaction = ServiceContract.methods.buyTokens(tokenAmount);
 
-        res.status(200).json({ txHash: txReceipt.transactionHash });
+        // Estimate and send the transaction
+        const receipt = await estimateAndSend(transaction, investor.ethereumPublicKey, decryptedPrivateKey, serviceContractAddress, requiredWei);
+
+
+        // txData.gas = await web3.eth.estimateGas(txData);
+        // const signedTx = await web3.eth.accounts.signTransaction(txData, decryptedPrivateKey);
+        // const txReceipt = await web3.eth.sendSignedTransaction(signedTx.rawTransaction);
+
+        res.status(200).json({ receipt: receipt });
 
     } catch (error) {
         console.error('Error purchasing tokens:', error);

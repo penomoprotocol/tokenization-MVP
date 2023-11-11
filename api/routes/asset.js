@@ -26,8 +26,8 @@ const swaggerUi = require('swagger-ui-express');
 const express = require('express');
 const router = express.Router();
 
-const ipfsClient = require('ipfs-http-client');
-const ipfs = ipfsClient({ host: 'localhost', port: '5001', protocol: 'http' }); // adjust if you're connecting to a different IPFS node
+// const ipfsClient = require('ipfs-http-client');
+// const ipfs = ipfsClient({ host: 'localhost', port: '5001', protocol: 'http' }); // adjust if you're connecting to a different IPFS node
 
 const { Sdk } = require('@peaq-network/sdk');
 const { mnemonicGenerate } = require('@polkadot/util-crypto');
@@ -437,7 +437,9 @@ router.post('/asset/storeData', async (req, res) => {
             capacity,
             voltage,
         };
-        const { cid } = await ipfs.add(JSON.stringify(batteryData));
+
+        const cid = "ipfs://bafybeihpjhkeuiq3k6nqa3fkgeigeri7iebtrsuyuey5y6vy36n345xmbi/23";
+        // const { cid } = await ipfs.add(JSON.stringify(batteryData));
 
         // // Prepare the attribute data
         // const attributeKey = web3.utils.sha3('BatteryDataStorage');
