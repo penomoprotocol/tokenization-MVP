@@ -567,24 +567,48 @@ router.post('/asset/tokenize', async (req, res) => {
  * @swagger
  * /api/asset/connectRevenueStream:
  *   post:
- *     summary: Connect a revenue stream to the tokenization engine
+ *     summary: Deploy a new RevenueStreamContract and connect it to a service contract
+ *     description: This endpoint deploys a RevenueStreamContract for managing the revenue stream of a battery asset and connects it to an existing service contract.
  *     tags: 
- *     - Asset
+ *       - Asset
  *     requestBody:
  *       required: true
  *       content:
  *         application/json:
  *           schema:
  *             type: object
+ *             required:
+ *               - serviceContractAddress
+ *               - pricePerKWh
+ *               - authorizedBattery
  *             properties:
- *               streamDetails:
+ *               serviceContractAddress:
  *                 type: string
+ *                 description: Ethereum address of the service contract to connect with.
+ *               pricePerKWh:
+ *                 type: number
+ *                 format: float
+ *                 description: Price per kWh in wei for calculating revenue.
+ *               authorizedBattery:
+ *                 type: string
+ *                 description: Ethereum address of the authorized battery.
  *     responses:
  *       200:
- *         description: Successfully connected revenue stream.
+ *         description: Revenue stream contract deployed successfully and connected to the service contract.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                 contractAddress:
+ *                   type: string
+ *                   description: Ethereum address of the deployed RevenueStreamContract.
  *       500:
- *         description: Error connecting revenue stream.
+ *         description: Error occurred during the process.
  */
+
 
 router.post('/asset/connectRevenueStream', async (req, res) => {
     try {
