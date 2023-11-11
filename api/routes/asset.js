@@ -586,8 +586,59 @@ router.post('/asset/tokenize', async (req, res) => {
  *         description: Error connecting revenue stream.
  */
 
-router.post('/asset/connectRevenueStream', (req, res) => {
-    // Deploy revenue stream contract and connect to tokenization engine
+router.post('/asset/connectRevenueStream', async (req, res) => {
+    try {
+        const { serviceContractAddress, pricePerKWh, authorizedBattery } = req.body;
+
+        // Validate inputs
+        if (!serviceContractAddress || !pricePerKWh || !authorizedBattery) {
+            return res.status(400).send('Missing required parameters');
+        }
+
+        // Read the contract's ABI and bytecode
+        const contractPath = path.join(RSCBuild);
+        const contractJSON = JSON.parse(fs.readFileSync(contractPath, 'utf8'));
+        const RSCABI = contractJSON.abi;
+        const RSCBytecode = contractJSON.bytecode;
+
+        // Create a new contract instance
+        const RSCContract = new web3.eth.Contract(RSCABI);
+
+        // Create the deployment data
+        const deploymentData = RSCContract.deploy({
+            data: RSCBytecode,
+            arguments: [serviceContractAddress, pricePerKWh, authorizedBattery]
+        });
+
+        // Estimate gas for the deployment and add buffer
+        const estimatedGas = await deploymentData.estimateGas({ from: MASTER_ADDRESS });
+        const bufferGas = estimatedGas * 110n / 100n;
+        const roundedGas = bufferGas + (10n - bufferGas % 10n);
+        let currentGasPrice = await getCurrentGasPrice();
+
+        // Prepare the transaction data
+        const deployTx = {
+            data: deploymentData.encodeABI(),
+            gas: roundedGas.toString(),
+            gasPrice: currentGasPrice.toString(),
+            from: MASTER_ADDRESS
+        };
+
+        // Sign the transaction with the master's private key
+        const signedTx = await web3.eth.accounts.signTransaction(deployTx, MASTER_PRIVATE_KEY);
+
+        // Send the signed transaction
+        const receipt = await web3.eth.sendSignedTransaction(signedTx.rawTransaction);
+
+        // Respond with the contract's deployed address
+        res.status(200).json({
+            message: 'Revenue stream contract deployed successfully',
+            contractAddress: receipt.contractAddress
+        });
+    } catch (error) {
+        console.error('Error deploying revenue stream contract:', error);
+        res.status(500).send('Failed to deploy revenue stream contract');
+    }
 });
 
 /**

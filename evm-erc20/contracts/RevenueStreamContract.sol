@@ -18,10 +18,12 @@ contract RevenueStreamContract {
     event RentalStarted(uint256 startKWh);
     event RentalStopped(uint256 totalAmount);
 
-    constructor(address _serviceContract, uint256 _pricePerKWh) {
+    constructor(address _serviceContract, uint256 _pricePerKWh, address authorizedBattery) {
         owner = msg.sender;
         serviceContract = ServiceContract(_serviceContract);
         pricePerKWh = _pricePerKWh;
+        authorizedBatteries[authorizedBattery] = true;
+
     }
 
     modifier onlyOwner() {
