@@ -1,6 +1,11 @@
 //const web3 = require('web3');
 const CryptoJS = require('crypto-js');
+const { ethers } = require('ethers');
 const { web3, networkId, GSCAddress } = require('../config/web3Config');
+
+// For debugging
+console.log(web3.utils);
+console.log(ethers.utils);
 
 const fs = require('fs');
 const path = require('path');
@@ -93,6 +98,18 @@ const decryptPrivateKey = (encryptedKey, SECRET_KEY) => {
     return decrypted;
 };
 
+
+// Helper function to serialize BigInt values in an object
+function serializeBigIntInObject(obj) {
+    for (let key in obj) {
+        if (typeof obj[key] === 'bigint') {
+            obj[key] = obj[key].toString();
+        } else if (typeof obj[key] === 'object' && obj[key] !== null) {
+            obj[key] = serializeBigIntInObject(obj[key]);
+        }
+    }
+    return obj;
+}
 
 /**
  * @swagger
@@ -377,93 +394,21 @@ router.post('/investor/buyToken', async (req, res) => {
 
         const tokenContractERC20Address = await ServiceContract.methods.tokenContractERC20().call();
         const tokenContractInstance = new web3.eth.Contract(TCABI, tokenContractERC20Address);
+
         const tokenPrice = await tokenContractInstance.methods.tokenPrice().call();
+        const tokenAmountWeiBigInt = BigInt(web3.utils.toWei(tokenAmount.toString(), 'ether'));
+        const tokenPriceBigInt = BigInt(tokenPrice);
+        const requiredWei = tokenPriceBigInt * BigInt(tokenAmount.toString());
 
-        const tokenAmountWei = BigInt(tokenAmount) * BigInt(10 ** 18); // Convert token amount to Wei (assuming the token has 18 decimals)
-        const requiredWei = BigInt(tokenPrice) * BigInt(tokenAmount); // Required Wei to purchase the tokenAmount
 
+        console.log("tokenPrice: ", tokenPrice.toString());
+        console.log("requiredWei: ", requiredWei.toString());
+        console.log("tokenAmountWei: ", tokenAmountWeiBigInt.toString());
 
-        console.log("tokenPrice: ", tokenPrice);
-        console.log("requiredWei: ", requiredWei);
-        console.log("tokenAmountWei: ", tokenAmountWei);
-
-        const transaction = ServiceContract.methods.buyTokens(tokenAmountWei.toString());
+        const transaction = ServiceContract.methods.buyTokens(tokenAmountWeiBigInt.toString());
         const receipt = await estimateAndSend(transaction, investor.ethereumPublicKey, decryptedPrivateKey, serviceContractAddress, requiredWei.toString());
 
-        // For debugging: Decode emitted events
-
-        const EtherRequiredABI = {
-            name: 'EtherRequired',
-            type: 'event',
-            inputs: [{
-                type: 'uint256',
-                name: 'requiredWei',
-                indexed: false
-            }]
-        };
-
-        const EtherReceivedABI = {
-            name: 'EtherReceived',
-            type: 'event',
-            inputs: [{
-                type: 'uint256',
-                name: 'value',
-                indexed: false
-            }]
-        };
-
-        const TokensPurchasedABI = {
-            name: 'TokensPurchased',
-            type: 'event',
-            inputs: [{
-                type: 'address',
-                name: 'investor',
-                indexed: true
-            }, {
-                type: 'uint256',
-                name: 'amount',
-                indexed: false
-            }]
-        };
-
-        receipt.logs.forEach(log => {
-            try {
-                let decodedLog = null;
-
-                // Decode EtherRequired Event
-                try {
-                    decodedLog = web3.eth.abi.decodeLog(EtherRequiredABI.inputs, log.data, log.topics);
-                    console.log("EtherRequired Event:", decodedLog);
-                } catch (error) {
-                    // If decoding fails, it might be a different event
-                }
-
-                // Decode EtherReceived Event
-                try {
-                    decodedLog = web3.eth.abi.decodeLog(EtherReceivedABI.inputs, log.data, log.topics);
-                    console.log("EtherReceived Event:", decodedLog);
-                } catch (error) {
-                    // If decoding fails, it might be a different event
-                }
-
-                // Decode TokensPurchased Event
-                try {
-                    decodedLog = web3.eth.abi.decodeLog(TokensPurchasedABI.inputs, log.data, log.topics);
-                    console.log("TokensPurchased Event:", decodedLog);
-                } catch (error) {
-                    // If decoding fails, it might be a different event
-                }
-
-                if (!decodedLog) {
-                    console.log("Unrecognized Event:", log);
-                }
-
-            } catch (error) {
-                console.error("Error decoding log:", error);
-            }
-        });
-
-        res.status(200).json({ receipt: receipt });
+        res.status(200).json({ receipt: serializeBigIntInObject(receipt) });
 
     } catch (error) {
         console.error('Error purchasing tokens:', error);

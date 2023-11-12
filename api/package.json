@@ -22,13 +22,14 @@
     "passport-jwt": "^4.0.1",
     "swagger-jsdoc": "^6.2.8",
     "swagger-ui-express": "^5.0.0",
-    "web3": "^4.2.0"
+    "web3": "^4.2.2"
   },
   "devDependencies": {
     "@peaq-network/sdk": "^0.4.5",
     "chai": "^4.3.10",
     "chai-http": "^4.4.0",
     "dotenv": "^16.3.1",
+    "ethers": "^6.8.1",
     "ipfs-http-client": "^60.0.1",
     "mocha": "^10.2.0"
   }

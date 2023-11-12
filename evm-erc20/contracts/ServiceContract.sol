@@ -47,10 +47,12 @@ contract ServiceContract {
     function buyTokens(uint256 amount) public payable {
         // Ensure the correct amount of wei is sent to receive amount of tokens (also in wei).
         uint256 requiredWei = (amount * tokenContractERC20.tokenPrice()) / 10 ** 18;
+        
         // For debugging
         emit EtherReceived(msg.value);
         emit EtherRequired(requiredWei);
-        // require(msg.value == requiredWei, "Incorrect Wei sent.");
+
+        require(msg.value == requiredWei, "Incorrect Wei sent.");
 
         // Transfer the tokens to the investor
         tokenContractERC20.transferFrom(
