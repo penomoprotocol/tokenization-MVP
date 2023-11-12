@@ -379,37 +379,76 @@ router.post('/investor/buyToken', async (req, res) => {
         const tokenContractInstance = new web3.eth.Contract(TCABI, tokenContractERC20Address);
         const tokenPrice = await tokenContractInstance.methods.tokenPrice().call();
 
-        const requiredWei = BigInt(tokenPrice) * BigInt(tokenAmount) / BigInt(10 ** 18);
+        const tokenAmountWei = BigInt(tokenAmount) * BigInt(10 ** 18); // Convert token amount to Wei (assuming the token has 18 decimals)
+        const requiredWei = BigInt(tokenPrice) * BigInt(tokenAmount); // Required Wei to purchase the tokenAmount
 
 
         console.log("tokenPrice: ", tokenPrice);
         console.log("requiredWei: ", requiredWei);
-        console.log("tokenAmount: ", tokenAmount);
+        console.log("tokenAmountWei: ", tokenAmountWei);
 
-        // const txData = {
-        //     to: serviceContractAddress,
-        //     data: ServiceContract.methods.buyTokens(tokenAmount).encodeABI(),
-        //     value: requiredWei.toString(),
-        //     gasPrice: await web3.eth.getGasPrice(),
-        //     nonce: await web3.eth.getTransactionCount(investor.ethereumPublicKey)  // Use the public key (wallet address) of the investor
-        // };
+        const transaction = ServiceContract.methods.buyTokens(tokenAmountWei.toString());
+        const receipt = await estimateAndSend(transaction, investor.ethereumPublicKey, decryptedPrivateKey, serviceContractAddress, requiredWei.toString());
 
-        // Prepare transaction
-        const transaction = ServiceContract.methods.buyTokens(tokenAmount);
+        // For debugging: Decode emitted events
+        const EtherReceivedABI = {
+            name: 'EtherReceived',
+            type: 'event',
+            inputs: [{
+                type: 'uint256',
+                name: 'value',
+                indexed: false
+            }]
+        };
 
-        // Estimate and send the transaction
-        const receipt = await estimateAndSend(transaction, investor.ethereumPublicKey, decryptedPrivateKey, serviceContractAddress, requiredWei);
+        const TokensPurchasedABI = {
+            name: 'TokensPurchased',
+            type: 'event',
+            inputs: [{
+                type: 'address',
+                name: 'investor',
+                indexed: true
+            }, {
+                type: 'uint256',
+                name: 'amount',
+                indexed: false
+            }]
+        };
 
+        receipt.logs.forEach(log => {
+            try {
+                let decodedLog = null;
 
-        // txData.gas = await web3.eth.estimateGas(txData);
-        // const signedTx = await web3.eth.accounts.signTransaction(txData, decryptedPrivateKey);
-        // const txReceipt = await web3.eth.sendSignedTransaction(signedTx.rawTransaction);
+                // Try decoding with EtherReceived ABI
+                try {
+                    decodedLog = web3.eth.abi.decodeLog(EtherReceivedABI.inputs, log.data, log.topics);
+                    console.log("EtherReceived Event:", decodedLog);
+                } catch (error) {
+                    // If decoding with EtherReceived ABI fails, it might be a different event
+                }
+
+                // Try decoding with TokensPurchased ABI
+                try {
+                    decodedLog = web3.eth.abi.decodeLog(TokensPurchasedABI.inputs, log.data, log.topics);
+                    console.log("TokensPurchased Event:", decodedLog);
+                } catch (error) {
+                    // If decoding with TokensPurchased ABI fails, it might be a different event
+                }
+
+                if (!decodedLog) {
+                    console.log("Unrecognized Event:", log);
+                }
+
+            } catch (error) {
+                console.error("Error decoding log:", error);
+            }
+        });
 
         res.status(200).json({ receipt: receipt });
 
     } catch (error) {
         console.error('Error purchasing tokens:', error);
-        res.status(500).send('Failed to purchase the tokens.');
+        res.status(500).send('Failed to purchase tokens.');
     }
 });
 
