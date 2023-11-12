@@ -391,6 +391,17 @@ router.post('/investor/buyToken', async (req, res) => {
         const receipt = await estimateAndSend(transaction, investor.ethereumPublicKey, decryptedPrivateKey, serviceContractAddress, requiredWei.toString());
 
         // For debugging: Decode emitted events
+
+        const EtherRequiredABI = {
+            name: 'EtherRequired',
+            type: 'event',
+            inputs: [{
+                type: 'uint256',
+                name: 'requiredWei',
+                indexed: false
+            }]
+        };
+
         const EtherReceivedABI = {
             name: 'EtherReceived',
             type: 'event',
@@ -419,20 +430,28 @@ router.post('/investor/buyToken', async (req, res) => {
             try {
                 let decodedLog = null;
 
-                // Try decoding with EtherReceived ABI
+                // Decode EtherRequired Event
+                try {
+                    decodedLog = web3.eth.abi.decodeLog(EtherRequiredABI.inputs, log.data, log.topics);
+                    console.log("EtherRequired Event:", decodedLog);
+                } catch (error) {
+                    // If decoding fails, it might be a different event
+                }
+
+                // Decode EtherReceived Event
                 try {
                     decodedLog = web3.eth.abi.decodeLog(EtherReceivedABI.inputs, log.data, log.topics);
                     console.log("EtherReceived Event:", decodedLog);
                 } catch (error) {
-                    // If decoding with EtherReceived ABI fails, it might be a different event
+                    // If decoding fails, it might be a different event
                 }
 
-                // Try decoding with TokensPurchased ABI
+                // Decode TokensPurchased Event
                 try {
                     decodedLog = web3.eth.abi.decodeLog(TokensPurchasedABI.inputs, log.data, log.topics);
                     console.log("TokensPurchased Event:", decodedLog);
                 } catch (error) {
-                    // If decoding with TokensPurchased ABI fails, it might be a different event
+                    // If decoding fails, it might be a different event
                 }
 
                 if (!decodedLog) {
