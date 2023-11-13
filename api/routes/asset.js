@@ -323,7 +323,7 @@ router.post('/asset/register', async (req, res) => {
             return res.status(401).send('Invalid credentials');
         }
 
-
+        // ACTUAL LOGIC WITH PEAQ SDK:
         // // Generate a mnemonic seed. In a production environment, ensure this is done securely.
         // const generateMnemonicSeed = () => mnemonicGenerate();
 
@@ -349,7 +349,7 @@ router.post('/asset/register', async (req, res) => {
         const randomPart = crypto.randomBytes(8).toString('hex');
         const did = `did:peaq:${timestamp}-${randomPart}`;
 
-        
+
         // Create a new Ethereum wallet for the asset
         const wallet = createWallet();
         const privateKey = wallet.privateKey;
@@ -466,8 +466,13 @@ router.post('/asset/register', async (req, res) => {
 
             // Store battery data on IPFS
             const batteryData = { batteryType, capacity, voltage };
-            const cid = "ipfs://bafybeihpjhkeuiq3k6nqa3fkgeigeri7iebtrsuyuey5y6vy36n345xmbi/23";
 
+            // Generate a mock CID
+            const timestamp = new Date().getTime();
+            const randomPart = crypto.randomBytes(6).toString('hex');
+            const cid = `ipfs://${randomPart}${timestamp}`;
+
+            // ACTUAL LOGIC WITH IPFS:
             // const { cid } = await ipfs.add(JSON.stringify(batteryData));
 
             // // Prepare the attribute data
@@ -795,8 +800,6 @@ router.post('/asset/register', async (req, res) => {
             if (!serviceContractAddress || !pricePerKWh || !batteryDid) {
                 return res.status(400).send('Missing required parameters');
             }
-
-
 
             // Respond with the contract's deployed address
             res.status(200).json({
