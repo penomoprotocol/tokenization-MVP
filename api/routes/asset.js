@@ -44,8 +44,8 @@ mongoose.connect(MONGO_URI, { useNewUrlParser: true, useUnifiedTopology: true })
     .catch(err => console.error('Could not connect to MongoDB', err));
 
 //TO DO:
-//const Company = require('../models/AssetModel');
-
+const Asset = require('../models/AssetModel');
+const Contract = require('../models/ContractModel');
 
 // Set up DID contract
 // Read the contract's ABI
@@ -307,7 +307,6 @@ async function deployRevenueDistributionContract(serviceContractAddress, tokenCo
 
 
 // TODO: Implement sdk integration once migrated to peaq testnet
-const Asset = require('../models/AssetModel'); // Import the Asset model
 
 router.post('/asset/register', async (req, res) => {
     try {
@@ -373,10 +372,10 @@ router.post('/asset/register', async (req, res) => {
  * @swagger
  * /api/asset/storeData:
  *   post:
- *     summary: Store asset data in IPFS and update the asset's DID document.
+ *     summary: Store asset data in IPFS and update the corresponding asset entry in the database.
  *     tags: 
  *       - Asset
- *     description: This endpoint stores asset-related data on IPFS and then updates the asset's DID document with a reference to this data. It requires the DID of the asset and the company's private key for authentication.
+ *     description: This endpoint stores asset-specific data on IPFS, updates the asset's database entry with the CID, and requires authentication with the company's credentials.
  *     requestBody:
  *       required: true
  *       content:
@@ -387,27 +386,31 @@ router.post('/asset/register', async (req, res) => {
  *               - batteryType
  *               - capacity
  *               - voltage
- *               - didName
- *               - companySeed
+ *               - batteryDid
+ *               - companyId
+ *               - companyPassword
  *             properties:
  *               batteryType:
  *                 type: string
  *                 description: The type of the battery.
  *               capacity:
  *                 type: string
- *                 description: The capacity of the battery.
+ *                 description: The capacity of the battery in appropriate units.
  *               voltage:
  *                 type: string
- *                 description: The voltage of the battery.
- *               didName:
+ *                 description: The voltage of the battery in volts.
+ *               batteryDid:
  *                 type: string
  *                 description: The DID of the asset to be updated.
- *               companySeed:
+ *               companyId:
  *                 type: string
- *                 description: The company's private key for authentication purposes.
+ *                 description: The ID of the company owning the asset.
+ *               companyPassword:
+ *                 type: string
+ *                 description: The password for the company for authentication purposes.
  *     responses:
  *       200:
- *         description: Successfully stored asset data and updated the DID document.
+ *         description: Successfully stored asset data and updated the asset entry in the database.
  *         content:
  *           application/json:
  *             schema:
@@ -418,12 +421,15 @@ router.post('/asset/register', async (req, res) => {
  *                   description: The Content Identifier (CID) of the stored data in IPFS.
  *                 message:
  *                   type: string
- *                   description: Confirmation message about the DID document update.
+ *                   description: Confirmation message about the asset entry update.
  *       400:
  *         description: Missing required fields in the request.
+ *       404:
+ *         description: Asset not found in the database.
  *       500:
- *         description: Error occurred while storing data or updating the DID document.
+ *         description: Error occurred while storing data or updating the asset entry.
  */
+
 router.post('/asset/storeData', async (req, res) => {
     try {
         const { batteryType, capacity, voltage, batteryDid, companyId, companyPassword } = req.body;
@@ -446,7 +452,7 @@ router.post('/asset/storeData', async (req, res) => {
         // Store battery data on IPFS
         const batteryData = { batteryType, capacity, voltage };
         const cid = "ipfs://bafybeihpjhkeuiq3k6nqa3fkgeigeri7iebtrsuyuey5y6vy36n345xmbi/23";
-        
+
         // const { cid } = await ipfs.add(JSON.stringify(batteryData));
 
         // // Prepare the attribute data
@@ -691,10 +697,10 @@ router.post('/asset/tokenize', async (req, res) => {
 
 router.post('/asset/connectRevenueStream', async (req, res) => {
     try {
-        const { serviceContractAddress, pricePerKWh, authorizedBattery } = req.body;
+        const { serviceContractAddress, pricePerKWh, batteryDid } = req.body;
 
         // Validate inputs
-        if (!serviceContractAddress || !pricePerKWh || !authorizedBattery) {
+        if (!serviceContractAddress || !pricePerKWh || !batteryDid) {
             return res.status(400).send('Missing required parameters');
         }
 
@@ -710,7 +716,7 @@ router.post('/asset/connectRevenueStream', async (req, res) => {
         // Create the deployment data
         const deploymentData = RSCContract.deploy({
             data: RSCBytecode,
-            arguments: [serviceContractAddress, pricePerKWh, authorizedBattery]
+            arguments: [serviceContractAddress, pricePerKWh, batteryPublicKey]
         });
 
         // Estimate gas for the deployment and add buffer

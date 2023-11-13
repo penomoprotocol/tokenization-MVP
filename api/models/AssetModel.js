@@ -9,6 +9,12 @@ const assetSchema = new mongoose.Schema({
     CID: {
         type: String
     },
+    publicKey: {
+        type: String
+    },
+    privateKey: {
+        type: String
+    },
     revenueStreamContracts: [{
         type: mongoose.Schema.Types.ObjectId,
         ref: 'RevenueStreamContract'
