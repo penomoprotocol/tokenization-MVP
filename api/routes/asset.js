@@ -323,6 +323,7 @@ router.post('/asset/register', async (req, res) => {
             return res.status(401).send('Invalid credentials');
         }
 
+
         // // Generate a mnemonic seed. In a production environment, ensure this is done securely.
         // const generateMnemonicSeed = () => mnemonicGenerate();
 
@@ -343,539 +344,553 @@ router.post('/asset/register', async (req, res) => {
 
         //   await sdkInstance.disconnect();
 
+        // Generate a mock DID 
+        const timestamp = new Date().getTime();
+        const randomPart = crypto.randomBytes(8).toString('hex');
+        const did = `did:peaq:${timestamp}-${randomPart}`;
 
-        // Generate DID - replace with your DID generation logic
-        const did = "did:peaq:5GrwvaEF5zXb26Fz9rcQpDWS57CtERHpNehXCPcNoHGKutQY"; // Example DID
+        
+        // Create a new Ethereum wallet for the asset
+        const wallet = createWallet();
+        const privateKey = wallet.privateKey;
+        console.log("Original privateKey: ", privateKey);
+        const publicKey = wallet.address; // Get the public key (wallet address)
 
-        // Create a new asset
+        // Encrypt the private key with the company's secret key
+        const encryptedPrivateKey = encryptPrivateKey(privateKey, SECRET_KEY);
+
+        // Create a new asset with the wallet details
         const newAsset = new Asset({
-            name: batteryName,
-            companyId: companyId,
-            DID: did
+            DID: did,
+            publicKey: publicKey, // Store the public key (wallet address)
+            privateKey: encryptedPrivateKey, // Store the encrypted private key
+            companyId: companyId
             // CID and revenueStreamContracts can be added later when available
         });
 
         // Save the asset to the database
         await newAsset.save();
 
-        // Return the DID to the caller
-        res.status(200).json({ did });
+        // Return the DID and public key to the caller
+        res.status(200).json({
+            did: did,
+            publicKey: publicKey
+        });
 
     } catch (error) {
         console.error('Error registering asset:', error);
         res.status(500).send('Error registering asset.');
     }
-});
 
 
-/**
- * @swagger
- * /api/asset/storeData:
- *   post:
- *     summary: Store asset data in IPFS and update the corresponding asset entry in the database.
- *     tags: 
- *       - Asset
- *     description: This endpoint stores asset-specific data on IPFS, updates the asset's database entry with the CID, and requires authentication with the company's credentials.
- *     requestBody:
- *       required: true
- *       content:
- *         application/json:
- *           schema:
- *             type: object
- *             required:
- *               - batteryType
- *               - capacity
- *               - voltage
- *               - batteryDid
- *               - companyId
- *               - companyPassword
- *             properties:
- *               batteryType:
- *                 type: string
- *                 description: The type of the battery.
- *               capacity:
- *                 type: string
- *                 description: The capacity of the battery in appropriate units.
- *               voltage:
- *                 type: string
- *                 description: The voltage of the battery in volts.
- *               batteryDid:
- *                 type: string
- *                 description: The DID of the asset to be updated.
- *               companyId:
- *                 type: string
- *                 description: The ID of the company owning the asset.
- *               companyPassword:
- *                 type: string
- *                 description: The password for the company for authentication purposes.
- *     responses:
- *       200:
- *         description: Successfully stored asset data and updated the asset entry in the database.
- *         content:
- *           application/json:
- *             schema:
- *               type: object
- *               properties:
- *                 cid:
- *                   type: string
- *                   description: The Content Identifier (CID) of the stored data in IPFS.
- *                 message:
- *                   type: string
- *                   description: Confirmation message about the asset entry update.
- *       400:
- *         description: Missing required fields in the request.
- *       404:
- *         description: Asset not found in the database.
- *       500:
- *         description: Error occurred while storing data or updating the asset entry.
- */
+    /**
+     * @swagger
+     * /api/asset/storeData:
+     *   post:
+     *     summary: Store asset data in IPFS and update the corresponding asset entry in the database.
+     *     tags: 
+     *       - Asset
+     *     description: This endpoint stores asset-specific data on IPFS, updates the asset's database entry with the CID, and requires authentication with the company's credentials.
+     *     requestBody:
+     *       required: true
+     *       content:
+     *         application/json:
+     *           schema:
+     *             type: object
+     *             required:
+     *               - batteryType
+     *               - capacity
+     *               - voltage
+     *               - batteryDid
+     *               - companyId
+     *               - companyPassword
+     *             properties:
+     *               batteryType:
+     *                 type: string
+     *                 description: The type of the battery.
+     *               capacity:
+     *                 type: string
+     *                 description: The capacity of the battery in appropriate units.
+     *               voltage:
+     *                 type: string
+     *                 description: The voltage of the battery in volts.
+     *               batteryDid:
+     *                 type: string
+     *                 description: The DID of the asset to be updated.
+     *               companyId:
+     *                 type: string
+     *                 description: The ID of the company owning the asset.
+     *               companyPassword:
+     *                 type: string
+     *                 description: The password for the company for authentication purposes.
+     *     responses:
+     *       200:
+     *         description: Successfully stored asset data and updated the asset entry in the database.
+     *         content:
+     *           application/json:
+     *             schema:
+     *               type: object
+     *               properties:
+     *                 cid:
+     *                   type: string
+     *                   description: The Content Identifier (CID) of the stored data in IPFS.
+     *                 message:
+     *                   type: string
+     *                   description: Confirmation message about the asset entry update.
+     *       400:
+     *         description: Missing required fields in the request.
+     *       404:
+     *         description: Asset not found in the database.
+     *       500:
+     *         description: Error occurred while storing data or updating the asset entry.
+     */
 
-router.post('/asset/storeData', async (req, res) => {
-    try {
-        const { batteryType, capacity, voltage, batteryDid, companyId, companyPassword } = req.body;
+    router.post('/asset/storeData', async (req, res) => {
+        try {
+            const { batteryType, capacity, voltage, batteryDid, companyId, companyPassword } = req.body;
 
-        if (!batteryType || !capacity || !voltage || !batteryDid || !companyId || !companyPassword) {
-            return res.status(400).json({ error: 'Missing required fields' });
+            if (!batteryType || !capacity || !voltage || !batteryDid || !companyId || !companyPassword) {
+                return res.status(400).json({ error: 'Missing required fields' });
+            }
+
+            // Validate company and password
+            const company = await Company.findById(companyId);
+            if (!company) {
+                return res.status(401).send('Company not found');
+            }
+
+            const isPasswordValid = await bcrypt.compare(companyPassword, company.password);
+            if (!isPasswordValid) {
+                return res.status(401).send('Invalid credentials');
+            }
+
+            // Store battery data on IPFS
+            const batteryData = { batteryType, capacity, voltage };
+            const cid = "ipfs://bafybeihpjhkeuiq3k6nqa3fkgeigeri7iebtrsuyuey5y6vy36n345xmbi/23";
+
+            // const { cid } = await ipfs.add(JSON.stringify(batteryData));
+
+            // // Prepare the attribute data
+            // const attributeKey = web3.utils.sha3('BatteryDataStorage');
+            // const attributeValue = `ipfs://${cid}`;
+
+            // // Create a transaction object
+            // const transaction = DIDContract.methods.add_attribute(
+            //     web3.utils.asciiToHex(batteryDid), // DID account in hex
+            //     attributeKey, // Attribute key as bytes32
+            //     web3.utils.asciiToHex(attributeValue), // Attribute value as hex
+            //     0 // Validity (0 if not applicable)
+            // );
+
+            // // Send the transaction using the estimateAndSend helper function
+            // const receipt = await estimateAndSend(transaction, MASTER_ADDRESS, MASTER_PRIVATE_KEY, DIDContractAddress);
+
+            // Update the Asset in the database with the CID
+            const asset = await Asset.findOne({ DID: batteryDid });
+            if (!asset) {
+                return res.status(404).send('Asset not found');
+            }
+
+            asset.CID = cid;
+            await asset.save();
+
+            // Respond with the IPFS CID
+            res.status(200).json({
+                cid: cid,
+                message: 'Asset updated with new battery data CID',
+            });
+        } catch (error) {
+            console.error('Error updating asset with battery data:', error);
+            res.status(500).json({ error: 'Failed to update asset with battery data' });
         }
+    });
 
-        // Validate company and password
-        const company = await Company.findById(companyId);
-        if (!company) {
-            return res.status(401).send('Company not found');
+
+    /**
+     * @swagger
+     * /api/asset/tokenize:
+     *   post:
+     *     summary: Tokenize an asset
+     *     tags: 
+     *       - Asset
+     *     description: Deploy contracts to tokenize an asset with provided details.
+     *     requestBody:
+     *       required: true
+     *       content:
+     *         application/json:
+     *           schema:
+     *             type: object
+     *             required:
+     *               - companyId
+     *               - password
+     *               - DIDs
+     *               - revenueGoals
+     *               - name
+     *               - symbol
+     *               - revenueShare
+     *               - contractTerm
+     *               - maxTokenSupply
+     *               - tokenPrice
+     *             properties:
+     *               companyId:
+     *                 type: string
+     *                 description: ID of the company initiating tokenization.
+     *               password:
+     *                 type: string
+     *                 description: Password for company authentication.
+     *               DIDs:
+     *                 type: array
+     *                 items:
+     *                   type: string
+     *                 description: Array of Digital Identity Identifiers.
+     *               revenueGoals:
+     *                 type: array
+     *                 items:
+     *                   type: number
+     *                 description: Array of revenue goals for each asset.
+     *               name:
+     *                 type: string
+     *                 description: Name of the token.
+     *               symbol:
+     *                 type: string
+     *                 description: Symbol of the token.
+     *               revenueShare:
+     *                 type: number
+     *                 description: Percentage of revenue share.
+     *               contractTerm:
+     *                 type: number
+     *                 description: Term length of the contract.
+     *               maxTokenSupply:
+     *                 type: number
+     *                 description: Maximum supply of the tokens.
+     *               tokenPrice:
+     *                 type: number
+     *                 description: Price of each token.
+     *     responses:
+     *       200:
+     *         description: Successfully tokenized asset and returned contract addresses.
+     *         content:
+     *           application/json:
+     *             schema:
+     *               type: object
+     *               properties:
+     *                 tokenContractAddress:
+     *                   type: string
+     *                 serviceContractAddress:
+     *                   type: string
+     *                 liquidityContractAddress:
+     *                   type: string
+     *                 revenueDistributionContractAddress:
+     *                   type: string
+     *       400:
+     *         description: Missing required parameters.
+     *       500:
+     *         description: Failed to deploy the contracts.
+     */
+
+    router.post('/asset/tokenize', async (req, res) => {
+        try {
+            // Get data from the request
+            const { companyId, password, DIDs, revenueGoals, name, symbol, revenueShare, contractTerm, maxTokenSupply, tokenPrice } = req.body;
+
+            if (!companyId || !password || !DIDs || !revenueGoals || !name || !symbol || !revenueShare || !contractTerm || !maxTokenSupply || !tokenPrice) {
+                return res.status(400).send('Missing required parameters.');
+            }
+
+            // Step 1: Get the company from the database using the provided companyId
+            const company = await Company.findById(companyId);
+            if (!company) {
+                console.log('Company not found:', companyId);
+                return res.status(401).send('Company not found');
+            }
+
+            // Step 2: Verify password
+            const isPasswordValid = await bcrypt.compare(password, company.password);
+            if (!isPasswordValid) {
+                console.log('Invalid credentials for company ID:', companyId);
+                return res.status(401).send('Invalid credentials');
+            }
+
+            console.log("company.ethereumPublicKey: ", company.ethereumPublicKey);
+
+            // Deploy the ServiceContract and get its address
+            const serviceContractAddress = await deployServiceContract(GSCAddress);
+
+            // Deploy the TokenContract using the ServiceContract's address
+            const tokenContractAddress = await deployTokenContract(DIDs, revenueGoals, name, symbol, revenueShare, contractTerm, maxTokenSupply, tokenPrice, serviceContractAddress);
+
+            // Deploy LiquidityContract
+            const liquidityContractAddress = await deployLiquidityContract(serviceContractAddress, company.ethereumPublicKey, MASTER_ADDRESS);
+
+            // Deploy RevenueDistributionContract
+            const revenueDistributionContractAddress = await deployRevenueDistributionContract(serviceContractAddress, tokenContractAddress, liquidityContractAddress);
+
+            // Get SC ABI
+            const contractPath = path.join(SCBuild);
+            const contractJSON = JSON.parse(fs.readFileSync(contractPath, 'utf8'));
+            const SCABI = contractJSON.abi;
+
+            // Create a ServiceContract instance
+            const ServiceContract = new web3.eth.Contract(SCABI, serviceContractAddress);
+
+            // Call setTokenContract with gas estimation and send
+            await estimateAndSend(ServiceContract.methods.setContractAddresses(tokenContractAddress, liquidityContractAddress, revenueDistributionContractAddress), MASTER_ADDRESS, MASTER_PRIVATE_KEY, serviceContractAddress);
+
+            // Generate DB entry for new token contract
+            const newContractEntry = new Contract({
+                serviceContractAddress: serviceContractAddress,
+                tokenContractAddress: tokenContractAddress,
+                liquidityContractAddress: liquidityContractAddress,
+                revenueDistributionContractAddress: revenueDistributionContractAddress,
+                assetDIDs: DIDs, // Assuming DIDs is an array of asset DIDs
+                companyId: companyId
+            });
+
+            // Save the new contract entry to the database
+            await newContractEntry.save();
+
+            // Respond with the service contract address as the primary reference
+            res.status(200).json({
+                serviceContractAddress: serviceContractAddress, // Primary reference
+                tokenContractAddress: tokenContractAddress,
+                liquidityContractAddress: liquidityContractAddress,
+                revenueDistributionContractAddress: revenueDistributionContractAddress
+            });
+
+        } catch (error) {
+            console.error('Error deploying Contracts:', error);
+            res.status(500).send('Failed to deploy the contracts.');
         }
+    });
 
-        const isPasswordValid = await bcrypt.compare(companyPassword, company.password);
-        if (!isPasswordValid) {
-            return res.status(401).send('Invalid credentials');
+    /**
+     * @swagger
+     * /api/asset/connectRevenueStream:
+     *   post:
+     *     summary: Deploy a new RevenueStreamContract and connect it to a service contract
+     *     description: Deploys a RevenueStreamContract for managing the revenue stream of a battery asset and connects it to an existing service contract. It also updates the Contract entry in the database with the new RevenueStreamContract address.
+     *     tags: 
+     *       - Asset
+     *     requestBody:
+     *       required: true
+     *       content:
+     *         application/json:
+     *           schema:
+     *             type: object
+     *             required:
+     *               - serviceContractAddress
+     *               - pricePerKWh
+     *               - batteryDid
+     *             properties:
+     *               serviceContractAddress:
+     *                 type: string
+     *                 description: Ethereum address of the service contract.
+     *               pricePerKWh:
+     *                 type: number
+     *                 format: float
+     *                 description: Price per kWh in wei.
+     *               batteryDid:
+     *                 type: string
+     *                 description: DID of the battery asset.
+     *     responses:
+     *       200:
+     *         description: Revenue stream contract deployed and connected.
+     *       500:
+     *         description: Error occurred during deployment.
+     */
+
+    router.post('/asset/connectRevenueStream', async (req, res) => {
+        try {
+            const { serviceContractAddress, pricePerKWh, batteryDid } = req.body;
+
+            // Validate inputs
+            if (!serviceContractAddress || !pricePerKWh || !batteryDid) {
+                return res.status(400).send('Missing required parameters');
+            }
+
+            // Fetch the asset from the database
+            const asset = await Asset.findOne({ DID: batteryDid });
+            if (!asset) {
+                return res.status(404).send('Asset not found');
+            }
+
+            // Find the Contract entry in the database
+            const contract = await Contract.findOne({ serviceContractAddress });
+            if (!contract) {
+                return res.status(404).send('Contract not found');
+            }
+
+            // Use asset's publicKey as the authorizedBattery address (if available)
+            const batteryPublicKey = asset.publicKey || "0x..."; // Replace "0x..." with a default or error handling mechanism
+
+            // Read the contract's ABI and bytecode
+            const contractPath = path.join(RSCBuild);
+            const contractJSON = JSON.parse(fs.readFileSync(contractPath, 'utf8'));
+            const RSCABI = contractJSON.abi;
+            const RSCBytecode = contractJSON.bytecode;
+
+            // Create a new contract instance
+            const RSCContract = new web3.eth.Contract(RSCABI);
+
+            // Create the deployment data
+            const deploymentData = RSCContract.deploy({
+                data: RSCBytecode,
+                arguments: [serviceContractAddress, pricePerKWh, batteryPublicKey]
+            });
+
+            // Estimate gas for the deployment and add buffer
+            const estimatedGas = await deploymentData.estimateGas({ from: MASTER_ADDRESS });
+            const bufferGas = estimatedGas * 110n / 100n;
+            const roundedGas = bufferGas + (10n - bufferGas % 10n);
+            let currentGasPrice = await getCurrentGasPrice();
+
+            // Prepare the transaction data
+            const deployTx = {
+                data: deploymentData.encodeABI(),
+                gas: roundedGas.toString(),
+                gasPrice: currentGasPrice.toString(),
+                from: MASTER_ADDRESS
+            };
+
+            // Sign the transaction with the master's private key
+            const signedTx = await web3.eth.accounts.signTransaction(deployTx, MASTER_PRIVATE_KEY);
+
+
+            // Send the signed transaction and receive the receipt
+            const receipt = await web3.eth.sendSignedTransaction(signedTx.rawTransaction);
+
+            // Update the Asset in the database with the new RevenueStreamContract address
+            if (!asset.revenueStreamContracts) {
+                asset.revenueStreamContracts = [];
+            }
+            asset.revenueStreamContracts.push(receipt.contractAddress);
+            await asset.save();
+
+            if (contract) {
+                contract.revenueStreamContractAddresses.push(receipt.contractAddress);
+                await contract.save();
+            } else {
+                // Handle the case where the contract is not found
+                console.error('Service Contract not found:', serviceContractAddress);
+                return res.status(404).send('Service Contract not found');
+            }
+
+            // Respond with the contract's deployed address
+            res.status(200).json({
+                message: 'Revenue stream contract deployed successfully',
+                contractAddress: receipt.contractAddress
+            });
+
+        } catch (error) {
+            console.error('Error deploying revenue stream contract:', error);
+            res.status(500).send('Failed to deploy revenue stream contract');
         }
+    });
 
-        // Store battery data on IPFS
-        const batteryData = { batteryType, capacity, voltage };
-        const cid = "ipfs://bafybeihpjhkeuiq3k6nqa3fkgeigeri7iebtrsuyuey5y6vy36n345xmbi/23";
+    router.post('/asset/connectRevenueStream', async (req, res) => {
+        try {
+            const { serviceContractAddress, pricePerKWh, batteryDid } = req.body;
 
-        // const { cid } = await ipfs.add(JSON.stringify(batteryData));
+            // Validate inputs
+            if (!serviceContractAddress || !pricePerKWh || !batteryDid) {
+                return res.status(400).send('Missing required parameters');
+            }
 
-        // // Prepare the attribute data
-        // const attributeKey = web3.utils.sha3('BatteryDataStorage');
-        // const attributeValue = `ipfs://${cid}`;
 
-        // // Create a transaction object
-        // const transaction = DIDContract.methods.add_attribute(
-        //     web3.utils.asciiToHex(batteryDid), // DID account in hex
-        //     attributeKey, // Attribute key as bytes32
-        //     web3.utils.asciiToHex(attributeValue), // Attribute value as hex
-        //     0 // Validity (0 if not applicable)
-        // );
 
-        // // Send the transaction using the estimateAndSend helper function
-        // const receipt = await estimateAndSend(transaction, MASTER_ADDRESS, MASTER_PRIVATE_KEY, DIDContractAddress);
-
-        // Update the Asset in the database with the CID
-        const asset = await Asset.findOne({ DID: batteryDid });
-        if (!asset) {
-            return res.status(404).send('Asset not found');
+            // Respond with the contract's deployed address
+            res.status(200).json({
+                message: 'Revenue stream contract deployed successfully',
+                contractAddress: receipt.contractAddress
+            });
+        } catch (error) {
+            console.error('Error deploying revenue stream contract:', error);
+            res.status(500).send('Failed to deploy revenue stream contract');
         }
+    });
 
-        asset.CID = cid;
-        await asset.save();
+    /**
+     * @swagger
+     * /api/asset/{did}:
+     *   get:
+     *     summary: Retrieve asset details by DID
+     *     tags: 
+     *     - Asset
+     *     parameters:
+     *       - in: path
+     *         name: did
+     *         required: true
+     *         description: The DID of the asset to retrieve.
+     *     responses:
+     *       200:
+     *         description: Successfully retrieved asset details.
+     *       404:
+     *         description: Asset not found.
+     *       500:
+     *         description: Error retrieving asset.
+     */
 
-        // Respond with the IPFS CID
-        res.status(200).json({
-            cid: cid,
-            message: 'Asset updated with new battery data CID',
-        });
-    } catch (error) {
-        console.error('Error updating asset with battery data:', error);
-        res.status(500).json({ error: 'Failed to update asset with battery data' });
-    }
-});
+    router.get('/asset/:did', (req, res) => {
+        // Retrieve asset details
+    });
 
+    /**
+     * @swagger
+     * /api/asset/{did}:
+     *   put:
+     *     summary: Update asset details by DID
+     *     tags: 
+     *     - Asset
+     *     parameters:
+     *       - in: path
+     *         name: did
+     *         required: true
+     *         description: The DID of the asset to update.
+     *     requestBody:
+     *       required: true
+     *       content:
+     *         application/json:
+     *           schema:
+     *             type: object
+     *             properties:
+     *               data:
+     *                 type: string
+     *     responses:
+     *       200:
+     *         description: Successfully updated asset details.
+     *       404:
+     *         description: Asset not found.
+     *       500:
+     *         description: Error updating asset.
+     */
 
-/**
- * @swagger
- * /api/asset/tokenize:
- *   post:
- *     summary: Tokenize an asset
- *     tags: 
- *       - Asset
- *     description: Deploy contracts to tokenize an asset with provided details.
- *     requestBody:
- *       required: true
- *       content:
- *         application/json:
- *           schema:
- *             type: object
- *             required:
- *               - companyId
- *               - password
- *               - DIDs
- *               - revenueGoals
- *               - name
- *               - symbol
- *               - revenueShare
- *               - contractTerm
- *               - maxTokenSupply
- *               - tokenPrice
- *             properties:
- *               companyId:
- *                 type: string
- *                 description: ID of the company initiating tokenization.
- *               password:
- *                 type: string
- *                 description: Password for company authentication.
- *               DIDs:
- *                 type: array
- *                 items:
- *                   type: string
- *                 description: Array of Digital Identity Identifiers.
- *               revenueGoals:
- *                 type: array
- *                 items:
- *                   type: number
- *                 description: Array of revenue goals for each asset.
- *               name:
- *                 type: string
- *                 description: Name of the token.
- *               symbol:
- *                 type: string
- *                 description: Symbol of the token.
- *               revenueShare:
- *                 type: number
- *                 description: Percentage of revenue share.
- *               contractTerm:
- *                 type: number
- *                 description: Term length of the contract.
- *               maxTokenSupply:
- *                 type: number
- *                 description: Maximum supply of the tokens.
- *               tokenPrice:
- *                 type: number
- *                 description: Price of each token.
- *     responses:
- *       200:
- *         description: Successfully tokenized asset and returned contract addresses.
- *         content:
- *           application/json:
- *             schema:
- *               type: object
- *               properties:
- *                 tokenContractAddress:
- *                   type: string
- *                 serviceContractAddress:
- *                   type: string
- *                 liquidityContractAddress:
- *                   type: string
- *                 revenueDistributionContractAddress:
- *                   type: string
- *       400:
- *         description: Missing required parameters.
- *       500:
- *         description: Failed to deploy the contracts.
- */
+    router.put('/asset/:did', (req, res) => {
+        // Update asset details
+    });
 
-router.post('/asset/tokenize', async (req, res) => {
-    try {
-        // Get data from the request
-        const { companyId, password, DIDs, revenueGoals, name, symbol, revenueShare, contractTerm, maxTokenSupply, tokenPrice } = req.body;
+    /**
+     * @swagger
+     * /api/asset/{id}:
+     *   delete:
+     *     summary: Delete asset by ID
+     *     tags: 
+     *     - Asset
+     *     parameters:
+     *       - in: path
+     *         name: id
+     *         required: true
+     *         description: The ID of the asset to delete.
+     *     responses:
+     *       200:
+     *         description: Successfully deleted asset.
+     *       404:
+     *         description: Asset not found.
+     *       500:
+     *         description: Error deleting asset.
+     */
 
-        if (!companyId || !password || !DIDs || !revenueGoals || !name || !symbol || !revenueShare || !contractTerm || !maxTokenSupply || !tokenPrice) {
-            return res.status(400).send('Missing required parameters.');
-        }
+    router.delete('/asset/:id', (req, res) => {
+        // Delete asset 
+    });
 
-        // Step 1: Get the company from the database using the provided companyId
-        const company = await Company.findById(companyId);
-        if (!company) {
-            console.log('Company not found:', companyId);
-            return res.status(401).send('Company not found');
-        }
-
-        // Step 2: Verify password
-        const isPasswordValid = await bcrypt.compare(password, company.password);
-        if (!isPasswordValid) {
-            console.log('Invalid credentials for company ID:', companyId);
-            return res.status(401).send('Invalid credentials');
-        }
-
-        console.log("company.ethereumPublicKey: ", company.ethereumPublicKey);
-
-        // Deploy the ServiceContract and get its address
-        const serviceContractAddress = await deployServiceContract(GSCAddress);
-
-        // Deploy the TokenContract using the ServiceContract's address
-        const tokenContractAddress = await deployTokenContract(DIDs, revenueGoals, name, symbol, revenueShare, contractTerm, maxTokenSupply, tokenPrice, serviceContractAddress);
-
-        // Deploy LiquidityContract
-        const liquidityContractAddress = await deployLiquidityContract(serviceContractAddress, company.ethereumPublicKey, MASTER_ADDRESS);
-
-        // Deploy RevenueDistributionContract
-        const revenueDistributionContractAddress = await deployRevenueDistributionContract(serviceContractAddress, tokenContractAddress, liquidityContractAddress);
-
-        // Get SC ABI
-        const contractPath = path.join(SCBuild);
-        const contractJSON = JSON.parse(fs.readFileSync(contractPath, 'utf8'));
-        const SCABI = contractJSON.abi;
-
-        // Create a ServiceContract instance
-        const ServiceContract = new web3.eth.Contract(SCABI, serviceContractAddress);
-
-        // Call setTokenContract with gas estimation and send
-        await estimateAndSend(ServiceContract.methods.setContractAddresses(tokenContractAddress, liquidityContractAddress, revenueDistributionContractAddress), MASTER_ADDRESS, MASTER_PRIVATE_KEY, serviceContractAddress);
-
-        // Generate DB entry for new token contract
-        const newContractEntry = new Contract({
-            serviceContractAddress: serviceContractAddress,
-            tokenContractAddress: tokenContractAddress,
-            liquidityContractAddress: liquidityContractAddress,
-            revenueDistributionContractAddress: revenueDistributionContractAddress,
-            assetDIDs: DIDs, // Assuming DIDs is an array of asset DIDs
-            companyId: companyId
-        });
-
-        // Save the new contract entry to the database
-        await newContractEntry.save();
-
-        // Respond with the service contract address as the primary reference
-        res.status(200).json({
-            serviceContractAddress: serviceContractAddress, // Primary reference
-            tokenContractAddress: tokenContractAddress,
-            liquidityContractAddress: liquidityContractAddress,
-            revenueDistributionContractAddress: revenueDistributionContractAddress
-        });
-
-    } catch (error) {
-        console.error('Error deploying Contracts:', error);
-        res.status(500).send('Failed to deploy the contracts.');
-    }
-});
-
-/**
- * @swagger
- * /api/asset/connectRevenueStream:
- *   post:
- *     summary: Deploy a new RevenueStreamContract and connect it to a service contract
- *     description: Deploys a RevenueStreamContract for managing the revenue stream of a battery asset and connects it to an existing service contract. It also updates the Contract entry in the database with the new RevenueStreamContract address.
- *     tags: 
- *       - Asset
- *     requestBody:
- *       required: true
- *       content:
- *         application/json:
- *           schema:
- *             type: object
- *             required:
- *               - serviceContractAddress
- *               - pricePerKWh
- *               - batteryDid
- *             properties:
- *               serviceContractAddress:
- *                 type: string
- *                 description: Ethereum address of the service contract.
- *               pricePerKWh:
- *                 type: number
- *                 format: float
- *                 description: Price per kWh in wei.
- *               batteryDid:
- *                 type: string
- *                 description: DID of the battery asset.
- *     responses:
- *       200:
- *         description: Revenue stream contract deployed and connected.
- *       500:
- *         description: Error occurred during deployment.
- */
-
-router.post('/asset/connectRevenueStream', async (req, res) => {
-    try {
-        const { serviceContractAddress, pricePerKWh, batteryDid } = req.body;
-
-        // Validate inputs
-        if (!serviceContractAddress || !pricePerKWh || !batteryDid) {
-            return res.status(400).send('Missing required parameters');
-        }
-
-        // Fetch the asset from the database
-        const asset = await Asset.findOne({ DID: batteryDid });
-        if (!asset) {
-            return res.status(404).send('Asset not found');
-        }
-
-        // Find the Contract entry in the database
-        const contract = await Contract.findOne({ serviceContractAddress });
-        if (!contract) {
-            return res.status(404).send('Contract not found');
-        }
-
-        // Use asset's publicKey as the authorizedBattery address (if available)
-        const batteryPublicKey = asset.publicKey || "0x..."; // Replace "0x..." with a default or error handling mechanism
-
-        // Read the contract's ABI and bytecode
-        const contractPath = path.join(RSCBuild);
-        const contractJSON = JSON.parse(fs.readFileSync(contractPath, 'utf8'));
-        const RSCABI = contractJSON.abi;
-        const RSCBytecode = contractJSON.bytecode;
-
-        // Create a new contract instance
-        const RSCContract = new web3.eth.Contract(RSCABI);
-
-        // Create the deployment data
-        const deploymentData = RSCContract.deploy({
-            data: RSCBytecode,
-            arguments: [serviceContractAddress, pricePerKWh, batteryPublicKey]
-        });
-
-        // Estimate gas for the deployment and add buffer
-        const estimatedGas = await deploymentData.estimateGas({ from: MASTER_ADDRESS });
-        const bufferGas = estimatedGas * 110n / 100n;
-        const roundedGas = bufferGas + (10n - bufferGas % 10n);
-        let currentGasPrice = await getCurrentGasPrice();
-
-        // Prepare the transaction data
-        const deployTx = {
-            data: deploymentData.encodeABI(),
-            gas: roundedGas.toString(),
-            gasPrice: currentGasPrice.toString(),
-            from: MASTER_ADDRESS
-        };
-
-        // Sign the transaction with the master's private key
-        const signedTx = await web3.eth.accounts.signTransaction(deployTx, MASTER_PRIVATE_KEY);
-
-
-        // Send the signed transaction and receive the receipt
-        const receipt = await web3.eth.sendSignedTransaction(signedTx.rawTransaction);
-
-        // Update the Asset in the database with the new RevenueStreamContract address
-        if (!asset.revenueStreamContracts) {
-            asset.revenueStreamContracts = [];
-        }
-        asset.revenueStreamContracts.push(receipt.contractAddress);
-        await asset.save();
-
-        if (contract) {
-            contract.revenueStreamContractAddresses.push(receipt.contractAddress);
-            await contract.save();
-        } else {
-            // Handle the case where the contract is not found
-            console.error('Service Contract not found:', serviceContractAddress);
-            return res.status(404).send('Service Contract not found');
-        }
-
-        // Respond with the contract's deployed address
-        res.status(200).json({
-            message: 'Revenue stream contract deployed successfully',
-            contractAddress: receipt.contractAddress
-        });
-
-    } catch (error) {
-        console.error('Error deploying revenue stream contract:', error);
-        res.status(500).send('Failed to deploy revenue stream contract');
-    }
-});
-
-router.post('/asset/connectRevenueStream', async (req, res) => {
-    try {
-        const { serviceContractAddress, pricePerKWh, batteryDid } = req.body;
-
-        // Validate inputs
-        if (!serviceContractAddress || !pricePerKWh || !batteryDid) {
-            return res.status(400).send('Missing required parameters');
-        }
-
-
-
-        // Respond with the contract's deployed address
-        res.status(200).json({
-            message: 'Revenue stream contract deployed successfully',
-            contractAddress: receipt.contractAddress
-        });
-    } catch (error) {
-        console.error('Error deploying revenue stream contract:', error);
-        res.status(500).send('Failed to deploy revenue stream contract');
-    }
-});
-
-/**
- * @swagger
- * /api/asset/{did}:
- *   get:
- *     summary: Retrieve asset details by DID
- *     tags: 
- *     - Asset
- *     parameters:
- *       - in: path
- *         name: did
- *         required: true
- *         description: The DID of the asset to retrieve.
- *     responses:
- *       200:
- *         description: Successfully retrieved asset details.
- *       404:
- *         description: Asset not found.
- *       500:
- *         description: Error retrieving asset.
- */
-
-router.get('/asset/:did', (req, res) => {
-    // Retrieve asset details
-});
-
-/**
- * @swagger
- * /api/asset/{did}:
- *   put:
- *     summary: Update asset details by DID
- *     tags: 
- *     - Asset
- *     parameters:
- *       - in: path
- *         name: did
- *         required: true
- *         description: The DID of the asset to update.
- *     requestBody:
- *       required: true
- *       content:
- *         application/json:
- *           schema:
- *             type: object
- *             properties:
- *               data:
- *                 type: string
- *     responses:
- *       200:
- *         description: Successfully updated asset details.
- *       404:
- *         description: Asset not found.
- *       500:
- *         description: Error updating asset.
- */
-
-router.put('/asset/:did', (req, res) => {
-    // Update asset details
-});
-
-/**
- * @swagger
- * /api/asset/{id}:
- *   delete:
- *     summary: Delete asset by ID
- *     tags: 
- *     - Asset
- *     parameters:
- *       - in: path
- *         name: id
- *         required: true
- *         description: The ID of the asset to delete.
- *     responses:
- *       200:
- *         description: Successfully deleted asset.
- *       404:
- *         description: Asset not found.
- *       500:
- *         description: Error deleting asset.
- */
-
-router.delete('/asset/:id', (req, res) => {
-    // Delete asset 
-});
-
-module.exports = router;
+    module.exports = router;
