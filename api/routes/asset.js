@@ -575,7 +575,6 @@ router.post('/asset/tokenize', async (req, res) => {
 
         console.log("company.ethereumPublicKey: ", company.ethereumPublicKey);
 
-
         // Deploy the ServiceContract and get its address
         const serviceContractAddress = await deployServiceContract(GSCAddress);
 
