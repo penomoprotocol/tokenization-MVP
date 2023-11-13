@@ -16,8 +16,7 @@ const assetSchema = new mongoose.Schema({
         type: String
     },
     revenueStreamContracts: [{
-        type: mongoose.Schema.Types.ObjectId,
-        ref: 'RevenueStreamContract'
+        type: String
     }],
     companyId: {
         type: mongoose.Schema.Types.ObjectId,

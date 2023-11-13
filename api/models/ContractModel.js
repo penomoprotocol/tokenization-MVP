@@ -18,6 +18,9 @@ const contractSchema = new mongoose.Schema({
         type: String,
         required: true
     },
+    revenueStreamContractAddresses: [{
+        type: String
+    }],
     assetDIDs: [{
         type: String,
         unique: true

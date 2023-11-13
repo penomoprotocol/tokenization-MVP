@@ -322,27 +322,27 @@ router.post('/asset/register', async (req, res) => {
         if (!isPasswordValid) {
             return res.status(401).send('Invalid credentials');
         }
-        
-                // // Generate a mnemonic seed. In a production environment, ensure this is done securely.
-                // const generateMnemonicSeed = () => mnemonicGenerate();
-        
-                // // Normally, you would secure the seed phrase and not generate a new one each time
-                // const seed = generateMnemonicSeed();
-        
-                // // Ensure the seed has a balance before creating the DID
-                // // This would typically be done off-line or in a secure environment, not within an API call
-                // const sdkInstance = await Sdk.createInstance({
-                //     baseUrl: 'wss://wsspc1-qa.agung.peaq.network',
-                //     seed,
-                // });
-        
-                //   const { didHash } = await sdkInstance.did.create({
-                //     name,
-                //     controller: controllerDid, // Set the controller to the company's DID
-                //   });
-        
-                //   await sdkInstance.disconnect();
-        
+
+        // // Generate a mnemonic seed. In a production environment, ensure this is done securely.
+        // const generateMnemonicSeed = () => mnemonicGenerate();
+
+        // // Normally, you would secure the seed phrase and not generate a new one each time
+        // const seed = generateMnemonicSeed();
+
+        // // Ensure the seed has a balance before creating the DID
+        // // This would typically be done off-line or in a secure environment, not within an API call
+        // const sdkInstance = await Sdk.createInstance({
+        //     baseUrl: 'wss://wsspc1-qa.agung.peaq.network',
+        //     seed,
+        // });
+
+        //   const { didHash } = await sdkInstance.did.create({
+        //     name,
+        //     controller: controllerDid, // Set the controller to the company's DID
+        //   });
+
+        //   await sdkInstance.disconnect();
+
 
         // Generate DID - replace with your DID generation logic
         const did = "did:peaq:5GrwvaEF5zXb26Fz9rcQpDWS57CtERHpNehXCPcNoHGKutQY"; // Example DID
@@ -353,7 +353,7 @@ router.post('/asset/register', async (req, res) => {
             companyId: companyId,
             DID: did
             // CID and revenueStreamContracts can be added later when available
-        });    
+        });
 
         // Save the asset to the database
         await newAsset.save();
@@ -364,8 +364,8 @@ router.post('/asset/register', async (req, res) => {
     } catch (error) {
         console.error('Error registering asset:', error);
         res.status(500).send('Error registering asset.');
-    }    
-});    
+    }
+});
 
 
 /**
@@ -576,7 +576,7 @@ router.post('/asset/storeData', async (req, res) => {
 router.post('/asset/tokenize', async (req, res) => {
     try {
         // Get data from the request
-        const {companyId, password, DIDs, revenueGoals, name, symbol, revenueShare, contractTerm, maxTokenSupply, tokenPrice} = req.body;
+        const { companyId, password, DIDs, revenueGoals, name, symbol, revenueShare, contractTerm, maxTokenSupply, tokenPrice } = req.body;
 
         if (!companyId || !password || !DIDs || !revenueGoals || !name || !symbol || !revenueShare || !contractTerm || !maxTokenSupply || !tokenPrice) {
             return res.status(400).send('Missing required parameters.');
@@ -653,7 +653,7 @@ router.post('/asset/tokenize', async (req, res) => {
  * /api/asset/connectRevenueStream:
  *   post:
  *     summary: Deploy a new RevenueStreamContract and connect it to a service contract
- *     description: This endpoint deploys a RevenueStreamContract for managing the revenue stream of a battery asset and connects it to an existing service contract.
+ *     description: Deploys a RevenueStreamContract for managing the revenue stream of a battery asset and connects it to an existing service contract. It also updates the Contract entry in the database with the new RevenueStreamContract address.
  *     tags: 
  *       - Asset
  *     requestBody:
@@ -665,35 +665,24 @@ router.post('/asset/tokenize', async (req, res) => {
  *             required:
  *               - serviceContractAddress
  *               - pricePerKWh
- *               - authorizedBattery
+ *               - batteryDid
  *             properties:
  *               serviceContractAddress:
  *                 type: string
- *                 description: Ethereum address of the service contract to connect with.
+ *                 description: Ethereum address of the service contract.
  *               pricePerKWh:
  *                 type: number
  *                 format: float
- *                 description: Price per kWh in wei for calculating revenue.
- *               authorizedBattery:
+ *                 description: Price per kWh in wei.
+ *               batteryDid:
  *                 type: string
- *                 description: Ethereum address of the authorized battery.
+ *                 description: DID of the battery asset.
  *     responses:
  *       200:
- *         description: Revenue stream contract deployed successfully and connected to the service contract.
- *         content:
- *           application/json:
- *             schema:
- *               type: object
- *               properties:
- *                 message:
- *                   type: string
- *                 contractAddress:
- *                   type: string
- *                   description: Ethereum address of the deployed RevenueStreamContract.
+ *         description: Revenue stream contract deployed and connected.
  *       500:
- *         description: Error occurred during the process.
+ *         description: Error occurred during deployment.
  */
-
 
 router.post('/asset/connectRevenueStream', async (req, res) => {
     try {
@@ -703,6 +692,21 @@ router.post('/asset/connectRevenueStream', async (req, res) => {
         if (!serviceContractAddress || !pricePerKWh || !batteryDid) {
             return res.status(400).send('Missing required parameters');
         }
+
+        // Fetch the asset from the database
+        const asset = await Asset.findOne({ DID: batteryDid });
+        if (!asset) {
+            return res.status(404).send('Asset not found');
+        }
+
+        // Find the Contract entry in the database
+        const contract = await Contract.findOne({ serviceContractAddress });
+        if (!contract) {
+            return res.status(404).send('Contract not found');
+        }
+
+        // Use asset's publicKey as the authorizedBattery address (if available)
+        const batteryPublicKey = asset.publicKey || "0x..."; // Replace "0x..." with a default or error handling mechanism
 
         // Read the contract's ABI and bytecode
         const contractPath = path.join(RSCBuild);
@@ -736,8 +740,48 @@ router.post('/asset/connectRevenueStream', async (req, res) => {
         // Sign the transaction with the master's private key
         const signedTx = await web3.eth.accounts.signTransaction(deployTx, MASTER_PRIVATE_KEY);
 
-        // Send the signed transaction
+
+        // Send the signed transaction and receive the receipt
         const receipt = await web3.eth.sendSignedTransaction(signedTx.rawTransaction);
+
+        // Update the Asset in the database with the new RevenueStreamContract address
+        if (!asset.revenueStreamContracts) {
+            asset.revenueStreamContracts = [];
+        }
+        asset.revenueStreamContracts.push(receipt.contractAddress);
+        await asset.save();
+
+        if (contract) {
+            contract.revenueStreamContractAddresses.push(receipt.contractAddress);
+            await contract.save();
+        } else {
+            // Handle the case where the contract is not found
+            console.error('Service Contract not found:', serviceContractAddress);
+            return res.status(404).send('Service Contract not found');
+        }
+
+        // Respond with the contract's deployed address
+        res.status(200).json({
+            message: 'Revenue stream contract deployed successfully',
+            contractAddress: receipt.contractAddress
+        });
+
+    } catch (error) {
+        console.error('Error deploying revenue stream contract:', error);
+        res.status(500).send('Failed to deploy revenue stream contract');
+    }
+});
+
+router.post('/asset/connectRevenueStream', async (req, res) => {
+    try {
+        const { serviceContractAddress, pricePerKWh, batteryDid } = req.body;
+
+        // Validate inputs
+        if (!serviceContractAddress || !pricePerKWh || !batteryDid) {
+            return res.status(400).send('Missing required parameters');
+        }
+
+
 
         // Respond with the contract's deployed address
         res.status(200).json({
