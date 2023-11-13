@@ -264,8 +264,6 @@ async function deployRevenueDistributionContract(serviceContractAddress, tokenCo
 }
 
 
-
-
 /**
  * @swagger
  * /api/asset/register:
@@ -273,7 +271,7 @@ async function deployRevenueDistributionContract(serviceContractAddress, tokenCo
  *     summary: Register a new asset and create its DID.
  *     tags: 
  *       - Asset
- *     description: This endpoint registers a new asset, generates a mnemonic seed securely, and creates a DID for the asset. It then returns the DID hash and the newly created DID document.
+ *     description: This endpoint registers a new asset for a company and generates a DID for the asset. It then returns the DID.
  *     requestBody:
  *       required: true
  *       content:
@@ -281,91 +279,94 @@ async function deployRevenueDistributionContract(serviceContractAddress, tokenCo
  *           schema:
  *             type: object
  *             properties:
- *               name:
+ *               batteryName:
  *                 type: string
- *                 description: The name of the asset to register.
- *               controllerDid:
+ *                 description: The name of the battery asset to register.
+ *               companyId:
  *                 type: string
- *                 description: The DID of the entity that will control the new asset's DID.
+ *                 description: The unique identifier of the company registering the asset.
+ *               companyPassword:
+ *                 type: string
+ *                 description: The password for company authentication.
  *     responses:
  *       200:
- *         description: Successfully registered the asset and returned DID information.
+ *         description: Successfully registered the asset and returned DID.
  *         content:
  *           application/json:
  *             schema:
  *               type: object
  *               properties:
- *                 didHash:
+ *                 did:
  *                   type: string
- *                   description: The hash of the DID document.
- *                 didDocument:
- *                   type: object
- *                   description: The newly created DID document for the asset.
+ *                   description: The Decentralized Identifier (DID) of the newly registered asset.
  *       400:
  *         description: Missing required fields in the request.
  *       500:
  *         description: Error occurred while registering the asset.
  */
 
+
 // TODO: Implement sdk integration once migrated to peaq testnet
+const Asset = require('../models/AssetModel'); // Import the Asset model
+
 router.post('/asset/register', async (req, res) => {
     try {
         const { batteryName, companyId, companyPassword } = req.body;
 
-        // Step 1: Get the company from the database using the provided companyId
+        // Validate company and password
         const company = await Company.findById(companyId);
         if (!company) {
-            console.log('Company not found:', companyId);
             return res.status(401).send('Company not found');
         }
 
-        // Step 2: Verify password
         const isPasswordValid = await bcrypt.compare(companyPassword, company.password);
         if (!isPasswordValid) {
-            console.log('Invalid credentials for company ID:', companyId);
             return res.status(401).send('Invalid credentials');
         }
+        
+                // // Generate a mnemonic seed. In a production environment, ensure this is done securely.
+                // const generateMnemonicSeed = () => mnemonicGenerate();
+        
+                // // Normally, you would secure the seed phrase and not generate a new one each time
+                // const seed = generateMnemonicSeed();
+        
+                // // Ensure the seed has a balance before creating the DID
+                // // This would typically be done off-line or in a secure environment, not within an API call
+                // const sdkInstance = await Sdk.createInstance({
+                //     baseUrl: 'wss://wsspc1-qa.agung.peaq.network',
+                //     seed,
+                // });
+        
+                //   const { didHash } = await sdkInstance.did.create({
+                //     name,
+                //     controller: controllerDid, // Set the controller to the company's DID
+                //   });
+        
+                //   await sdkInstance.disconnect();
+        
 
-        console.log("company.ethereumPublicKey: ", company.ethereumPublicKey);
+        // Generate DID - replace with your DID generation logic
+        const did = "did:peaq:5GrwvaEF5zXb26Fz9rcQpDWS57CtERHpNehXCPcNoHGKutQY"; // Example DID
 
-        // Step 3: Decrypt the private key (not secure method!)
-        const decryptedPrivateKey = decryptPrivateKey(company.ethereumPrivateKey, SECRET_KEY);
-        console.log("decryptedPrivateKey: ", decryptedPrivateKey);
+        // Create a new asset
+        const newAsset = new Asset({
+            name: batteryName,
+            companyId: companyId,
+            DID: did
+            // CID and revenueStreamContracts can be added later when available
+        });    
 
+        // Save the asset to the database
+        await newAsset.save();
 
-
-        // // Generate a mnemonic seed. In a production environment, ensure this is done securely.
-        // const generateMnemonicSeed = () => mnemonicGenerate();
-
-        // // Normally, you would secure the seed phrase and not generate a new one each time
-        // const seed = generateMnemonicSeed();
-
-        // // Ensure the seed has a balance before creating the DID
-        // // This would typically be done off-line or in a secure environment, not within an API call
-        // const sdkInstance = await Sdk.createInstance({
-        //     baseUrl: 'wss://wsspc1-qa.agung.peaq.network',
-        //     seed,
-        // });
-
-        //   const { didHash } = await sdkInstance.did.create({
-        //     name,
-        //     controller: controllerDid, // Set the controller to the company's DID
-        //   });
-
-        //   await sdkInstance.disconnect();
-
-        const did = "did:peaq:5GrwvaEF5zXb26Fz9rcQpDWS57CtERHpNehXCPcNoHGKutQY"
-
-        // Return the DID hash and the DID document to the caller
-        res.status(200).json({
-            did
-        });
+        // Return the DID to the caller
+        res.status(200).json({ did });
 
     } catch (error) {
         console.error('Error registering asset:', error);
         res.status(500).send('Error registering asset.');
-    }
-});
+    }    
+});    
 
 
 /**
@@ -427,18 +428,25 @@ router.post('/asset/storeData', async (req, res) => {
     try {
         const { batteryType, capacity, voltage, batteryDid, companyId, companyPassword } = req.body;
 
-        if (!batteryType || !capacity || !voltage || !batteryDid || !companyId || companyPassword) {
+        if (!batteryType || !capacity || !voltage || !batteryDid || !companyId || !companyPassword) {
             return res.status(400).json({ error: 'Missing required fields' });
         }
 
-        // Store battery data on IPFS
-        const batteryData = {
-            batteryType,
-            capacity,
-            voltage,
-        };
+        // Validate company and password
+        const company = await Company.findById(companyId);
+        if (!company) {
+            return res.status(401).send('Company not found');
+        }
 
+        const isPasswordValid = await bcrypt.compare(companyPassword, company.password);
+        if (!isPasswordValid) {
+            return res.status(401).send('Invalid credentials');
+        }
+
+        // Store battery data on IPFS
+        const batteryData = { batteryType, capacity, voltage };
         const cid = "ipfs://bafybeihpjhkeuiq3k6nqa3fkgeigeri7iebtrsuyuey5y6vy36n345xmbi/23";
+        
         // const { cid } = await ipfs.add(JSON.stringify(batteryData));
 
         // // Prepare the attribute data
@@ -456,17 +464,26 @@ router.post('/asset/storeData', async (req, res) => {
         // // Send the transaction using the estimateAndSend helper function
         // const receipt = await estimateAndSend(transaction, MASTER_ADDRESS, MASTER_PRIVATE_KEY, DIDContractAddress);
 
-        // Respond with the IPFS CID and transaction receipt
+        // Update the Asset in the database with the CID
+        const asset = await Asset.findOne({ DID: batteryDid });
+        if (!asset) {
+            return res.status(404).send('Asset not found');
+        }
+
+        asset.CID = cid;
+        await asset.save();
+
+        // Respond with the IPFS CID
         res.status(200).json({
-            cid: cid.toString(),
-            message: 'DID document updated with new battery data CID',
-            // transactionReceipt: receipt
+            cid: cid,
+            message: 'Asset updated with new battery data CID',
         });
     } catch (error) {
-        console.error('Error updating DID document with battery data:', error);
-        res.status(500).json({ error: 'Failed to update DID document with battery data' });
+        console.error('Error updating asset with battery data:', error);
+        res.status(500).json({ error: 'Failed to update asset with battery data' });
     }
 });
+
 
 /**
  * @swagger
@@ -598,15 +615,25 @@ router.post('/asset/tokenize', async (req, res) => {
         // Call setTokenContract with gas estimation and send
         await estimateAndSend(ServiceContract.methods.setContractAddresses(tokenContractAddress, liquidityContractAddress, revenueDistributionContractAddress), MASTER_ADDRESS, MASTER_PRIVATE_KEY, serviceContractAddress);
 
-        // TODO: Generate DB entry for new token contract
-
-
-        // Respond with the deployed contracts' addresses
-        res.status(200).json({
-            tokenContractAddress: tokenContractAddress,
+        // Generate DB entry for new token contract
+        const newContractEntry = new Contract({
             serviceContractAddress: serviceContractAddress,
+            tokenContractAddress: tokenContractAddress,
             liquidityContractAddress: liquidityContractAddress,
             revenueDistributionContractAddress: revenueDistributionContractAddress,
+            assetDIDs: DIDs, // Assuming DIDs is an array of asset DIDs
+            companyId: companyId
+        });
+
+        // Save the new contract entry to the database
+        await newContractEntry.save();
+
+        // Respond with the service contract address as the primary reference
+        res.status(200).json({
+            serviceContractAddress: serviceContractAddress, // Primary reference
+            tokenContractAddress: tokenContractAddress,
+            liquidityContractAddress: liquidityContractAddress,
+            revenueDistributionContractAddress: revenueDistributionContractAddress
         });
 
     } catch (error) {
