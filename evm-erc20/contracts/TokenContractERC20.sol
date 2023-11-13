@@ -39,7 +39,6 @@ contract TokenContractERC20 is ERC20 {
     constructor(
         ConstructorArgs memory args,
         string[] memory DIDs,
-        string[] memory CIDs,
         uint256[] memory revenueGoals
     ) ERC20(args.name, args.symbol) {
         penomoWallet = args.penomoWallet;
@@ -53,7 +52,6 @@ contract TokenContractERC20 is ERC20 {
         for (uint i = 0; i < DIDs.length; i++) {
             Battery memory newBattery = Battery({
                 DID: DIDs[i],
-                CID: CIDs[i],
                 revenueGoal: revenueGoals[i]
             });
             batteries.push(newBattery);

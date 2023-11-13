@@ -155,7 +155,7 @@ async function deployServiceContract(GSCAddress) {
 }
 
 // Deploy Token Contract
-async function deployTokenContract(DIDs, CIDs, revenueGoals, name, symbol, revenueShare, contractTerm, maxTokenSupply, tokenPrice, serviceContractAddress) {
+async function deployTokenContract(DIDs, revenueGoals, name, symbol, revenueShare, contractTerm, maxTokenSupply, tokenPrice, serviceContractAddress) {
     const contractPath = path.join(TCBuild);
     const contractJSON = JSON.parse(fs.readFileSync(contractPath, 'utf8'));
     const TokenContract = new web3.eth.Contract(contractJSON.abi);
@@ -174,7 +174,7 @@ async function deployTokenContract(DIDs, CIDs, revenueGoals, name, symbol, reven
 
     const deploymentData = TokenContract.deploy({
         data: contractJSON.bytecode,
-        arguments: [constructorArgs, DIDs, CIDs, revenueGoals]
+        arguments: [constructorArgs, DIDs, revenueGoals]
     });
 
     const estimatedGas = await deploymentData.estimateGas({
@@ -474,67 +474,116 @@ router.post('/asset/storeData', async (req, res) => {
  *   post:
  *     summary: Tokenize an asset
  *     tags: 
- *     - Asset
+ *       - Asset
+ *     description: Deploy contracts to tokenize an asset with provided details.
  *     requestBody:
  *       required: true
  *       content:
  *         application/json:
  *           schema:
  *             type: object
+ *             required:
+ *               - companyId
+ *               - password
+ *               - DIDs
+ *               - revenueGoals
+ *               - name
+ *               - symbol
+ *               - revenueShare
+ *               - contractTerm
+ *               - maxTokenSupply
+ *               - tokenPrice
  *             properties:
+ *               companyId:
+ *                 type: string
+ *                 description: ID of the company initiating tokenization.
+ *               password:
+ *                 type: string
+ *                 description: Password for company authentication.
  *               DIDs:
  *                 type: array
  *                 items:
  *                   type: string
- *               CIDs:
- *                 type: array
- *                 items:
- *                   type: string
+ *                 description: Array of Digital Identity Identifiers.
  *               revenueGoals:
  *                 type: array
  *                 items:
  *                   type: number
+ *                 description: Array of revenue goals for each asset.
  *               name:
  *                 type: string
+ *                 description: Name of the token.
  *               symbol:
  *                 type: string
+ *                 description: Symbol of the token.
  *               revenueShare:
  *                 type: number
+ *                 description: Percentage of revenue share.
  *               contractTerm:
  *                 type: number
+ *                 description: Term length of the contract.
  *               maxTokenSupply:
  *                 type: number
+ *                 description: Maximum supply of the tokens.
  *               tokenPrice:
  *                 type: number
- *               BBWalletAddress:
- *                 type: string
+ *                 description: Price of each token.
  *     responses:
  *       200:
  *         description: Successfully tokenized asset and returned contract addresses.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 tokenContractAddress:
+ *                   type: string
+ *                 serviceContractAddress:
+ *                   type: string
+ *                 liquidityContractAddress:
+ *                   type: string
+ *                 revenueDistributionContractAddress:
+ *                   type: string
  *       400:
  *         description: Missing required parameters.
  *       500:
  *         description: Failed to deploy the contracts.
  */
 
-// TODO: Modify endpoint & contract to only take in DID (because CID with battery data is stored in DID document)
 router.post('/asset/tokenize', async (req, res) => {
     try {
         // Get data from the request
-        const { DIDs, CIDs, revenueGoals, name, symbol, revenueShare, contractTerm, maxTokenSupply, tokenPrice, BBWalletAddress } = req.body;
+        const {companyId, password, DIDs, revenueGoals, name, symbol, revenueShare, contractTerm, maxTokenSupply, tokenPrice} = req.body;
 
-        if (!DIDs || !CIDs || !revenueGoals || !name || !symbol || !revenueShare || !contractTerm || !maxTokenSupply || !tokenPrice || !BBWalletAddress) {
+        if (!companyId || !password || !DIDs || !revenueGoals || !name || !symbol || !revenueShare || !contractTerm || !maxTokenSupply || !tokenPrice) {
             return res.status(400).send('Missing required parameters.');
         }
+
+        // Step 1: Get the company from the database using the provided companyId
+        const company = await Company.findById(companyId);
+        if (!company) {
+            console.log('Company not found:', companyId);
+            return res.status(401).send('Company not found');
+        }
+
+        // Step 2: Verify password
+        const isPasswordValid = await bcrypt.compare(password, company.password);
+        if (!isPasswordValid) {
+            console.log('Invalid credentials for company ID:', companyId);
+            return res.status(401).send('Invalid credentials');
+        }
+
+        console.log("company.ethereumPublicKey: ", company.ethereumPublicKey);
+
 
         // Deploy the ServiceContract and get its address
         const serviceContractAddress = await deployServiceContract(GSCAddress);
 
         // Deploy the TokenContract using the ServiceContract's address
-        const tokenContractAddress = await deployTokenContract(DIDs, CIDs, revenueGoals, name, symbol, revenueShare, contractTerm, maxTokenSupply, tokenPrice, serviceContractAddress);
+        const tokenContractAddress = await deployTokenContract(DIDs, revenueGoals, name, symbol, revenueShare, contractTerm, maxTokenSupply, tokenPrice, serviceContractAddress);
 
         // Deploy LiquidityContract
-        const liquidityContractAddress = await deployLiquidityContract(serviceContractAddress, BBWalletAddress, MASTER_ADDRESS);
+        const liquidityContractAddress = await deployLiquidityContract(serviceContractAddress, company.ethereumPublicKey, MASTER_ADDRESS);
 
         // Deploy RevenueDistributionContract
         const revenueDistributionContractAddress = await deployRevenueDistributionContract(serviceContractAddress, tokenContractAddress, liquidityContractAddress);
@@ -547,9 +596,11 @@ router.post('/asset/tokenize', async (req, res) => {
         // Create a ServiceContract instance
         const ServiceContract = new web3.eth.Contract(SCABI, serviceContractAddress);
 
-
         // Call setTokenContract with gas estimation and send
         await estimateAndSend(ServiceContract.methods.setContractAddresses(tokenContractAddress, liquidityContractAddress, revenueDistributionContractAddress), MASTER_ADDRESS, MASTER_PRIVATE_KEY, serviceContractAddress);
+
+        // TODO: Generate DB entry for new token contract
+
 
         // Respond with the deployed contracts' addresses
         res.status(200).json({
