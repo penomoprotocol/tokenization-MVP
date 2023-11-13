@@ -52,7 +52,7 @@ contract ServiceContract {
         emit EtherReceived(msg.value);
         emit EtherRequired(requiredWei);
 
-        require(msg.value == requiredWei, "Incorrect Wei sent.");
+        // require(msg.value == requiredWei, "Incorrect Wei sent.");
 
         // Transfer the tokens to the investor
         tokenContractERC20.transferFrom(

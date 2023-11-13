@@ -396,17 +396,103 @@ router.post('/investor/buyToken', async (req, res) => {
         const tokenContractInstance = new web3.eth.Contract(TCABI, tokenContractERC20Address);
 
         const tokenPrice = await tokenContractInstance.methods.tokenPrice().call();
-        const tokenAmountWeiBigInt = BigInt(web3.utils.toWei(tokenAmount.toString(), 'ether'));
+
+        // Assuming tokenAmount is the amount of tokens (not in Wei)
+        const tokenAmountBigInt = BigInt(tokenAmount);
         const tokenPriceBigInt = BigInt(tokenPrice);
-        const requiredWei = tokenPriceBigInt * BigInt(tokenAmount.toString());
+        const requiredWei = tokenPriceBigInt * tokenAmountBigInt;
+        const requiredWeiString = requiredWei.toString();
+        const tokenAmountWeiBigInt = BigInt(web3.utils.toWei(tokenAmountBigInt.toString(), 'ether'));
 
 
         console.log("tokenPrice: ", tokenPrice.toString());
         console.log("requiredWei: ", requiredWei.toString());
-        console.log("tokenAmountWei: ", tokenAmountWeiBigInt.toString());
+        console.log("tokenAmount: ", tokenAmountBigInt.toString());
+        console.log("tokenAmountInWei: ", tokenAmountWeiBigInt.toString());
 
         const transaction = ServiceContract.methods.buyTokens(tokenAmountWeiBigInt.toString());
-        const receipt = await estimateAndSend(transaction, investor.ethereumPublicKey, decryptedPrivateKey, serviceContractAddress, requiredWei.toString());
+        const receipt = await estimateAndSend(transaction, investor.ethereumPublicKey, decryptedPrivateKey, serviceContractAddress, requiredWeiString);
+
+
+        // const tokenPriceBigInt = BigInt(tokenPrice);
+        // const requiredWei = tokenPriceBigInt * BigInt(tokenAmount.toString());
+
+        // const transaction = ServiceContract.methods.buyTokens(tokenAmountWeiBigInt.toString());
+        // const receipt = await estimateAndSend(transaction, investor.ethereumPublicKey, decryptedPrivateKey, serviceContractAddress, requiredWei.toString());
+
+
+        const EtherRequiredABI = {
+            name: 'EtherRequired',
+            type: 'event',
+            inputs: [{
+                type: 'uint256',
+                name: 'value',
+                indexed: false
+            }]
+        };
+
+        const EtherReceivedABI = {
+            name: 'EtherReceived',
+            type: 'event',
+            inputs: [{
+                type: 'uint256',
+                name: 'value',
+                indexed: false
+            }]
+        };
+
+        const TokensPurchasedABI = {
+            name: 'TokensPurchased',
+            type: 'event',
+            inputs: [{
+                type: 'address',
+                name: 'investor',
+                indexed: true
+            }, {
+                type: 'uint256',
+                name: 'amount',
+                indexed: false
+            }]
+        };
+
+
+        receipt.logs.forEach(log => {
+            try {
+                let decodedLog = null;
+
+                // Decode EtherReceived Event
+                try {
+                    decodedLog = web3.eth.abi.decodeLog(EtherReceivedABI.inputs, log.data, log.topics);
+                    console.log("EtherReceived Event:", decodedLog);
+                } catch (error) {
+                    // If decoding fails, it might be a different event
+                }
+                
+                // Decode EtherRequired Event
+                try {
+                    decodedLog = web3.eth.abi.decodeLog(EtherRequiredABI.inputs, log.data, log.topics);
+                    console.log("EtherRequired Event:", decodedLog);
+                } catch (error) {
+                    // If decoding fails, it might be a different event
+                }
+                
+                // Decode TokensPurchased Event
+                try {
+                    decodedLog = web3.eth.abi.decodeLog(TokensPurchasedABI.inputs, log.data, log.topics);
+                    console.log("TokensPurchased Event:", decodedLog);
+                } catch (error) {
+                    // If decoding fails, it might be a different event
+                }
+
+
+                if (!decodedLog) {
+                    console.log("Unrecognized Event:", log);
+                }
+
+            } catch (error) {
+                console.error("Error decoding log:", error);
+            }
+        });
 
         res.status(200).json({ receipt: serializeBigIntInObject(receipt) });
 
