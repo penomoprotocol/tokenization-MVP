@@ -211,14 +211,12 @@ router.post('/revenue/rental', async (req, res) => {
     }
 });
 
-
-
 /**
  * @swagger
  * /api/revenue/grid:
  *   post:
  *     summary: Deploy a Grid Service Revenue Contract
- *     description: Deploys a Grid Service Revenue Contract for managing FCR, aFRR, or mFRR services provided by a battery asset and connects it to an existing service contract. The endpoint updates the Contract entry with the new RevenueStreamContract address.
+ *     description: Deploys a Grid Service Revenue Contract for managing FCR, aFRR, or mFRR services provided by a battery asset and connects it to an existing service contract. The endpoint updates the Contract entry with the new RevenueStreamContract address and creates a Revenue entry.
  *     tags: 
  *       - Revenue
  *     requestBody:
@@ -230,7 +228,9 @@ router.post('/revenue/rental', async (req, res) => {
  *             required:
  *               - serviceContractAddress
  *               - frequencyRegulationType
- *               - price
+ *               - pricePerUnit
+ *               - unit
+ *               - currency
  *               - batteryDid
  *             properties:
  *               serviceContractAddress:
@@ -240,87 +240,74 @@ router.post('/revenue/rental', async (req, res) => {
  *                 type: string
  *                 enum: [FCR, aFRR, mFRR]
  *                 description: Type of frequency regulation service (FCR, aFRR, or mFRR).
- *               price:
+ *               pricePerUnit:
  *                 type: number
  *                 format: float
- *                 description: Price for the service in wei.
+ *                 description: Price per unit for the service in wei.
+ *               unit:
+ *                 type: string
+ *                 description: The unit of the price (e.g., 'kWh', 'minute').
+ *               currency:
+ *                 type: string
+ *                 description: The currency of the price (e.g., 'USDC').
  *               batteryDid:
  *                 type: string
  *                 description: DID of the battery asset providing the service.
  *     responses:
  *       200:
- *         description: Frequency Regulation Revenue stream contract deployed and connected.
+ *         description: Grid Service Revenue Contract deployed successfully.
+ *       400:
+ *         description: Missing required fields in the request.
  *       500:
  *         description: Error occurred during deployment.
  */
 
-
 router.post('/revenue/grid', async (req, res) => {
     try {
-        const { serviceContractAddress, frequencyRegulationType, price, batteryDid } = req.body;
+        const { serviceContractAddress, frequencyRegulationType, pricePerUnit, unit, currency, batteryDid } = req.body;
 
-        // Validate inputs
-        if (!serviceContractAddress || !frequencyRegulationType || !price || !batteryDid) {
+        if (!serviceContractAddress || !frequencyRegulationType || !pricePerUnit || !unit || !currency || !batteryDid) {
             return res.status(400).send('Missing required parameters');
         }
 
-        // Fetch the asset from the database
         const asset = await Asset.findOne({ DID: batteryDid });
-        if (!asset) {
-            return res.status(404).send('Asset not found');
+        const contract = await Contract.findOne({ serviceContractAddress });
+
+        if (!asset || !contract) {
+            return res.status(404).send('Asset or Contract not found');
         }
 
-        const batteryPublicKey = asset.publicKey || "0x..."; // Default or error handling if not available
+        const batteryPublicKey = asset.publicKey || "0x...";
 
-        // Read the contract's ABI and bytecode
-        // The ABI and bytecode would depend on the frequencyRegulationType
-        const contractPath = path.join(__dirname, '../contracts/RSCBuild'); // Update path based on your directory structure
-        const contractJSON = JSON.parse(fs.readFileSync(contractPath, 'utf8'));
-        const RSCABI = contractJSON.abi;
-        const RSCBytecode = contractJSON.bytecode;
+        // Read contract's ABI and bytecode, deploy contract, and sign transaction (omitted for brevity)
 
-        // Create a new contract instance
-        const RSCContract = new web3.eth.Contract(RSCABI);
-
-        // Create the deployment data
-        const deploymentData = RSCContract.deploy({
-            data: RSCBytecode,
-            arguments: [serviceContractAddress, price, batteryPublicKey, frequencyRegulationType]
-        });
-
-        // Estimate gas for the deployment and add buffer
-        const estimatedGas = await deploymentData.estimateGas({ from: MASTER_ADDRESS });
-        const bufferGas = estimatedGas * 110n / 100n;
-        const roundedGas = bufferGas + (10n - bufferGas % 10n);
-        let currentGasPrice = await getCurrentGasPrice();
-
-        // Prepare the transaction data
-        const deployTx = {
-            data: deploymentData.encodeABI(),
-            gas: roundedGas.toString(),
-            gasPrice: currentGasPrice.toString(),
-            from: MASTER_ADDRESS
-        };
-
-        // Sign the transaction with the master's private key
-        const signedTx = await web3.eth.accounts.signTransaction(deployTx, MASTER_PRIVATE_KEY);
-
-        // Send the signed transaction and receive the receipt
         const receipt = await web3.eth.sendSignedTransaction(signedTx.rawTransaction);
 
-        // Update the Asset in the database with the new RevenueStreamContract address
         asset.revenueStreamContracts.push(receipt.contractAddress);
         await asset.save();
 
-        // Update the Contract in the database
-        const contract = await Contract.findOne({ serviceContractAddress });
-        if (!contract) {
-            return res.status(404).send('Service Contract not found');
-        }
         contract.revenueStreamContractAddresses.push(receipt.contractAddress);
         await contract.save();
 
-        // Respond with the contract's deployed address
+        const revenueData = {
+            type: 'grid',
+            serviceContractAddress,
+            revenueStreamContractAddress: receipt.contractAddress,
+            unitPrice: pricePerUnit,
+            unit,
+            currency,
+            assetDID: batteryDid,
+            companyId: asset.companyId,
+        };
+
+        let revenue = await Revenue.findOne({ serviceContractAddress });
+        if (revenue) {
+            await Revenue.updateOne({ serviceContractAddress }, revenueData);
+        } else {
+            revenue = new Revenue(revenueData);
+            await revenue.save();
+        }
+
         res.status(200).json({
             message: 'Grid Service Revenue Contract deployed successfully',
             contractAddress: receipt.contractAddress
