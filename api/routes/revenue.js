@@ -632,6 +632,112 @@ router.post('/revenue/dataMonetization', async (req, res) => {
 
 /**
  * @swagger
+ * /api/revenue/carbonCredits:
+ *   post:
+ *     summary: Deploy a new Carbon Revenue Contract and connect it to a service contract (Inactive - Future Release)
+ *     description: Deploys a Carbon Revenue Contract for managing revenue streams generated from carbon credit trading and connects it to an existing service contract.
+ *     tags: 
+ *       - Revenue
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - serviceContractAddress
+ *               - carbonCreditPrice
+ *               - batteryDid
+ *             properties:
+ *               serviceContractAddress:
+ *                 type: string
+ *                 description: Ethereum address of the service contract.
+ *               carbonCreditPrice:
+ *                 type: number
+ *                 format: float
+ *                 description: Price per carbon credit unit.
+ *               batteryDid:
+ *                 type: string
+ *                 description: DID of the battery asset participating in carbon credit trading.
+ *     responses:
+ *       200:
+ *         description: Carbon Revenue Contract deployed successfully.
+ *       500:
+ *         description: Error occurred during deployment.
+ */
+
+router.post('/revenue/carbonCredits', async (req, res) => {
+    try {
+        const { serviceContractAddress, carbonCreditPrice, batteryDid } = req.body;
+
+        // Validate inputs
+        if (!serviceContractAddress || !carbonCreditPrice || !batteryDid) {
+            return res.status(400).send('Missing required parameters');
+        }
+
+        // Fetch the asset from the database
+        const asset = await Asset.findOne({ DID: batteryDid });
+        if (!asset) {
+            return res.status(404).send('Asset not found');
+        }
+
+        // Use asset's publicKey as the authorized entity for carbon credit trading
+        const batteryPublicKey = asset.publicKey || "0x..."; // Default or error handling if not available
+
+        // Read the contract's ABI and bytecode
+        const contractPath = path.join(__dirname, '../contracts/carbonRevenue');
+        const contractJSON = JSON.parse(fs.readFileSync(contractPath, 'utf8'));
+        const CRCABI = contractJSON.abi;
+        const CRCBytecode = contractJSON.bytecode;
+
+        // Create a new contract instance
+        const CRCContract = new web3.eth.Contract(CRCABI);
+
+        // Create the deployment data
+        const deploymentData = CRCContract.deploy({
+            data: CRCBytecode,
+            arguments: [serviceContractAddress, carbonCreditPrice, batteryPublicKey]
+        });
+
+        // Estimate gas for the deployment and add buffer
+        const estimatedGas = await deploymentData.estimateGas({ from: MASTER_ADDRESS });
+        const bufferGas = estimatedGas * 110n / 100n;
+        const roundedGas = bufferGas + (10n - bufferGas % 10n);
+        let currentGasPrice = await getCurrentGasPrice();
+
+        // Prepare the transaction data
+        const deployTx = {
+            data: deploymentData.encodeABI(),
+            gas: roundedGas.toString(),
+            gasPrice: currentGasPrice.toString(),
+            from: MASTER_ADDRESS
+        };
+
+        // Sign the transaction with the master's private key
+        const signedTx = await web3.eth.accounts.signTransaction(deployTx, MASTER_PRIVATE_KEY);
+
+        // Send the signed transaction and receive the receipt
+        const receipt = await web3.eth.sendSignedTransaction(signedTx.rawTransaction);
+
+        // Update the Asset in the database with the new RevenueStreamContract address
+        asset.revenueStreamContracts.push(receipt.contractAddress);
+        await asset.save();
+
+        // Respond with the contract's deployed address
+        res.status(200).json({
+            message: 'Carbon Revenue Contract deployed successfully',
+            contractAddress: receipt.contractAddress
+        });
+
+    } catch (error) {
+        console.error('Error deploying Carbon Revenue Contract:', error);
+        res.status(500).send('Failed to deploy Carbon Revenue Contract');
+    }
+});
+
+
+/**
+ * @swagger
  * /api/revenue/{address}:
  *   get:
  *     summary: Retrieve revenue stream details by address
