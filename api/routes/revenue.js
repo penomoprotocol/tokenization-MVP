@@ -60,7 +60,6 @@ async function getCurrentGasPrice() {
     return gasPrice;
 }
 
-
 // Helper function to estimate gas and send a transaction
 async function estimateAndSend(transaction, fromAddress, fromPrivateKey, toAddress) {
 
@@ -98,6 +97,39 @@ const decryptPrivateKey = (encryptedKey, SECRET_KEY) => {
     const decrypted = CryptoJS.AES.decrypt(encryptedKey, SECRET_KEY).toString(CryptoJS.enc.Utf8);
     return decrypted;
 };
+
+// Generic function to deploy a contract
+async function deployContract(contractABI, contractBytecode, constructorArgs) {
+    const Contract = new web3.eth.Contract(contractABI);
+
+    // Create the deployment data
+    const deploymentData = Contract.deploy({
+        data: contractBytecode,
+        arguments: constructorArgs
+    });
+
+    // Estimate gas for the deployment and add buffer
+    const estimatedGas = await deploymentData.estimateGas({ from: MASTER_ADDRESS });
+    const bufferGas = estimatedGas * 110n / 100n;
+    const roundedGas = bufferGas + (10n - bufferGas % 10n);
+    let currentGasPrice = await getCurrentGasPrice();
+
+    // Prepare the transaction data
+    const deployTx = {
+        data: deploymentData.encodeABI(),
+        gas: roundedGas.toString(),
+        gasPrice: currentGasPrice,
+        from: MASTER_ADDRESS
+    };
+
+    // Sign the transaction with the master's private key
+    const signedTx = await web3.eth.accounts.signTransaction(deployTx, MASTER_PRIVATE_KEY);
+
+    // Send the signed transaction and receive the receipt
+    const receipt = await web3.eth.sendSignedTransaction(signedTx.rawTransaction);
+
+    return receipt.contractAddress;
+}
 
 
 
@@ -150,7 +182,7 @@ const decryptPrivateKey = (encryptedKey, SECRET_KEY) => {
 
 router.post('/revenue/rental', async (req, res) => {
     try {
-        const {batteryDid, serviceContractAddress, pricePerUnit, unit, currency } = req.body;
+        const { serviceContractAddress, pricePerUnit, batteryDid, unit, currency } = req.body;
 
         // Validate inputs
         if (!serviceContractAddress || !pricePerUnit || !batteryDid || !unit || !currency) {
@@ -165,25 +197,28 @@ router.post('/revenue/rental', async (req, res) => {
             return res.status(404).send('Asset or Contract not found');
         }
 
-        const batteryPublicKey = asset.publicKey || "0x..."; // Replace "0x..." with a default or error handling mechanism
+        // Prepare contract ABI and bytecode
+        const RSCContractPath = path.join(RSCBuild);
+        const RSCContractJSON = JSON.parse(fs.readFileSync(RSCContractPath, 'utf8'));
+        const contractABI = RSCContractJSON.abi;
+        const contractBytecode = RSCContractJSON.bytecode;
+        const constructorArgs = [serviceContractAddress, web3.utils.toWei(pricePerUnit.toString(), 'ether'), asset.publicKey];
 
-        // Read contract's ABI and bytecode, deploy contract, and sign transaction (omitted for brevity)
+        // Deploy the contract
+        const revenueStreamContractAddress = await deployContract(contractABI, contractBytecode, constructorArgs);
 
-        // Send the signed transaction and receive the receipt
-        const receipt = await web3.eth.sendSignedTransaction(signedTx.rawTransaction);
-
-        // Update the Asset and Contract entries in the database with the new RevenueStreamContract address
-        asset.revenueStreamContracts.push(receipt.contractAddress);
+        // Update the Asset and Contract entries in the database
+        asset.revenueStreamContracts.push(revenueStreamContractAddress);
         await asset.save();
 
-        contract.revenueStreamContractAddresses.push(receipt.contractAddress);
+        contract.revenueStreamContractAddresses.push(revenueStreamContractAddress);
         await contract.save();
 
         // Create or update a Revenue entry
         const revenueData = {
             type: 'rental',
             serviceContractAddress,
-            revenueStreamContractAddress: receipt.contractAddress,
+            revenueStreamContractAddress,
             unitPrice: pricePerUnit,
             unit,
             currency,
@@ -202,14 +237,15 @@ router.post('/revenue/rental', async (req, res) => {
         // Respond with the contract's deployed address
         res.status(200).json({
             message: 'Revenue stream contract deployed successfully',
-            contractAddress: receipt.contractAddress
+            contractAddress: revenueStreamContractAddress
         });
 
     } catch (error) {
-        console.error('Error deploying revenue stream contract:', error);
-        res.status(500).send('Failed to deploy revenue stream contract');
+        console.error('Error deploying contract:', error);
+        res.status(500).send('Failed to deploy contract');
     }
 });
+
 
 /**
  * @swagger
@@ -228,8 +264,6 @@ router.post('/revenue/rental', async (req, res) => {
  *             required:
  *               - serviceContractAddress
  *               - frequencyRegulationType
- *               - pricePerUnit
- *               - unit
  *               - currency
  *               - batteryDid
  *             properties:
@@ -240,13 +274,6 @@ router.post('/revenue/rental', async (req, res) => {
  *                 type: string
  *                 enum: [FCR, aFRR, mFRR]
  *                 description: Type of frequency regulation service (FCR, aFRR, or mFRR).
- *               pricePerUnit:
- *                 type: number
- *                 format: float
- *                 description: Price per unit for the service in wei.
- *               unit:
- *                 type: string
- *                 description: The unit of the price (e.g., 'kWh', 'minute').
  *               currency:
  *                 type: string
  *                 description: The currency of the price (e.g., 'USDC').
@@ -264,9 +291,9 @@ router.post('/revenue/rental', async (req, res) => {
 
 router.post('/revenue/grid', async (req, res) => {
     try {
-        const { batteryDid, serviceContractAddress, frequencyRegulationType, pricePerUnit, unit, currency} = req.body;
+        const { batteryDid, serviceContractAddress, frequencyRegulationType, currency} = req.body;
 
-        if (!serviceContractAddress || !frequencyRegulationType || !pricePerUnit || !unit || !currency || !batteryDid) {
+        if (!serviceContractAddress || !frequencyRegulationType || !currency || !batteryDid) {
             return res.status(400).send('Missing required parameters');
         }
 
@@ -293,8 +320,6 @@ router.post('/revenue/grid', async (req, res) => {
             type: 'grid',
             serviceContractAddress,
             revenueStreamContractAddress: receipt.contractAddress,
-            unitPrice: pricePerUnit,
-            unit,
             currency,
             assetDID: batteryDid,
             companyId: asset.companyId,
@@ -319,6 +344,98 @@ router.post('/revenue/grid', async (req, res) => {
     }
 });
 
+/**
+ * @swagger
+ * /api/revenue/arbitrage:
+ *   post:
+ *     summary: Deploy a Arbitrage Revenue Contract
+ *     description: Deploys a Arbitrage Revenue Contract for battery asset and connects it to an existing service contract. The endpoint updates the Contract entry with the new RevenueStreamContract address and creates a Revenue entry.
+ *     tags: 
+ *       - Revenue
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - serviceContractAddress
+ *               - frequencyRegulationType
+ *               - currency
+ *               - batteryDid
+ *             properties:
+ *               serviceContractAddress:
+ *                 type: string
+ *                 description: Ethereum address of the service contract.
+ *               currency:
+ *                 type: string
+ *                 description: The currency of the price (e.g., 'USDC').
+ *               batteryDid:
+ *                 type: string
+ *                 description: DID of the battery asset providing the service.
+ *     responses:
+ *       200:
+ *         description: Arbitrage Revenue Contract deployed successfully.
+ *       400:
+ *         description: Missing required fields in the request.
+ *       500:
+ *         description: Error occurred during deployment.
+ */
+
+router.post('/revenue/arbitrage', async (req, res) => {
+    try {
+        const { batteryDid, serviceContractAddress, currency} = req.body;
+
+        if (!serviceContractAddress || !currency || !batteryDid) {
+            return res.status(400).send('Missing required parameters');
+        }
+
+        const asset = await Asset.findOne({ DID: batteryDid });
+        const contract = await Contract.findOne({ serviceContractAddress });
+
+        if (!asset || !contract) {
+            return res.status(404).send('Asset or Contract not found');
+        }
+
+        const batteryPublicKey = asset.publicKey || "0x...";
+
+        // Read contract's ABI and bytecode, deploy contract, and sign transaction (omitted for brevity)
+
+        const receipt = await web3.eth.sendSignedTransaction(signedTx.rawTransaction);
+
+        asset.revenueStreamContracts.push(receipt.contractAddress);
+        await asset.save();
+
+        contract.revenueStreamContractAddresses.push(receipt.contractAddress);
+        await contract.save();
+
+        const revenueData = {
+            type: 'arbitrage',
+            serviceContractAddress,
+            revenueStreamContractAddress: receipt.contractAddress,
+            currency,
+            assetDID: batteryDid,
+            companyId: asset.companyId,
+        };
+
+        let revenue = await Revenue.findOne({ serviceContractAddress });
+        if (revenue) {
+            await Revenue.updateOne({ serviceContractAddress }, revenueData);
+        } else {
+            revenue = new Revenue(revenueData);
+            await revenue.save();
+        }
+
+        res.status(200).json({
+            message: 'Arbitrage Revenue Contract deployed successfully',
+            contractAddress: receipt.contractAddress
+        });
+
+    } catch (error) {
+        console.error('Error deploying Arbitrage Revenue Contract:', error);
+        res.status(500).send('Failed to deploy Arbitrage Revenue Contract');
+    }
+});
 
 
 // Swagger JSDoc
@@ -434,7 +551,7 @@ router.post('/revenue/data', async (req, res) => {
  * /api/revenue/carbon:
  *   post:
  *     summary: Deploy a new Carbon Revenue Contract and connect it to a service contract (Inactive - Future Release)
- *     description: Deploys a Carbon Revenue Contract for managing revenue streams generated from carbon credit trading and connects it to an existing service contract.
+ *     description: Deploys a Carbon Revenue Contract for managing revenue streams generated from carbon credit trading and connects it to an existing service contract. It also creates a Revenue entry in the database.
  *     tags: 
  *       - Revenue
  *     requestBody:
@@ -446,6 +563,8 @@ router.post('/revenue/data', async (req, res) => {
  *             required:
  *               - serviceContractAddress
  *               - carbonCreditPrice
+ *               - unit
+ *               - currency
  *               - batteryDid
  *             properties:
  *               serviceContractAddress:
@@ -454,75 +573,72 @@ router.post('/revenue/data', async (req, res) => {
  *               carbonCreditPrice:
  *                 type: number
  *                 format: float
- *                 description: Price per carbon credit unit.
+ *                 description: Price per unit for carbon credit trading.
+ *               unit:
+ *                 type: string
+ *                 description: The unit of carbon credit pricing (e.g., 'tCO2').
+ *               currency:
+ *                 type: string
+ *                 description: The currency of the price (e.g., 'USDC').
  *               batteryDid:
  *                 type: string
  *                 description: DID of the battery asset participating in carbon credit trading.
  *     responses:
  *       200:
- *         description: Carbon Revenue Contract deployed successfully.
+ *         description: Carbon Revenue Contract deployed successfully (Future Release).
+ *       400:
+ *         description: Missing required fields in the request.
  *       500:
- *         description: Error occurred during deployment.
+ *         description: Error occurred during the deployment process (Future Release).
  */
+
 
 router.post('/revenue/carbon', async (req, res) => {
     try {
-        const { serviceContractAddress, carbonCreditPrice, batteryDid } = req.body;
+        const { serviceContractAddress, carbonCreditPrice, unit, currency, batteryDid } = req.body;
 
-        // Validate inputs
-        if (!serviceContractAddress || !carbonCreditPrice || !batteryDid) {
+        if (!serviceContractAddress || !carbonCreditPrice || !unit || !currency || !batteryDid) {
             return res.status(400).send('Missing required parameters');
         }
 
-        // Fetch the asset from the database
         const asset = await Asset.findOne({ DID: batteryDid });
-        if (!asset) {
-            return res.status(404).send('Asset not found');
+        const contract = await Contract.findOne({ serviceContractAddress });
+
+        if (!asset || !contract) {
+            return res.status(404).send('Asset or Contract not found');
         }
 
-        // Use asset's publicKey as the authorized entity for carbon credit trading
-        const batteryPublicKey = asset.publicKey || "0x..."; // Default or error handling if not available
+        const batteryPublicKey = asset.publicKey || "0x...";
 
-        // Read the contract's ABI and bytecode
-        const contractPath = path.join(__dirname, '../contracts/carbonRevenue');
-        const contractJSON = JSON.parse(fs.readFileSync(contractPath, 'utf8'));
-        const CRCABI = contractJSON.abi;
-        const CRCBytecode = contractJSON.bytecode;
+        // Read contract's ABI and bytecode, deploy contract, and sign transaction (omitted for brevity)
 
-        // Create a new contract instance
-        const CRCContract = new web3.eth.Contract(CRCABI);
-
-        // Create the deployment data
-        const deploymentData = CRCContract.deploy({
-            data: CRCBytecode,
-            arguments: [serviceContractAddress, carbonCreditPrice, batteryPublicKey]
-        });
-
-        // Estimate gas for the deployment and add buffer
-        const estimatedGas = await deploymentData.estimateGas({ from: MASTER_ADDRESS });
-        const bufferGas = estimatedGas * 110n / 100n;
-        const roundedGas = bufferGas + (10n - bufferGas % 10n);
-        let currentGasPrice = await getCurrentGasPrice();
-
-        // Prepare the transaction data
-        const deployTx = {
-            data: deploymentData.encodeABI(),
-            gas: roundedGas.toString(),
-            gasPrice: currentGasPrice.toString(),
-            from: MASTER_ADDRESS
-        };
-
-        // Sign the transaction with the master's private key
-        const signedTx = await web3.eth.accounts.signTransaction(deployTx, MASTER_PRIVATE_KEY);
-
-        // Send the signed transaction and receive the receipt
         const receipt = await web3.eth.sendSignedTransaction(signedTx.rawTransaction);
 
-        // Update the Asset in the database with the new RevenueStreamContract address
         asset.revenueStreamContracts.push(receipt.contractAddress);
         await asset.save();
 
-        // Respond with the contract's deployed address
+        contract.revenueStreamContractAddresses.push(receipt.contractAddress);
+        await contract.save();
+
+        const revenueData = {
+            type: 'carbon',
+            serviceContractAddress,
+            revenueStreamContractAddress: receipt.contractAddress,
+            unitPrice: carbonCreditPrice,
+            unit,
+            currency,
+            assetDID: batteryDid,
+            companyId: asset.companyId,
+        };
+
+        let revenue = await Revenue.findOne({ serviceContractAddress });
+        if (revenue) {
+            await Revenue.updateOne({ serviceContractAddress }, revenueData);
+        } else {
+            revenue = new Revenue(revenueData);
+            await revenue.save();
+        }
+
         res.status(200).json({
             message: 'Carbon Revenue Contract deployed successfully',
             contractAddress: receipt.contractAddress
