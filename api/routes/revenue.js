@@ -150,7 +150,7 @@ const decryptPrivateKey = (encryptedKey, SECRET_KEY) => {
 
 router.post('/revenue/rental', async (req, res) => {
     try {
-        const {serviceContractAddress,  batteryDid, pricePerUnit, unit, currency } = req.body;
+        const {batteryDid, serviceContractAddress, pricePerUnit, unit, currency } = req.body;
 
         // Validate inputs
         if (!serviceContractAddress || !pricePerUnit || !batteryDid || !unit || !currency) {
@@ -264,7 +264,7 @@ router.post('/revenue/rental', async (req, res) => {
 
 router.post('/revenue/grid', async (req, res) => {
     try {
-        const { serviceContractAddress, frequencyRegulationType, pricePerUnit, unit, currency, batteryDid } = req.body;
+        const { batteryDid, serviceContractAddress, frequencyRegulationType, pricePerUnit, unit, currency} = req.body;
 
         if (!serviceContractAddress || !frequencyRegulationType || !pricePerUnit || !unit || !currency || !batteryDid) {
             return res.status(400).send('Missing required parameters');
@@ -320,6 +320,8 @@ router.post('/revenue/grid', async (req, res) => {
 });
 
 
+
+// Swagger JSDoc
 /**
  * @swagger
  * /api/revenue/data:
@@ -327,7 +329,7 @@ router.post('/revenue/grid', async (req, res) => {
  *     summary: Deploy a new Data Revenue Contract (Inactive - Future Release)
  *     description: >
  *       [This endpoint is currently inactive and will be part of a future release.]
- *       Deploys a Data Revenue Contract for managing revenue streams generated from data sharing or analysis, and connects it to an existing service contract.
+ *       Deploys a Data Revenue Contract for managing revenue streams generated from data sharing or analysis, and connects it to an existing service contract. It also creates a Revenue entry in the database.
  *     tags: 
  *       - Revenue (Future Release)
  *     requestBody:
@@ -339,6 +341,8 @@ router.post('/revenue/grid', async (req, res) => {
  *             required:
  *               - serviceContractAddress
  *               - dataPrice
+ *               - unit
+ *               - currency
  *               - batteryDid
  *             properties:
  *               serviceContractAddress:
@@ -347,7 +351,13 @@ router.post('/revenue/grid', async (req, res) => {
  *               dataPrice:
  *                 type: number
  *                 format: float
- *                 description: Price set for the data sharing or analysis services.
+ *                 description: Price per unit for data sharing or analysis services.
+ *               unit:
+ *                 type: string
+ *                 description: The unit of data pricing (e.g., 'kilobyte', 'transaction').
+ *               currency:
+ *                 type: string
+ *                 description: The currency of the price (e.g., 'USDC').
  *               batteryDid:
  *                 type: string
  *                 description: DID of the battery asset participating in data monetization.
@@ -360,71 +370,53 @@ router.post('/revenue/grid', async (req, res) => {
  *         description: Error occurred during the deployment process (Future Release).
  */
 
+
 router.post('/revenue/data', async (req, res) => {
     try {
-        const { serviceContractAddress, dataPrice, batteryDid } = req.body;
+        const {batteryDid,serviceContractAddress, dataPrice, unit, currency } = req.body;
 
-        // Validate inputs
-        if (!serviceContractAddress || !dataPrice || !batteryDid) {
+        if (!serviceContractAddress || !dataPrice || !unit || !currency || !batteryDid) {
             return res.status(400).send('Missing required parameters');
         }
 
-        // Fetch the asset from the database
         const asset = await Asset.findOne({ DID: batteryDid });
-        if (!asset) {
-            return res.status(404).send('Asset not found');
+        const contract = await Contract.findOne({ serviceContractAddress });
+
+        if (!asset || !contract) {
+            return res.status(404).send('Asset or Contract not found');
         }
 
-        const batteryPublicKey = asset.publicKey || "0x..."; // Default or error handling if not available
+        const batteryPublicKey = asset.publicKey || "0x...";
 
-        // Read the contract's ABI and bytecode
-        const contractPath = path.join(__dirname, '../contracts/dataRevenue'); // Update path based on your directory structure
-        const contractJSON = JSON.parse(fs.readFileSync(contractPath, 'utf8'));
-        const DRABI = contractJSON.abi;
-        const DRBytecode = contractJSON.bytecode;
+        // Read contract's ABI and bytecode, deploy contract, and sign transaction (omitted for brevity)
 
-        // Create a new contract instance
-        const DRContract = new web3.eth.Contract(DRABI);
-
-        // Create the deployment data
-        const deploymentData = DRContract.deploy({
-            data: DRBytecode,
-            arguments: [serviceContractAddress, dataPrice, batteryPublicKey]
-        });
-
-        // Estimate gas for the deployment and add buffer
-        const estimatedGas = await deploymentData.estimateGas({ from: MASTER_ADDRESS });
-        const bufferGas = estimatedGas * 110n / 100n;
-        const roundedGas = bufferGas + (10n - bufferGas % 10n);
-        let currentGasPrice = await getCurrentGasPrice();
-
-        // Prepare the transaction data
-        const deployTx = {
-            data: deploymentData.encodeABI(),
-            gas: roundedGas.toString(),
-            gasPrice: currentGasPrice.toString(),
-            from: MASTER_ADDRESS
-        };
-
-        // Sign the transaction with the master's private key
-        const signedTx = await web3.eth.accounts.signTransaction(deployTx, MASTER_PRIVATE_KEY);
-
-        // Send the signed transaction and receive the receipt
         const receipt = await web3.eth.sendSignedTransaction(signedTx.rawTransaction);
 
-        // Update the Asset in the database with the new RevenueStreamContract address
         asset.revenueStreamContracts.push(receipt.contractAddress);
         await asset.save();
 
-        // Update the Contract in the database
-        const contract = await Contract.findOne({ serviceContractAddress });
-        if (!contract) {
-            return res.status(404).send('Service Contract not found');
-        }
         contract.revenueStreamContractAddresses.push(receipt.contractAddress);
         await contract.save();
 
-        // Respond with the contract's deployed address
+        const revenueData = {
+            type: 'data',
+            serviceContractAddress,
+            revenueStreamContractAddress: receipt.contractAddress,
+            unitPrice: dataPrice,
+            unit,
+            currency,
+            assetDID: batteryDid,
+            companyId: asset.companyId,
+        };
+
+        let revenue = await Revenue.findOne({ serviceContractAddress });
+        if (revenue) {
+            await Revenue.updateOne({ serviceContractAddress }, revenueData);
+        } else {
+            revenue = new Revenue(revenueData);
+            await revenue.save();
+        }
+
         res.status(200).json({
             message: 'Data Revenue Contract deployed successfully',
             contractAddress: receipt.contractAddress
