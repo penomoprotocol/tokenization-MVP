@@ -15,7 +15,6 @@ contract TokenContractERC20 is ERC20 {
 
     struct Battery {
         string DID;
-        string CID;
         uint256 revenueGoal;
     }
     Battery[] public batteries;

@@ -270,255 +270,7 @@ async function deployRevenueDistributionContract(serviceContractAddress, tokenCo
 
 /**
  * @swagger
- * /api/asset/register:
- *   post:
- *     summary: Register a new asset and create its DID.
- *     tags: 
- *       - Asset
- *     description: This endpoint registers a new asset for a company and generates a DID for the asset. It then returns the DID.
- *     requestBody:
- *       required: true
- *       content:
- *         application/json:
- *           schema:
- *             type: object
- *             properties:
- *               batteryName:
- *                 type: string
- *                 description: The name of the battery asset to register.
- *               companyId:
- *                 type: string
- *                 description: The unique identifier of the company registering the asset.
- *               companyPassword:
- *                 type: string
- *                 description: The password for company authentication.
- *     responses:
- *       200:
- *         description: Successfully registered the asset and returned DID.
- *         content:
- *           application/json:
- *             schema:
- *               type: object
- *               properties:
- *                 did:
- *                   type: string
- *                   description: The Decentralized Identifier (DID) of the newly registered asset.
- *       400:
- *         description: Missing required fields in the request.
- *       500:
- *         description: Error occurred while registering the asset.
- */
-
-
-// TODO: Implement sdk integration once migrated to peaq testnet
-
-router.post('/asset/register', async (req, res) => {
-    try {
-        const { batteryName, companyId, companyPassword } = req.body;
-
-        // Validate company and password
-        const company = await Company.findById(companyId);
-        if (!company) {
-            return res.status(401).send('Company not found');
-        }
-
-        const isPasswordValid = await bcrypt.compare(companyPassword, company.password);
-        if (!isPasswordValid) {
-            return res.status(401).send('Invalid credentials');
-        }
-
-        // ACTUAL LOGIC WITH PEAQ SDK:
-        // // Generate a mnemonic seed. In a production environment, ensure this is done securely.
-        // const generateMnemonicSeed = () => mnemonicGenerate();
-
-        // // Normally, you would secure the seed phrase and not generate a new one each time
-        // const seed = generateMnemonicSeed();
-
-        // // Ensure the seed has a balance before creating the DID
-        // // This would typically be done off-line or in a secure environment, not within an API call
-        // const sdkInstance = await Sdk.createInstance({
-        //     baseUrl: 'wss://wsspc1-qa.agung.peaq.network',
-        //     seed,
-        // });
-
-        //   const { didHash } = await sdkInstance.did.create({
-        //     name,
-        //     controller: controllerDid, // Set the controller to the company's DID
-        //   });
-
-        //   await sdkInstance.disconnect();
-
-        // Generate a mock DID 
-        const timestamp = new Date().getTime();
-        const randomPart = crypto.randomBytes(8).toString('hex');
-        const did = `did:peaq:${timestamp}-${randomPart}`;
-
-
-        // Create a new Ethereum wallet for the asset
-        const wallet = createWallet();
-        const privateKey = wallet.privateKey;
-        console.log("Original privateKey: ", privateKey);
-        const publicKey = wallet.address; // Get the public key (wallet address)
-
-        // Encrypt the private key with the company's secret key
-        const encryptedPrivateKey = encryptPrivateKey(privateKey, SECRET_KEY);
-
-        // Create a new asset with the wallet details
-        const newAsset = new Asset({
-            name: batteryName,
-            DID: did,
-            publicKey: publicKey, // Store the public key (wallet address)
-            privateKey: encryptedPrivateKey, // Store the encrypted private key
-            companyId: companyId
-            // CID and revenueStreamContracts can be added later when available
-        });
-
-        // Save the asset to the database
-        await newAsset.save();
-
-        // Return the DID and public key to the caller
-        res.status(200).json({
-            did: did,
-            publicKey: publicKey
-        });
-
-    } catch (error) {
-        console.error('Error registering asset:', error);
-        res.status(500).send('Error registering asset.');
-    }
-
-});
-/**
- * @swagger
- * /api/asset/storeData:
- *   post:
- *     summary: Store asset data in IPFS and update the corresponding asset entry in the database.
- *     tags: 
- *       - Asset
- *     description: This endpoint stores asset-specific data on IPFS, updates the asset's database entry with the CID, and requires authentication with the company's credentials.
- *     requestBody:
- *       required: true
- *       content:
- *         application/json:
- *           schema:
- *             type: object
- *             required:
- *               - batteryType
- *               - capacity
- *               - voltage
- *               - batteryDid
- *               - companyId
- *               - companyPassword
- *             properties:
- *               batteryType:
- *                 type: string
- *                 description: The type of the battery.
- *               capacity:
- *                 type: string
- *                 description: The capacity of the battery in appropriate units.
- *               voltage:
- *                 type: string
- *                 description: The voltage of the battery in volts.
- *               batteryDid:
- *                 type: string
- *                 description: The DID of the asset to be updated.
- *               companyId:
- *                 type: string
- *                 description: The ID of the company owning the asset.
- *               companyPassword:
- *                 type: string
- *                 description: The password for the company for authentication purposes.
- *     responses:
- *       200:
- *         description: Successfully stored asset data and updated the asset entry in the database.
- *         content:
- *           application/json:
- *             schema:
- *               type: object
- *               properties:
- *                 cid:
- *                   type: string
- *                   description: The Content Identifier (CID) of the stored data in IPFS.
- *                 message:
- *                   type: string
- *                   description: Confirmation message about the asset entry update.
- *       400:
- *         description: Missing required fields in the request.
- *       404:
- *         description: Asset not found in the database.
- *       500:
- *         description: Error occurred while storing data or updating the asset entry.
- */
-
-router.post('/asset/storeData', async (req, res) => {
-    try {
-        const { batteryType, capacity, voltage, batteryDid, companyId, companyPassword } = req.body;
-
-        if (!batteryType || !capacity || !voltage || !batteryDid || !companyId || !companyPassword) {
-            return res.status(400).json({ error: 'Missing required fields' });
-        }
-
-        // Validate company and password
-        const company = await Company.findById(companyId);
-        if (!company) {
-            return res.status(401).send('Company not found');
-        }
-
-        const isPasswordValid = await bcrypt.compare(companyPassword, company.password);
-        if (!isPasswordValid) {
-            return res.status(401).send('Invalid credentials');
-        }
-
-        // Store battery data on IPFS
-        const batteryData = { batteryType, capacity, voltage };
-
-        // Generate a mock CID
-        const timestamp = new Date().getTime();
-        const randomPart = crypto.randomBytes(6).toString('hex');
-        const cid = `ipfs://${randomPart}${timestamp}`;
-
-        // ACTUAL LOGIC WITH IPFS:
-        // const { cid } = await ipfs.add(JSON.stringify(batteryData));
-
-        // // Prepare the attribute data
-        // const attributeKey = web3.utils.sha3('BatteryDataStorage');
-        // const attributeValue = `ipfs://${cid}`;
-
-        // // Create a transaction object
-        // const transaction = DIDContract.methods.add_attribute(
-        //     web3.utils.asciiToHex(batteryDid), // DID account in hex
-        //     attributeKey, // Attribute key as bytes32
-        //     web3.utils.asciiToHex(attributeValue), // Attribute value as hex
-        //     0 // Validity (0 if not applicable)
-        // );
-
-        // // Send the transaction using the estimateAndSend helper function
-        // const receipt = await estimateAndSend(transaction, MASTER_ADDRESS, MASTER_PRIVATE_KEY, DIDContractAddress);
-
-        // Update the Asset in the database with the CID
-        const asset = await Asset.findOne({ DID: batteryDid });
-        if (!asset) {
-            return res.status(404).send('Asset not found');
-        }
-
-        asset.CID = cid;
-        await asset.save();
-
-        // Respond with the IPFS CID
-        res.status(200).json({
-            cid: cid,
-            message: 'Asset updated with new battery data CID',
-        });
-    } catch (error) {
-        console.error('Error updating asset with battery data:', error);
-        res.status(500).json({ error: 'Failed to update asset with battery data' });
-    }
-});
-
-
-/**
- * @swagger
- * /api/asset/tokenize:
+ * /api/token/deploy:
  *   post:
  *     summary: Tokenize an asset
  *     tags: 
@@ -598,7 +350,7 @@ router.post('/asset/storeData', async (req, res) => {
  *         description: Failed to deploy the contracts.
  */
 
-router.post('/asset/tokenize', async (req, res) => {
+router.post('/token/deploy', async (req, res) => {
     try {
         // Get data from the request
         const { companyId, password, DIDs, revenueGoals, name, symbol, revenueShare, contractTerm, maxTokenSupply, tokenPrice } = req.body;
@@ -673,162 +425,20 @@ router.post('/asset/tokenize', async (req, res) => {
     }
 });
 
-/**
- * @swagger
- * /api/asset/connectRevenueStream:
- *   post:
- *     summary: Deploy a new RevenueStreamContract and connect it to a service contract
- *     description: Deploys a RevenueStreamContract for managing the revenue stream of a battery asset and connects it to an existing service contract. It also updates the Contract entry in the database with the new RevenueStreamContract address.
- *     tags: 
- *       - Asset
- *     requestBody:
- *       required: true
- *       content:
- *         application/json:
- *           schema:
- *             type: object
- *             required:
- *               - serviceContractAddress
- *               - pricePerKWh
- *               - batteryDid
- *             properties:
- *               serviceContractAddress:
- *                 type: string
- *                 description: Ethereum address of the service contract.
- *               pricePerKWh:
- *                 type: number
- *                 format: float
- *                 description: Price per kWh in wei.
- *               batteryDid:
- *                 type: string
- *                 description: DID of the battery asset.
- *     responses:
- *       200:
- *         description: Revenue stream contract deployed and connected.
- *       500:
- *         description: Error occurred during deployment.
- */
 
-router.post('/asset/connectRevenueStream', async (req, res) => {
-    try {
-        const { serviceContractAddress, pricePerKWh, batteryDid } = req.body;
-
-        // Validate inputs
-        if (!serviceContractAddress || !pricePerKWh || !batteryDid) {
-            return res.status(400).send('Missing required parameters');
-        }
-
-        // Fetch the asset from the database
-        const asset = await Asset.findOne({ DID: batteryDid });
-        if (!asset) {
-            return res.status(404).send('Asset not found');
-        }
-
-        // Find the Contract entry in the database
-        const contract = await Contract.findOne({ serviceContractAddress });
-        if (!contract) {
-            return res.status(404).send('Contract not found');
-        }
-
-        // Use asset's publicKey as the authorizedBattery address (if available)
-        const batteryPublicKey = asset.publicKey || "0x..."; // Replace "0x..." with a default or error handling mechanism
-
-        // Read the contract's ABI and bytecode
-        const contractPath = path.join(RSCBuild);
-        const contractJSON = JSON.parse(fs.readFileSync(contractPath, 'utf8'));
-        const RSCABI = contractJSON.abi;
-        const RSCBytecode = contractJSON.bytecode;
-
-        // Create a new contract instance
-        const RSCContract = new web3.eth.Contract(RSCABI);
-
-        // Create the deployment data
-        const deploymentData = RSCContract.deploy({
-            data: RSCBytecode,
-            arguments: [serviceContractAddress, pricePerKWh, batteryPublicKey]
-        });
-
-        // Estimate gas for the deployment and add buffer
-        const estimatedGas = await deploymentData.estimateGas({ from: MASTER_ADDRESS });
-        const bufferGas = estimatedGas * 110n / 100n;
-        const roundedGas = bufferGas + (10n - bufferGas % 10n);
-        let currentGasPrice = await getCurrentGasPrice();
-
-        // Prepare the transaction data
-        const deployTx = {
-            data: deploymentData.encodeABI(),
-            gas: roundedGas.toString(),
-            gasPrice: currentGasPrice.toString(),
-            from: MASTER_ADDRESS
-        };
-
-        // Sign the transaction with the master's private key
-        const signedTx = await web3.eth.accounts.signTransaction(deployTx, MASTER_PRIVATE_KEY);
-
-
-        // Send the signed transaction and receive the receipt
-        const receipt = await web3.eth.sendSignedTransaction(signedTx.rawTransaction);
-
-        // Update the Asset in the database with the new RevenueStreamContract address
-        if (!asset.revenueStreamContracts) {
-            asset.revenueStreamContracts = [];
-        }
-        asset.revenueStreamContracts.push(receipt.contractAddress);
-        await asset.save();
-
-        if (contract) {
-            contract.revenueStreamContractAddresses.push(receipt.contractAddress);
-            await contract.save();
-        } else {
-            // Handle the case where the contract is not found
-            console.error('Service Contract not found:', serviceContractAddress);
-            return res.status(404).send('Service Contract not found');
-        }
-
-        // Respond with the contract's deployed address
-        res.status(200).json({
-            message: 'Revenue stream contract deployed successfully',
-            contractAddress: receipt.contractAddress
-        });
-
-    } catch (error) {
-        console.error('Error deploying revenue stream contract:', error);
-        res.status(500).send('Failed to deploy revenue stream contract');
-    }
-});
-
-router.post('/asset/connectRevenueStream', async (req, res) => {
-    try {
-        const { serviceContractAddress, pricePerKWh, batteryDid } = req.body;
-
-        // Validate inputs
-        if (!serviceContractAddress || !pricePerKWh || !batteryDid) {
-            return res.status(400).send('Missing required parameters');
-        }
-
-        // Respond with the contract's deployed address
-        res.status(200).json({
-            message: 'Revenue stream contract deployed successfully',
-            contractAddress: receipt.contractAddress
-        });
-    } catch (error) {
-        console.error('Error deploying revenue stream contract:', error);
-        res.status(500).send('Failed to deploy revenue stream contract');
-    }
-});
 
 /**
  * @swagger
- * /api/asset/{did}:
+ * /api/token/{address}:
  *   get:
- *     summary: Retrieve asset details by DID
+ *     summary: Retrieve token details by address
  *     tags: 
  *     - Asset
  *     parameters:
  *       - in: path
- *         name: did
+ *         name: address
  *         required: true
- *         description: The DID of the asset to retrieve.
+ *         description: The address of the asset to retrieve.
  *     responses:
  *       200:
  *         description: Successfully retrieved asset details.
@@ -838,22 +448,22 @@ router.post('/asset/connectRevenueStream', async (req, res) => {
  *         description: Error retrieving asset.
  */
 
-router.get('/asset/:did', (req, res) => {
+router.get('/token/:address', (req, res) => {
     // Retrieve asset details
 });
 
 /**
  * @swagger
- * /api/asset/{did}:
+ * /api/token/{address}:
  *   put:
- *     summary: Update asset details by DID
+ *     summary: Update token details by address
  *     tags: 
- *     - Asset
+ *     - token
  *     parameters:
  *       - in: path
- *         name: did
+ *         name: address
  *         required: true
- *         description: The DID of the asset to update.
+ *         description: The address of the token to update.
  *     requestBody:
  *       required: true
  *       content:
@@ -865,40 +475,40 @@ router.get('/asset/:did', (req, res) => {
  *                 type: string
  *     responses:
  *       200:
- *         description: Successfully updated asset details.
+ *         description: Successfully updated token details.
  *       404:
- *         description: Asset not found.
+ *         description: token not found.
  *       500:
- *         description: Error updating asset.
+ *         description: Error updating token.
  */
 
-router.put('/asset/:did', (req, res) => {
-    // Update asset details
+router.put('/token/:address', (req, res) => {
+    // Update token details
 });
 
 /**
  * @swagger
- * /api/asset/{id}:
+ * /api/token/{id}:
  *   delete:
- *     summary: Delete asset by ID
+ *     summary: Delete token by ID
  *     tags: 
- *     - Asset
+ *     - token
  *     parameters:
  *       - in: path
  *         name: id
  *         required: true
- *         description: The ID of the asset to delete.
+ *         description: The ID of the token to delete.
  *     responses:
  *       200:
- *         description: Successfully deleted asset.
+ *         description: Successfully deleted token.
  *       404:
- *         description: Asset not found.
+ *         description: token not found.
  *       500:
- *         description: Error deleting asset.
+ *         description: Error deleting token.
  */
 
-router.delete('/asset/:id', (req, res) => {
-    // Delete asset 
+router.delete('/token/:address', (req, res) => {
+    // Delete token 
 });
 
 module.exports = router;

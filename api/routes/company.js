@@ -37,8 +37,11 @@ mongoose.connect(MONGO_URI, { useNewUrlParser: true, useUnifiedTopology: true })
     .then(() => console.log('Connected to MongoDB'))
     .catch(err => console.error('Could not connect to MongoDB', err));
 
+// Import Mongoose models:
+const Asset = require('../models/AssetModel');
 const Company = require('../models/CompanyModel');
-
+const Contract = require('../models/TokenModel');
+const Investor = require('../models/InvestorModel');
 
 
 // // // FUNCTIONS

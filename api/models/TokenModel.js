@@ -32,6 +32,6 @@ const contractSchema = new mongoose.Schema({
     }
 });
 
-const Contract = mongoose.model('Contract', contractSchema);
+const Contract = mongoose.model('Token', tokenSchema);
 
-module.exports = Contract;
+module.exports = Token;

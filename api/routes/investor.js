@@ -37,6 +37,10 @@ const swaggerUi = require('swagger-ui-express');
 const express = require('express');
 const router = express.Router();
 
+// Import Mongoose models:
+const Asset = require('../models/AssetModel');
+const Company = require('../models/CompanyModel');
+const Contract = require('../models/TokenModel');
 const Investor = require('../models/InvestorModel');
 
 

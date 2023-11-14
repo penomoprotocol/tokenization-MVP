@@ -72,17 +72,20 @@ passport.use(new JwtStrategy(jwtOptions, (jwtPayload, done) => {
 }));
 app.use(passport.initialize());
 
-
 // Import and use routes
 const companyRoutes = require('./routes/company');
 const investorRoutes = require('./routes/investor');
 const assetRoutes = require('./routes/asset');
+const tokenRoutes = require('./routes/token');
+const revenueRoutes = require('./routes/revenue');
 const transactionRoutes = require('./routes/transaction');
 
 // API routes
 app.use('/api', companyRoutes);
 app.use('/api', investorRoutes);
 app.use('/api', assetRoutes);
+app.use('/api', tokenRoutes);
+app.use('/api', revenueRoutes);
 app.use('/api', transactionRoutes);
 
 // Serve Swagger UI on a specific path
@@ -103,5 +106,5 @@ app.listen(PORT, (err) => {
 });
 
 // Export modules
-module.exports = { app, companyRoutes, investorRoutes, assetRoutes, transactionRoutes };
+module.exports = { app, companyRoutes, investorRoutes, assetRoutes, tokenRoutes,revenueRoutes, transactionRoutes };
 
