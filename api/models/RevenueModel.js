@@ -24,6 +24,11 @@ const revenueSchema = new mongoose.Schema({
         required: true,
         enum: ['minute', 'kWh', 'tCO2', 'kilobyte', 'other'], // Define allowed units
     },
+    currency: {
+        type: String,
+        required: true,
+        default: 'USDC', // Default to USDC, but can be set to any currency/token
+    },
     assetDID: {
         type: String,
         required: true,

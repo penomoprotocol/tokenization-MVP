@@ -51,17 +51,6 @@ const Company = require('../models/CompanyModel');
 const Contract = require('../models/TokenModel');
 const Investor = require('../models/InvestorModel');
 
-// Set up DID contract
-// Read the contract's ABI
-const contractPath = path.join(DIDBuild);
-const contractJSON = JSON.parse(fs.readFileSync(contractPath, 'utf8'));
-const DIDABI = contractJSON.abi;
-
-// The address of the deployed DID contract (replace with actual address)
-const DIDContractAddress = '0x0000000000000000000000000000000000000800';
-
-// Initialize the contract with web3
-const DIDContract = new web3.eth.Contract(DIDABI, DIDContractAddress);
 
 // // // FUNCTIONS
 
@@ -105,167 +94,11 @@ async function estimateAndSend(transaction, fromAddress, fromPrivateKey, toAddre
     return web3.eth.sendSignedTransaction(signedTx.rawTransaction);
 }
 
-// Function to create a new Ethereum wallet and return the private key
-const createWallet = () => {
-    const wallet = web3.eth.accounts.create();
-    console.log("privateKey: ", wallet.privateKey);
-    return wallet;
-};
-
-// Function to encrypt and decrypt private keys
-const encryptPrivateKey = (privateKey, SECRET_KEY) => {
-    const encrypted = CryptoJS.AES.encrypt(privateKey, SECRET_KEY).toString();
-    return encrypted;
-};
-
 const decryptPrivateKey = (encryptedKey, SECRET_KEY) => {
     const decrypted = CryptoJS.AES.decrypt(encryptedKey, SECRET_KEY).toString(CryptoJS.enc.Utf8);
     return decrypted;
 };
 
-
-// // // DEPLOYMENT SCRIPTS // TODO: Refactor into separate file and import
-
-// Deploy Service Contract
-async function deployServiceContract(GSCAddress) {
-    const contractPath = path.join(SCBuild);
-    const contractJSON = JSON.parse(fs.readFileSync(contractPath, 'utf8'));
-    const ServiceContract = new web3.eth.Contract(contractJSON.abi);
-
-    const deploymentData = ServiceContract.deploy({
-        data: contractJSON.bytecode,
-        arguments: [GSCAddress]
-    });
-
-    const estimatedGas = await deploymentData.estimateGas({
-        from: MASTER_ADDRESS
-    });
-
-    const bufferGas = estimatedGas * 110n / 100n;  // adding a 10% buffer
-    const roundedGas = bufferGas + (10n - bufferGas % 10n);  // rounding up to the nearest 10
-    let currentGasPrice = await getCurrentGasPrice();
-
-    const deployTx = {
-        data: deploymentData.encodeABI(),
-        gas: roundedGas.toString(),
-        gasPrice: currentGasPrice,  // Using the fetched gas price
-        from: MASTER_ADDRESS
-    };
-
-    const signedTx = await web3.eth.accounts.signTransaction(deployTx, MASTER_PRIVATE_KEY);
-    const receipt = await web3.eth.sendSignedTransaction(signedTx.raw || signedTx.rawTransaction);
-
-    return receipt.contractAddress;
-}
-
-// Deploy Token Contract
-async function deployTokenContract(DIDs, revenueGoals, name, symbol, revenueShare, contractTerm, maxTokenSupply, tokenPrice, serviceContractAddress) {
-    const contractPath = path.join(TCBuild);
-    const contractJSON = JSON.parse(fs.readFileSync(contractPath, 'utf8'));
-    const TokenContract = new web3.eth.Contract(contractJSON.abi);
-
-    const constructorArgs = {
-        penomoWallet: MASTER_ADDRESS,
-        globalStateAddress: GSCAddress,
-        serviceContractAddress: serviceContractAddress,
-        name: name,
-        symbol: symbol,
-        revenueShare: revenueShare,
-        contractTerm: contractTerm,
-        maxTokenSupply: maxTokenSupply,
-        tokenPrice: tokenPrice
-    };
-
-    const deploymentData = TokenContract.deploy({
-        data: contractJSON.bytecode,
-        arguments: [constructorArgs, DIDs, revenueGoals]
-    });
-
-    const estimatedGas = await deploymentData.estimateGas({
-        from: MASTER_ADDRESS
-    });
-
-
-    const bufferGas = estimatedGas * 110n / 100n;  // adding a 10% buffer
-    const roundedGas = bufferGas + (10n - bufferGas % 10n);  // rounding up to the nearest 10
-    let currentGasPrice = await getCurrentGasPrice();
-
-    const deployTx = {
-        data: deploymentData.encodeABI(),
-        gas: roundedGas.toString(),
-        gasPrice: currentGasPrice,  // Using the fetched gas price
-        from: MASTER_ADDRESS
-    };
-
-    const signedTx = await web3.eth.accounts.signTransaction(deployTx, MASTER_PRIVATE_KEY);
-    const receipt = await web3.eth.sendSignedTransaction(signedTx.raw || signedTx.rawTransaction);
-
-    return receipt.contractAddress;
-}
-
-// Deploy Liquidity Contract
-async function deployLiquidityContract(serviceContractAddress, BBWallet, PenomoWallet) {
-    const contractPath = path.join(LCBuild); // assuming LCBuild is the build path for LiquidityContract
-    const contractJSON = JSON.parse(fs.readFileSync(contractPath, 'utf8'));
-    const LiquidityContract = new web3.eth.Contract(contractJSON.abi);
-
-    const deploymentData = LiquidityContract.deploy({
-        data: contractJSON.bytecode,
-        arguments: [serviceContractAddress, BBWallet, PenomoWallet]
-    });
-
-    const estimatedGas = await deploymentData.estimateGas({
-        from: MASTER_ADDRESS
-    });
-
-    const bufferGas = estimatedGas * 110n / 100n;  // adding a 10% buffer
-    const roundedGas = bufferGas + (10n - bufferGas % 10n);  // rounding up to the nearest 10
-    let currentGasPrice = await getCurrentGasPrice();
-
-    const deployTx = {
-        data: deploymentData.encodeABI(),
-        gas: roundedGas.toString(),
-        gasPrice: currentGasPrice,  // Using the fetched gas price
-        from: MASTER_ADDRESS
-    };
-
-    const signedTx = await web3.eth.accounts.signTransaction(deployTx, MASTER_PRIVATE_KEY);
-    const receipt = await web3.eth.sendSignedTransaction(signedTx.raw || signedTx.rawTransaction);
-
-    return receipt.contractAddress;
-}
-
-// Deploy Revenue Distribution Contract
-async function deployRevenueDistributionContract(serviceContractAddress, tokenContractERC20Address, liquidityContractAddress) {
-    const contractPath = path.join(RDCBuild); // assuming RDCBuild is the build path for RevenueDistributionContract
-    const contractJSON = JSON.parse(fs.readFileSync(contractPath, 'utf8'));
-    const RevenueDistributionContract = new web3.eth.Contract(contractJSON.abi);
-
-    const deploymentData = RevenueDistributionContract.deploy({
-        data: contractJSON.bytecode,
-        arguments: [serviceContractAddress, tokenContractERC20Address, liquidityContractAddress]
-    });
-
-    const estimatedGas = await deploymentData.estimateGas({
-        from: MASTER_ADDRESS
-    });
-
-    const bufferGas = estimatedGas * 110n / 100n;  // adding a 10% buffer
-    const roundedGas = bufferGas + (10n - bufferGas % 10n);  // rounding up to the nearest 10
-    let currentGasPrice = await getCurrentGasPrice();
-
-    const deployTx = {
-        data: deploymentData.encodeABI(),
-        gas: roundedGas.toString(),
-        gasPrice: currentGasPrice,  // Using the fetched gas price
-        from: MASTER_ADDRESS
-    };
-
-    const signedTx = await web3.eth.accounts.signTransaction(deployTx, MASTER_PRIVATE_KEY);
-    const receipt = await web3.eth.sendSignedTransaction(signedTx.raw || signedTx.rawTransaction);
-
-    return receipt.contractAddress;
-}
 
 
 /**
@@ -395,7 +228,7 @@ router.post('/revenue/rental', async (req, res) => {
 
 /**
  * @swagger
- * /api/revenue/gridService:
+ * /api/revenue/grid:
  *   post:
  *     summary: Deploy a Grid Service Revenue Contract
  *     description: Deploys a Grid Service Revenue Contract for managing FCR, aFRR, or mFRR services provided by a battery asset and connects it to an existing service contract. The endpoint updates the Contract entry with the new RevenueStreamContract address.
@@ -435,7 +268,7 @@ router.post('/revenue/rental', async (req, res) => {
  */
 
 
-router.post('/revenue/gridService', async (req, res) => {
+router.post('/revenue/grid', async (req, res) => {
     try {
         const { serviceContractAddress, frequencyRegulationType, price, batteryDid } = req.body;
 
@@ -515,7 +348,7 @@ router.post('/revenue/gridService', async (req, res) => {
 
 /**
  * @swagger
- * /api/revenue/dataMonetization:
+ * /api/revenue/data:
  *   post:
  *     summary: Deploy a new Data Revenue Contract (Inactive - Future Release)
  *     description: >
@@ -553,7 +386,7 @@ router.post('/revenue/gridService', async (req, res) => {
  *         description: Error occurred during the deployment process (Future Release).
  */
 
-router.post('/revenue/dataMonetization', async (req, res) => {
+router.post('/revenue/data', async (req, res) => {
     try {
         const { serviceContractAddress, dataPrice, batteryDid } = req.body;
 
@@ -632,7 +465,7 @@ router.post('/revenue/dataMonetization', async (req, res) => {
 
 /**
  * @swagger
- * /api/revenue/carbonCredits:
+ * /api/revenue/carbon:
  *   post:
  *     summary: Deploy a new Carbon Revenue Contract and connect it to a service contract (Inactive - Future Release)
  *     description: Deploys a Carbon Revenue Contract for managing revenue streams generated from carbon credit trading and connects it to an existing service contract.
@@ -666,7 +499,7 @@ router.post('/revenue/dataMonetization', async (req, res) => {
  *         description: Error occurred during deployment.
  */
 
-router.post('/revenue/carbonCredits', async (req, res) => {
+router.post('/revenue/carbon', async (req, res) => {
     try {
         const { serviceContractAddress, carbonCreditPrice, batteryDid } = req.body;
 
