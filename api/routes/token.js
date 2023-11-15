@@ -391,15 +391,20 @@ router.post('/token/deploy', async (req, res) => {
 
         // Deploy the ServiceContract and get its address
         const serviceContractAddress = await deployServiceContract(GSCAddress);
+        console.log("serviceContractAddress: ", serviceContractAddress);
 
         // Deploy the TokenContract using the ServiceContract's address
         const tokenContractAddress = await deployTokenContract(DIDs, revenueGoals, name, symbol, revenueShare, contractTerm, maxTokenSupply, tokenPrice, serviceContractAddress);
+        console.log("tokenContractAddress: ", tokenContractAddress);
 
         // Deploy LiquidityContract
         const liquidityContractAddress = await deployLiquidityContract(serviceContractAddress, company.ethereumPublicKey, MASTER_ADDRESS);
+        console.log("liquidityContractAddress: ", liquidityContractAddress);
 
         // Deploy RevenueDistributionContract
         const revenueDistributionContractAddress = await deployRevenueDistributionContract(serviceContractAddress, tokenContractAddress, liquidityContractAddress);
+        console.log("RDContractAddress: ", revenueDistributionContractAddress);
+
 
         // Create a ServiceContract instance
         const ServiceContract = new web3.eth.Contract(SCABI, serviceContractAddress);

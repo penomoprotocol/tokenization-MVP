@@ -265,7 +265,7 @@ router.post('/company/login', async (req, res) => {
  *           schema:
  *             type: object
  *             properties:
- *               companyWalletAddress:
+ *               companyId:
  *                 type: string
  *     responses:
  *       200:
@@ -277,39 +277,30 @@ router.post('/company/login', async (req, res) => {
 // Company KYC
 router.post('/company/verify', async (req, res) => {
     try {
-        const { companyWalletAddress } = req.body;
+        const { companyId } = req.body;
+
+        // Fetch company from the database
+        const company = await Company.findById(companyId);
+        if (!company) {
+            return res.status(404).send('Company not found');
+        }
+
+        // Get company's public Ethereum address
+        const companyWalletAddress = company.ethereumPublicKey;
 
         // Prepare the contract instance
         const contract = new web3.eth.Contract(GSCABI, GSCAddress);
-        //console.log("contract: ", contract);
-
-        // Prepare the transaction data
-        const data = contract.methods.verifyCompany(companyWalletAddress).encodeABI();
-        //console.log("data: ", data);
-
-        // Fetch the nonce for the sender's address
-        const senderAddress = MASTER_ADDRESS; // Replace with the sender's Ethereum address
-        const nonce = await web3.eth.getTransactionCount(senderAddress);
 
         // Prepare the transaction object
-        let currentGasPrice = await getCurrentGasPrice();
+        const transaction = contract.methods.verifyCompany(companyWalletAddress);
 
-        const gasLimit = 200000; // Adjust the gas limit as needed
-        const rawTransaction = {
-            from: MASTER_ADDRESS,
-            to: GSCAddress,
-            gas: gasLimit,
-            gasPrice: currentGasPrice,
-            nonce,
-            data,
-        };
-
-        // Sign the transaction with the private key
-        const signedTransaction = await web3.eth.accounts.signTransaction(rawTransaction, MASTER_PRIVATE_KEY);
-        console.log("signedTransaction: ", signedTransaction);
-
-        // Send the signed transaction to the network
-        const receipt = await web3.eth.sendSignedTransaction(signedTransaction.rawTransaction);
+        // Send the transaction using the estimateAndSend helper function
+        const receipt = await estimateAndSend(
+            transaction,
+            MASTER_ADDRESS,
+            MASTER_PRIVATE_KEY,
+            GSCAddress
+        );
 
         // Handle the transaction receipt
         console.log('Transaction receipt:', receipt);
@@ -320,11 +311,13 @@ router.post('/company/verify', async (req, res) => {
         } else {
             return res.status(500).json({ error: 'Transaction failed' });
         }
+
     } catch (error) {
-        console.error('Error in company registration:', error);
+        console.error('Error in company verification:', error);
         return res.status(500).json({ error: 'An error occurred' });
     }
 });
+
 
 /**
 * @swagger
