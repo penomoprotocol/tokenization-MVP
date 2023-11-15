@@ -509,24 +509,41 @@ router.post('/investor/buyToken', async (req, res) => {
  * @swagger
  * /api/investor/sellToken:
  *   post:
- *     summary: Investor sells tokens
- *     tags: 
- *     - Investor
+ *     summary: Investor sells tokens by listing them for sale
+ *     description: Allows an investor to list a specified amount of tokens for sale on the platform.
+ *     tags:
+ *       - Investor
  *     requestBody:
  *       required: true
  *       content:
  *         application/json:
  *           schema:
  *             type: object
+ *             required:
+ *               - investorId
+ *               - password
+ *               - amount
+ *               - serviceContractAddress
  *             properties:
+ *               investorId:
+ *                 type: string
+ *                 description: The unique identifier of the investor.
+ *               password:
+ *                 type: string
+ *                 description: The password for the investor's account.
  *               amount:
  *                 type: number
+ *                 description: The number of tokens the investor wishes to sell.
+ *               serviceContractAddress:
+ *                 type: string
+ *                 description: The Ethereum address of the service contract.
  *     responses:
  *       200:
  *         description: Successfully sold tokens.
  *       500:
  *         description: Error selling tokens.
  */
+
 
 // Handle investor token sell
 router.post('/investor/sellToken', async (req, res) => {
