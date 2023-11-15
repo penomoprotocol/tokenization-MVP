@@ -274,7 +274,7 @@ async function deployRevenueDistributionContract(serviceContractAddress, tokenCo
  *   post:
  *     summary: Tokenize an asset
  *     tags: 
- *       - Asset
+ *       - Token
  *     description: Deploy contracts to tokenize an asset with provided details.
  *     requestBody:
  *       required: true
@@ -433,7 +433,7 @@ router.post('/token/deploy', async (req, res) => {
  *   get:
  *     summary: Retrieve token details by address
  *     tags: 
- *     - Asset
+ *     - Token
  *     parameters:
  *       - in: path
  *         name: address
@@ -458,7 +458,7 @@ router.get('/token/:address', (req, res) => {
  *   put:
  *     summary: Update token details by address
  *     tags: 
- *     - token
+ *     - Token
  *     parameters:
  *       - in: path
  *         name: address
@@ -492,7 +492,7 @@ router.put('/token/:address', (req, res) => {
  *   delete:
  *     summary: Delete token by ID
  *     tags: 
- *     - token
+ *     - Token
  *     parameters:
  *       - in: path
  *         name: id

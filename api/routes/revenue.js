@@ -443,12 +443,12 @@ router.post('/revenue/arbitrage', async (req, res) => {
  * @swagger
  * /api/revenue/data:
  *   post:
- *     summary: Deploy a new Data Revenue Contract (Inactive - Future Release)
+ *     summary: Deploy a new Data Revenue Contract (Future Release)
  *     description: >
  *       [This endpoint is currently inactive and will be part of a future release.]
  *       Deploys a Data Revenue Contract for managing revenue streams generated from data sharing or analysis, and connects it to an existing service contract. It also creates a Revenue entry in the database.
  *     tags: 
- *       - Revenue (Future Release)
+ *       - Revenue 
  *     requestBody:
  *       required: true
  *       content:

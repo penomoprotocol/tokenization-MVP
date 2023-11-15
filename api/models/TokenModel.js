@@ -1,6 +1,6 @@
 const mongoose = require('mongoose');
 
-const contractSchema = new mongoose.Schema({
+const tokenSchema = new mongoose.Schema({
     serviceContractAddress: {
         type: String,
         required: true,
@@ -32,6 +32,6 @@ const contractSchema = new mongoose.Schema({
     }
 });
 
-const Contract = mongoose.model('Token', tokenSchema);
+const Token = mongoose.model('Token', tokenSchema);
 
 module.exports = Token;

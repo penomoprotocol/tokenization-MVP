@@ -516,306 +516,306 @@ router.post('/asset/storeData', async (req, res) => {
 });
 
 
-/**
- * @swagger
- * /api/asset/tokenize:
- *   post:
- *     summary: Tokenize an asset
- *     tags: 
- *       - Asset
- *     description: Deploy contracts to tokenize an asset with provided details.
- *     requestBody:
- *       required: true
- *       content:
- *         application/json:
- *           schema:
- *             type: object
- *             required:
- *               - companyId
- *               - password
- *               - DIDs
- *               - revenueGoals
- *               - name
- *               - symbol
- *               - revenueShare
- *               - contractTerm
- *               - maxTokenSupply
- *               - tokenPrice
- *             properties:
- *               companyId:
- *                 type: string
- *                 description: ID of the company initiating tokenization.
- *               password:
- *                 type: string
- *                 description: Password for company authentication.
- *               DIDs:
- *                 type: array
- *                 items:
- *                   type: string
- *                 description: Array of Digital Identity Identifiers.
- *               revenueGoals:
- *                 type: array
- *                 items:
- *                   type: number
- *                 description: Array of revenue goals for each asset.
- *               name:
- *                 type: string
- *                 description: Name of the token.
- *               symbol:
- *                 type: string
- *                 description: Symbol of the token.
- *               revenueShare:
- *                 type: number
- *                 description: Percentage of revenue share.
- *               contractTerm:
- *                 type: number
- *                 description: Term length of the contract.
- *               maxTokenSupply:
- *                 type: number
- *                 description: Maximum supply of the tokens.
- *               tokenPrice:
- *                 type: number
- *                 description: Price of each token.
- *     responses:
- *       200:
- *         description: Successfully tokenized asset and returned contract addresses.
- *         content:
- *           application/json:
- *             schema:
- *               type: object
- *               properties:
- *                 tokenContractAddress:
- *                   type: string
- *                 serviceContractAddress:
- *                   type: string
- *                 liquidityContractAddress:
- *                   type: string
- *                 revenueDistributionContractAddress:
- *                   type: string
- *       400:
- *         description: Missing required parameters.
- *       500:
- *         description: Failed to deploy the contracts.
- */
+// /**
+//  * @swagger
+//  * /api/asset/tokenize:
+//  *   post:
+//  *     summary: Tokenize an asset
+//  *     tags: 
+//  *       - Asset
+//  *     description: Deploy contracts to tokenize an asset with provided details.
+//  *     requestBody:
+//  *       required: true
+//  *       content:
+//  *         application/json:
+//  *           schema:
+//  *             type: object
+//  *             required:
+//  *               - companyId
+//  *               - password
+//  *               - DIDs
+//  *               - revenueGoals
+//  *               - name
+//  *               - symbol
+//  *               - revenueShare
+//  *               - contractTerm
+//  *               - maxTokenSupply
+//  *               - tokenPrice
+//  *             properties:
+//  *               companyId:
+//  *                 type: string
+//  *                 description: ID of the company initiating tokenization.
+//  *               password:
+//  *                 type: string
+//  *                 description: Password for company authentication.
+//  *               DIDs:
+//  *                 type: array
+//  *                 items:
+//  *                   type: string
+//  *                 description: Array of Digital Identity Identifiers.
+//  *               revenueGoals:
+//  *                 type: array
+//  *                 items:
+//  *                   type: number
+//  *                 description: Array of revenue goals for each asset.
+//  *               name:
+//  *                 type: string
+//  *                 description: Name of the token.
+//  *               symbol:
+//  *                 type: string
+//  *                 description: Symbol of the token.
+//  *               revenueShare:
+//  *                 type: number
+//  *                 description: Percentage of revenue share.
+//  *               contractTerm:
+//  *                 type: number
+//  *                 description: Term length of the contract.
+//  *               maxTokenSupply:
+//  *                 type: number
+//  *                 description: Maximum supply of the tokens.
+//  *               tokenPrice:
+//  *                 type: number
+//  *                 description: Price of each token.
+//  *     responses:
+//  *       200:
+//  *         description: Successfully tokenized asset and returned contract addresses.
+//  *         content:
+//  *           application/json:
+//  *             schema:
+//  *               type: object
+//  *               properties:
+//  *                 tokenContractAddress:
+//  *                   type: string
+//  *                 serviceContractAddress:
+//  *                   type: string
+//  *                 liquidityContractAddress:
+//  *                   type: string
+//  *                 revenueDistributionContractAddress:
+//  *                   type: string
+//  *       400:
+//  *         description: Missing required parameters.
+//  *       500:
+//  *         description: Failed to deploy the contracts.
+//  */
 
-router.post('/asset/tokenize', async (req, res) => {
-    try {
-        // Get data from the request
-        const { companyId, password, DIDs, revenueGoals, name, symbol, revenueShare, contractTerm, maxTokenSupply, tokenPrice } = req.body;
+// router.post('/asset/tokenize', async (req, res) => {
+//     try {
+//         // Get data from the request
+//         const { companyId, password, DIDs, revenueGoals, name, symbol, revenueShare, contractTerm, maxTokenSupply, tokenPrice } = req.body;
 
-        if (!companyId || !password || !DIDs || !revenueGoals || !name || !symbol || !revenueShare || !contractTerm || !maxTokenSupply || !tokenPrice) {
-            return res.status(400).send('Missing required parameters.');
-        }
+//         if (!companyId || !password || !DIDs || !revenueGoals || !name || !symbol || !revenueShare || !contractTerm || !maxTokenSupply || !tokenPrice) {
+//             return res.status(400).send('Missing required parameters.');
+//         }
 
-        // Step 1: Get the company from the database using the provided companyId
-        const company = await Company.findById(companyId);
-        if (!company) {
-            console.log('Company not found:', companyId);
-            return res.status(401).send('Company not found');
-        }
+//         // Step 1: Get the company from the database using the provided companyId
+//         const company = await Company.findById(companyId);
+//         if (!company) {
+//             console.log('Company not found:', companyId);
+//             return res.status(401).send('Company not found');
+//         }
 
-        // Step 2: Verify password
-        const isPasswordValid = await bcrypt.compare(password, company.password);
-        if (!isPasswordValid) {
-            console.log('Invalid credentials for company ID:', companyId);
-            return res.status(401).send('Invalid credentials');
-        }
+//         // Step 2: Verify password
+//         const isPasswordValid = await bcrypt.compare(password, company.password);
+//         if (!isPasswordValid) {
+//             console.log('Invalid credentials for company ID:', companyId);
+//             return res.status(401).send('Invalid credentials');
+//         }
 
-        console.log("company.ethereumPublicKey: ", company.ethereumPublicKey);
+//         console.log("company.ethereumPublicKey: ", company.ethereumPublicKey);
 
-        // Deploy the ServiceContract and get its address
-        const serviceContractAddress = await deployServiceContract(GSCAddress);
+//         // Deploy the ServiceContract and get its address
+//         const serviceContractAddress = await deployServiceContract(GSCAddress);
 
-        // Deploy the TokenContract using the ServiceContract's address
-        const tokenContractAddress = await deployTokenContract(DIDs, revenueGoals, name, symbol, revenueShare, contractTerm, maxTokenSupply, tokenPrice, serviceContractAddress);
+//         // Deploy the TokenContract using the ServiceContract's address
+//         const tokenContractAddress = await deployTokenContract(DIDs, revenueGoals, name, symbol, revenueShare, contractTerm, maxTokenSupply, tokenPrice, serviceContractAddress);
 
-        // Deploy LiquidityContract
-        const liquidityContractAddress = await deployLiquidityContract(serviceContractAddress, company.ethereumPublicKey, MASTER_ADDRESS);
+//         // Deploy LiquidityContract
+//         const liquidityContractAddress = await deployLiquidityContract(serviceContractAddress, company.ethereumPublicKey, MASTER_ADDRESS);
 
-        // Deploy RevenueDistributionContract
-        const revenueDistributionContractAddress = await deployRevenueDistributionContract(serviceContractAddress, tokenContractAddress, liquidityContractAddress);
+//         // Deploy RevenueDistributionContract
+//         const revenueDistributionContractAddress = await deployRevenueDistributionContract(serviceContractAddress, tokenContractAddress, liquidityContractAddress);
 
-        // Get SC ABI
-        const contractPath = path.join(SCBuild);
-        const contractJSON = JSON.parse(fs.readFileSync(contractPath, 'utf8'));
-        const SCABI = contractJSON.abi;
+//         // Get SC ABI
+//         const contractPath = path.join(SCBuild);
+//         const contractJSON = JSON.parse(fs.readFileSync(contractPath, 'utf8'));
+//         const SCABI = contractJSON.abi;
 
-        // Create a ServiceContract instance
-        const ServiceContract = new web3.eth.Contract(SCABI, serviceContractAddress);
+//         // Create a ServiceContract instance
+//         const ServiceContract = new web3.eth.Contract(SCABI, serviceContractAddress);
 
-        // Call setTokenContract with gas estimation and send
-        await estimateAndSend(ServiceContract.methods.setContractAddresses(tokenContractAddress, liquidityContractAddress, revenueDistributionContractAddress), MASTER_ADDRESS, MASTER_PRIVATE_KEY, serviceContractAddress);
+//         // Call setTokenContract with gas estimation and send
+//         await estimateAndSend(ServiceContract.methods.setContractAddresses(tokenContractAddress, liquidityContractAddress, revenueDistributionContractAddress), MASTER_ADDRESS, MASTER_PRIVATE_KEY, serviceContractAddress);
 
-        // Generate DB entry for new token contract
-        const newContractEntry = new Contract({
-            serviceContractAddress: serviceContractAddress,
-            tokenContractAddress: tokenContractAddress,
-            liquidityContractAddress: liquidityContractAddress,
-            revenueDistributionContractAddress: revenueDistributionContractAddress,
-            assetDIDs: DIDs, // Assuming DIDs is an array of asset DIDs
-            companyId: companyId
-        });
+//         // Generate DB entry for new token contract
+//         const newContractEntry = new Contract({
+//             serviceContractAddress: serviceContractAddress,
+//             tokenContractAddress: tokenContractAddress,
+//             liquidityContractAddress: liquidityContractAddress,
+//             revenueDistributionContractAddress: revenueDistributionContractAddress,
+//             assetDIDs: DIDs, // Assuming DIDs is an array of asset DIDs
+//             companyId: companyId
+//         });
 
-        // Save the new contract entry to the database
-        await newContractEntry.save();
+//         // Save the new contract entry to the database
+//         await newContractEntry.save();
 
-        // Respond with the service contract address as the primary reference
-        res.status(200).json({
-            serviceContractAddress: serviceContractAddress, // Primary reference
-            tokenContractAddress: tokenContractAddress,
-            liquidityContractAddress: liquidityContractAddress,
-            revenueDistributionContractAddress: revenueDistributionContractAddress
-        });
+//         // Respond with the service contract address as the primary reference
+//         res.status(200).json({
+//             serviceContractAddress: serviceContractAddress, // Primary reference
+//             tokenContractAddress: tokenContractAddress,
+//             liquidityContractAddress: liquidityContractAddress,
+//             revenueDistributionContractAddress: revenueDistributionContractAddress
+//         });
 
-    } catch (error) {
-        console.error('Error deploying Contracts:', error);
-        res.status(500).send('Failed to deploy the contracts.');
-    }
-});
+//     } catch (error) {
+//         console.error('Error deploying Contracts:', error);
+//         res.status(500).send('Failed to deploy the contracts.');
+//     }
+// });
 
-/**
- * @swagger
- * /api/asset/connectRevenueStream:
- *   post:
- *     summary: Deploy a new RevenueStreamContract and connect it to a service contract
- *     description: Deploys a RevenueStreamContract for managing the revenue stream of a battery asset and connects it to an existing service contract. It also updates the Contract entry in the database with the new RevenueStreamContract address.
- *     tags: 
- *       - Asset
- *     requestBody:
- *       required: true
- *       content:
- *         application/json:
- *           schema:
- *             type: object
- *             required:
- *               - serviceContractAddress
- *               - pricePerKWh
- *               - batteryDid
- *             properties:
- *               serviceContractAddress:
- *                 type: string
- *                 description: Ethereum address of the service contract.
- *               pricePerKWh:
- *                 type: number
- *                 format: float
- *                 description: Price per kWh in wei.
- *               batteryDid:
- *                 type: string
- *                 description: DID of the battery asset.
- *     responses:
- *       200:
- *         description: Revenue stream contract deployed and connected.
- *       500:
- *         description: Error occurred during deployment.
- */
+// /**
+//  * @swagger
+//  * /api/asset/connectRevenueStream:
+//  *   post:
+//  *     summary: Deploy a new RevenueStreamContract and connect it to a service contract
+//  *     description: Deploys a RevenueStreamContract for managing the revenue stream of a battery asset and connects it to an existing service contract. It also updates the Contract entry in the database with the new RevenueStreamContract address.
+//  *     tags: 
+//  *       - Asset
+//  *     requestBody:
+//  *       required: true
+//  *       content:
+//  *         application/json:
+//  *           schema:
+//  *             type: object
+//  *             required:
+//  *               - serviceContractAddress
+//  *               - pricePerKWh
+//  *               - batteryDid
+//  *             properties:
+//  *               serviceContractAddress:
+//  *                 type: string
+//  *                 description: Ethereum address of the service contract.
+//  *               pricePerKWh:
+//  *                 type: number
+//  *                 format: float
+//  *                 description: Price per kWh in wei.
+//  *               batteryDid:
+//  *                 type: string
+//  *                 description: DID of the battery asset.
+//  *     responses:
+//  *       200:
+//  *         description: Revenue stream contract deployed and connected.
+//  *       500:
+//  *         description: Error occurred during deployment.
+//  */
 
-router.post('/asset/connectRevenueStream', async (req, res) => {
-    try {
-        const { serviceContractAddress, pricePerKWh, batteryDid } = req.body;
+// router.post('/asset/connectRevenueStream', async (req, res) => {
+//     try {
+//         const { serviceContractAddress, pricePerKWh, batteryDid } = req.body;
 
-        // Validate inputs
-        if (!serviceContractAddress || !pricePerKWh || !batteryDid) {
-            return res.status(400).send('Missing required parameters');
-        }
+//         // Validate inputs
+//         if (!serviceContractAddress || !pricePerKWh || !batteryDid) {
+//             return res.status(400).send('Missing required parameters');
+//         }
 
-        // Fetch the asset from the database
-        const asset = await Asset.findOne({ DID: batteryDid });
-        if (!asset) {
-            return res.status(404).send('Asset not found');
-        }
+//         // Fetch the asset from the database
+//         const asset = await Asset.findOne({ DID: batteryDid });
+//         if (!asset) {
+//             return res.status(404).send('Asset not found');
+//         }
 
-        // Find the Contract entry in the database
-        const contract = await Contract.findOne({ serviceContractAddress });
-        if (!contract) {
-            return res.status(404).send('Contract not found');
-        }
+//         // Find the Contract entry in the database
+//         const contract = await Contract.findOne({ serviceContractAddress });
+//         if (!contract) {
+//             return res.status(404).send('Contract not found');
+//         }
 
-        // Use asset's publicKey as the authorizedBattery address (if available)
-        const batteryPublicKey = asset.publicKey || "0x..."; // Replace "0x..." with a default or error handling mechanism
+//         // Use asset's publicKey as the authorizedBattery address (if available)
+//         const batteryPublicKey = asset.publicKey || "0x..."; // Replace "0x..." with a default or error handling mechanism
 
-        // Read the contract's ABI and bytecode
-        const contractPath = path.join(RSCBuild);
-        const contractJSON = JSON.parse(fs.readFileSync(contractPath, 'utf8'));
-        const RSCABI = contractJSON.abi;
-        const RSCBytecode = contractJSON.bytecode;
+//         // Read the contract's ABI and bytecode
+//         const contractPath = path.join(RSCBuild);
+//         const contractJSON = JSON.parse(fs.readFileSync(contractPath, 'utf8'));
+//         const RSCABI = contractJSON.abi;
+//         const RSCBytecode = contractJSON.bytecode;
 
-        // Create a new contract instance
-        const RSCContract = new web3.eth.Contract(RSCABI);
+//         // Create a new contract instance
+//         const RSCContract = new web3.eth.Contract(RSCABI);
 
-        // Create the deployment data
-        const deploymentData = RSCContract.deploy({
-            data: RSCBytecode,
-            arguments: [serviceContractAddress, pricePerKWh, batteryPublicKey]
-        });
+//         // Create the deployment data
+//         const deploymentData = RSCContract.deploy({
+//             data: RSCBytecode,
+//             arguments: [serviceContractAddress, pricePerKWh, batteryPublicKey]
+//         });
 
-        // Estimate gas for the deployment and add buffer
-        const estimatedGas = await deploymentData.estimateGas({ from: MASTER_ADDRESS });
-        const bufferGas = estimatedGas * 110n / 100n;
-        const roundedGas = bufferGas + (10n - bufferGas % 10n);
-        let currentGasPrice = await getCurrentGasPrice();
+//         // Estimate gas for the deployment and add buffer
+//         const estimatedGas = await deploymentData.estimateGas({ from: MASTER_ADDRESS });
+//         const bufferGas = estimatedGas * 110n / 100n;
+//         const roundedGas = bufferGas + (10n - bufferGas % 10n);
+//         let currentGasPrice = await getCurrentGasPrice();
 
-        // Prepare the transaction data
-        const deployTx = {
-            data: deploymentData.encodeABI(),
-            gas: roundedGas.toString(),
-            gasPrice: currentGasPrice.toString(),
-            from: MASTER_ADDRESS
-        };
+//         // Prepare the transaction data
+//         const deployTx = {
+//             data: deploymentData.encodeABI(),
+//             gas: roundedGas.toString(),
+//             gasPrice: currentGasPrice.toString(),
+//             from: MASTER_ADDRESS
+//         };
 
-        // Sign the transaction with the master's private key
-        const signedTx = await web3.eth.accounts.signTransaction(deployTx, MASTER_PRIVATE_KEY);
+//         // Sign the transaction with the master's private key
+//         const signedTx = await web3.eth.accounts.signTransaction(deployTx, MASTER_PRIVATE_KEY);
 
 
-        // Send the signed transaction and receive the receipt
-        const receipt = await web3.eth.sendSignedTransaction(signedTx.rawTransaction);
+//         // Send the signed transaction and receive the receipt
+//         const receipt = await web3.eth.sendSignedTransaction(signedTx.rawTransaction);
 
-        // Update the Asset in the database with the new RevenueStreamContract address
-        if (!asset.revenueStreamContracts) {
-            asset.revenueStreamContracts = [];
-        }
-        asset.revenueStreamContracts.push(receipt.contractAddress);
-        await asset.save();
+//         // Update the Asset in the database with the new RevenueStreamContract address
+//         if (!asset.revenueStreamContracts) {
+//             asset.revenueStreamContracts = [];
+//         }
+//         asset.revenueStreamContracts.push(receipt.contractAddress);
+//         await asset.save();
 
-        if (contract) {
-            contract.revenueStreamContractAddresses.push(receipt.contractAddress);
-            await contract.save();
-        } else {
-            // Handle the case where the contract is not found
-            console.error('Service Contract not found:', serviceContractAddress);
-            return res.status(404).send('Service Contract not found');
-        }
+//         if (contract) {
+//             contract.revenueStreamContractAddresses.push(receipt.contractAddress);
+//             await contract.save();
+//         } else {
+//             // Handle the case where the contract is not found
+//             console.error('Service Contract not found:', serviceContractAddress);
+//             return res.status(404).send('Service Contract not found');
+//         }
 
-        // Respond with the contract's deployed address
-        res.status(200).json({
-            message: 'Revenue stream contract deployed successfully',
-            contractAddress: receipt.contractAddress
-        });
+//         // Respond with the contract's deployed address
+//         res.status(200).json({
+//             message: 'Revenue stream contract deployed successfully',
+//             contractAddress: receipt.contractAddress
+//         });
 
-    } catch (error) {
-        console.error('Error deploying revenue stream contract:', error);
-        res.status(500).send('Failed to deploy revenue stream contract');
-    }
-});
+//     } catch (error) {
+//         console.error('Error deploying revenue stream contract:', error);
+//         res.status(500).send('Failed to deploy revenue stream contract');
+//     }
+// });
 
-router.post('/asset/connectRevenueStream', async (req, res) => {
-    try {
-        const { serviceContractAddress, pricePerKWh, batteryDid } = req.body;
+// router.post('/asset/connectRevenueStream', async (req, res) => {
+//     try {
+//         const { serviceContractAddress, pricePerKWh, batteryDid } = req.body;
 
-        // Validate inputs
-        if (!serviceContractAddress || !pricePerKWh || !batteryDid) {
-            return res.status(400).send('Missing required parameters');
-        }
+//         // Validate inputs
+//         if (!serviceContractAddress || !pricePerKWh || !batteryDid) {
+//             return res.status(400).send('Missing required parameters');
+//         }
 
-        // Respond with the contract's deployed address
-        res.status(200).json({
-            message: 'Revenue stream contract deployed successfully',
-            contractAddress: receipt.contractAddress
-        });
-    } catch (error) {
-        console.error('Error deploying revenue stream contract:', error);
-        res.status(500).send('Failed to deploy revenue stream contract');
-    }
-});
+//         // Respond with the contract's deployed address
+//         res.status(200).json({
+//             message: 'Revenue stream contract deployed successfully',
+//             contractAddress: receipt.contractAddress
+//         });
+//     } catch (error) {
+//         console.error('Error deploying revenue stream contract:', error);
+//         res.status(500).send('Failed to deploy revenue stream contract');
+//     }
+// });
 
 /**
  * @swagger

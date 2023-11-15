@@ -9,16 +9,24 @@ const options = {
         },
         tags: [
             {
-                name: 'Company',
-                description: 'Endpoints related to companies'
-            },
-            {
                 name: 'Investor',
                 description: 'Endpoints related to investors'
             },
             {
+                name: 'Company',
+                description: 'Endpoints related to companies'
+            },
+            {
                 name: 'Asset',
                 description: 'Endpoints related to assets'
+            },
+            {
+                name: 'Token',
+                description: 'Endpoints related to tokenization'
+            },
+            {
+                name: 'Revenue',
+                description: 'Endpoints related to revenue streams'
             },
             {
                 name: 'Transaction',
@@ -73,16 +81,16 @@ passport.use(new JwtStrategy(jwtOptions, (jwtPayload, done) => {
 app.use(passport.initialize());
 
 // Import and use routes
-const companyRoutes = require('./routes/company');
 const investorRoutes = require('./routes/investor');
+const companyRoutes = require('./routes/company');
 const assetRoutes = require('./routes/asset');
 const tokenRoutes = require('./routes/token');
 const revenueRoutes = require('./routes/revenue');
 const transactionRoutes = require('./routes/transaction');
 
 // API routes
-app.use('/api', companyRoutes);
 app.use('/api', investorRoutes);
+app.use('/api', companyRoutes);
 app.use('/api', assetRoutes);
 app.use('/api', tokenRoutes);
 app.use('/api', revenueRoutes);
@@ -106,5 +114,5 @@ app.listen(PORT, (err) => {
 });
 
 // Export modules
-module.exports = { app, companyRoutes, investorRoutes, assetRoutes, tokenRoutes,revenueRoutes, transactionRoutes };
+module.exports = { app, investorRoutes, companyRoutes, assetRoutes, tokenRoutes, revenueRoutes, transactionRoutes };
 
