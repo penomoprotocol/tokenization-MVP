@@ -16,10 +16,8 @@ contract ServiceContract {
 
     event TokensPurchased(address indexed investor, uint256 amount);
     event ReceivedFundsFromRevenueStream(address indexed from, uint256 amount);
-
-    // For debugging
-    event EtherReceived(uint256 value);
-    event EtherRequired(uint256 requiredEther);
+    event TokensListedForSale(address indexed seller, uint256 amount);
+    event TokensSold(address indexed buyer, address indexed seller, uint256 amount);
 
     constructor(address _globalStateAddress) {
         owner = msg.sender;
@@ -45,50 +43,86 @@ contract ServiceContract {
     }
 
     function buyTokens(uint256 amount) public payable {
-        // Ensure the correct amount of wei is sent to receive amount of tokens (also in wei).
-        uint256 requiredWei = (amount * tokenContractERC20.tokenPrice()) / 10 ** 18;
-        
-        // For debugging
-        emit EtherReceived(msg.value);
-        emit EtherRequired(requiredWei);
-
-        // require(msg.value == requiredWei, "Incorrect Wei sent.");
-
-        // Transfer the tokens to the investor
-        tokenContractERC20.transferFrom(
-            address(tokenContractERC20),
-            msg.sender,
-            amount
+        require(
+            globalState.verifiedInvestors(msg.sender),
+            "Buyer is not whitelisted as registered investor."
         );
 
-        // Calculate Penomo's fee from the GlobalStateContract and the amount to send to the LiquidityContract
-        uint256 feeAmount = (msg.value * globalState.penomoFee()) / 10000;
-        uint256 liquidityAmount = msg.value - feeAmount;
+        // Loop through token listings to fulfill order
+        uint256 remainingAmount = amount;
+        while (remainingAmount > 0 && tokenContractERC20.listings.length > 0) {
+            TokenContractERC20.TokenListing memory listing = tokenContractERC20.listings[0];
+            uint256 availableAmount = listing.amount > remainingAmount ? remainingAmount : listing.amount;
 
-        // Send the funds to the LiquidityContract via the receiveFunds function
-        LiquidityContract(liquidityContract).receiveFunds{
-            value: liquidityAmount
-        }();
+            // Transfer tokens from seller to buyer
+            tokenContractERC20.transferFrom(listing.seller, msg.sender, availableAmount);
 
-        emit TokensPurchased(msg.sender, amount);
+            // Calculate the transaction amount
+            uint256 transactionAmount = availableAmount * tokenContractERC20.tokenPrice();
+            payable(listing.seller).transfer(transactionAmount);
+
+            // Emit event
+            emit TokensSold(msg.sender, listing.seller, availableAmount);
+
+            // Update listing or remove if fulfilled
+            if (listing.amount == availableAmount) {
+                tokenContractERC20.removeTokenListing(0);
+            } else {
+                tokenContractERC20.updateTokenListing(0, listing.amount - availableAmount);
+            }
+
+            remainingAmount -= availableAmount;
+        }
+
+        // If there are still tokens to buy, buy from the token contract
+        if (remainingAmount > 0) {
+            // Ensure the correct amount of wei is sent
+            uint256 requiredWei = remainingAmount * tokenContractERC20.tokenPrice();
+            require(msg.value >= requiredWei, "Insufficient Wei sent.");
+
+            // Transfer the tokens to the investor
+            tokenContractERC20.transferFrom(address(tokenContractERC20), msg.sender, remainingAmount);
+
+            // Calculate Penomo's fee and the amount to send to the LiquidityContract
+            uint256 feeAmount = (msg.value * globalState.penomoFee()) / 10000;
+            uint256 liquidityAmount = msg.value - feeAmount;
+
+            // Send the funds to the LiquidityContract
+            LiquidityContract(liquidityContract).receiveFunds{value: liquidityAmount}();
+        }
+
+        emit TokensPurchased(msg.sender, amount - remainingAmount);
+    }
+
+    function sellTokens(uint256 amount) public {
+        require(
+            globalState.verifiedInvestors(msg.sender),
+            "Seller is not whitelisted as registered investor."
+        );
+        require(
+            tokenContractERC20.balanceOf(msg.sender) >= amount,
+            "Insufficient token balance."
+        );
+
+        // List the tokens for sale
+        tokenContractERC20.addTokenListing(msg.sender, amount);
+
+        // Emit event
+        emit TokensListedForSale(msg.sender, amount);
     }
 
     function receiveFundsFromRevenueStream() external payable {
         // Calculate the amount after deducting Penomo's fee
-        uint256 amountAfterFee = (msg.value *
-            (10000 - globalState.penomoFee())) / 10000;
+        uint256 amountAfterFee = (msg.value * (10000 - globalState.penomoFee())) / 10000;
 
-        // Calculate the amount to send to RevenueDistributionContract based on revenueSharePercentage
-        uint256 amountForRDC = (amountAfterFee * revenueSharePercentage) /
-            10000;
+        // Calculate the amount to send to RevenueDistributionContract
+        uint256 amountForRDC = (amountAfterFee * revenueSharePercentage) / 10000;
 
         // Calculate the amount to send to the LiquidityContract
         uint256 amountForLC = amountAfterFee - amountForRDC;
 
         // Send the funds
-        RevenueDistributionContract(revenueDistributionContract).receiveFunds{
-            value: amountForRDC
-        }();
+        RevenueDistributionContract(revenueDistributionContract).receiveFunds{value: amountForRDC}();
         LiquidityContract(liquidityContract).receiveFunds{value: amountForLC}();
 
         emit ReceivedFundsFromRevenueStream(msg.sender, msg.value);
