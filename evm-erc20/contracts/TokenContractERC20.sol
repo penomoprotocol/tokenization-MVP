@@ -114,6 +114,15 @@ contract TokenContractERC20 is ERC20 {
         listings[index].amount = newAmount;
     }
 
+    function getListing(uint index) public view returns (TokenListing memory) {
+    require(index < listings.length, "Index out of bounds");
+    return listings[index];
+}
+
+    function getListingsCount() public view returns (uint) {
+    return listings.length;
+}
+
     // Override the transfer function
     function transfer(
         address recipient,
@@ -174,6 +183,4 @@ contract TokenContractERC20 is ERC20 {
         return tokenHolders;
     }
 
-    // Additional functions for battery data, revenue share, etc.
-    // ...
 }
