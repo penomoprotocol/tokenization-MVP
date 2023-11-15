@@ -15,6 +15,28 @@ const RDCBuild = path.join(__dirname, '..', '..', 'evm-erc20', 'artifacts', 'con
 const RSCBuild = path.join(__dirname, '..', '..', 'evm-erc20', 'artifacts', 'contracts', 'RevenueStreamContract.sol', 'RevenueStreamContract.json');
 const DIDBuild = path.join(__dirname, '..', '..', 'evm-erc20', 'artifacts', 'contracts', 'DID.sol', 'DID.json');
 
+// Get SC ABI
+const contractPath = path.join(SCBuild);
+const contractJSON = JSON.parse(fs.readFileSync(contractPath, 'utf8'));
+const SCABI = contractJSON.abi;
+// Get TC ABI
+const TCcontractPath = path.join(TCBuild);
+const TCcontractJSON = JSON.parse(fs.readFileSync(TCcontractPath, 'utf8'));
+const TCABI = TCcontractJSON.abi;
+// Get LC ABI
+const LCcontractPath = path.join(LCBuild);
+const LCcontractJSON = JSON.parse(fs.readFileSync(LCcontractPath, 'utf8'));
+const LCABI = LCcontractJSON.abi;
+// Get RDC ABI
+const RDCcontractPath = path.join(RDCBuild);
+const RDCcontractJSON = JSON.parse(fs.readFileSync(RDCcontractPath, 'utf8'));
+const RDCABI = RDCcontractJSON.abi;
+// Get DID ABI
+const DIDContractPath = path.join(DIDBuild);
+const DIDContractJSON = JSON.parse(fs.readFileSync(DIDContractPath, 'utf8'));
+const DIDABI = DIDContractJSON.abi;
+
+
 const passport = require('passport');
 const JwtStrategy = require('passport-jwt').Strategy;
 const ExtractJwt = require('passport-jwt').ExtractJwt;
@@ -52,10 +74,6 @@ const Contract = require('../models/TokenModel');
 const Investor = require('../models/InvestorModel');
 
 // Set up DID contract
-// Read the contract's ABI
-const contractPath = path.join(DIDBuild);
-const contractJSON = JSON.parse(fs.readFileSync(contractPath, 'utf8'));
-const DIDABI = contractJSON.abi;
 
 // The address of the deployed DID contract (replace with actual address)
 const DIDContractAddress = '0x0000000000000000000000000000000000000800';
@@ -128,9 +146,8 @@ const decryptPrivateKey = (encryptedKey, SECRET_KEY) => {
 
 // Deploy Service Contract
 async function deployServiceContract(GSCAddress) {
-    const contractPath = path.join(SCBuild);
-    const contractJSON = JSON.parse(fs.readFileSync(contractPath, 'utf8'));
-    const ServiceContract = new web3.eth.Contract(contractJSON.abi);
+
+    const ServiceContract = new web3.eth.Contract(SCABI);
 
     const deploymentData = ServiceContract.deploy({
         data: contractJSON.bytecode,
@@ -160,9 +177,8 @@ async function deployServiceContract(GSCAddress) {
 
 // Deploy Token Contract
 async function deployTokenContract(DIDs, revenueGoals, name, symbol, revenueShare, contractTerm, maxTokenSupply, tokenPrice, serviceContractAddress) {
-    const contractPath = path.join(TCBuild);
-    const contractJSON = JSON.parse(fs.readFileSync(contractPath, 'utf8'));
-    const TokenContract = new web3.eth.Contract(contractJSON.abi);
+
+    const TokenContract = new web3.eth.Contract(TCABI);
 
     const constructorArgs = {
         penomoWallet: MASTER_ADDRESS,
@@ -205,9 +221,8 @@ async function deployTokenContract(DIDs, revenueGoals, name, symbol, revenueShar
 
 // Deploy Liquidity Contract
 async function deployLiquidityContract(serviceContractAddress, BBWallet, PenomoWallet) {
-    const contractPath = path.join(LCBuild); // assuming LCBuild is the build path for LiquidityContract
-    const contractJSON = JSON.parse(fs.readFileSync(contractPath, 'utf8'));
-    const LiquidityContract = new web3.eth.Contract(contractJSON.abi);
+
+    const LiquidityContract = new web3.eth.Contract(LCABI);
 
     const deploymentData = LiquidityContract.deploy({
         data: contractJSON.bytecode,
@@ -237,9 +252,8 @@ async function deployLiquidityContract(serviceContractAddress, BBWallet, PenomoW
 
 // Deploy Revenue Distribution Contract
 async function deployRevenueDistributionContract(serviceContractAddress, tokenContractERC20Address, liquidityContractAddress) {
-    const contractPath = path.join(RDCBuild); // assuming RDCBuild is the build path for RevenueDistributionContract
-    const contractJSON = JSON.parse(fs.readFileSync(contractPath, 'utf8'));
-    const RevenueDistributionContract = new web3.eth.Contract(contractJSON.abi);
+
+    const RevenueDistributionContract = new web3.eth.Contract(RDCABI);
 
     const deploymentData = RevenueDistributionContract.deploy({
         data: contractJSON.bytecode,
@@ -386,11 +400,6 @@ router.post('/token/deploy', async (req, res) => {
 
         // Deploy RevenueDistributionContract
         const revenueDistributionContractAddress = await deployRevenueDistributionContract(serviceContractAddress, tokenContractAddress, liquidityContractAddress);
-
-        // Get SC ABI
-        const contractPath = path.join(SCBuild);
-        const contractJSON = JSON.parse(fs.readFileSync(contractPath, 'utf8'));
-        const SCABI = contractJSON.abi;
 
         // Create a ServiceContract instance
         const ServiceContract = new web3.eth.Contract(SCABI, serviceContractAddress);

@@ -10,12 +10,26 @@ console.log(ethers.utils);
 const fs = require('fs');
 const path = require('path');
 
+// Import Contract Artifacts
 const GSCBuild = path.join(__dirname, '..', '..', 'evm-erc20', 'artifacts', 'contracts', 'GlobalStateContract.sol', 'GlobalStateContract.json');
 const SCBuild = path.join(__dirname, '..', '..', 'evm-erc20', 'artifacts', 'contracts', 'ServiceContract.sol', 'ServiceContract.json');
 const TCBuild = path.join(__dirname, '..', '..', 'evm-erc20', 'artifacts', 'contracts', 'TokenContractERC20.sol', 'TokenContractERC20.json');
 const LCBuild = path.join(__dirname, '..', '..', 'evm-erc20', 'artifacts', 'contracts', 'LiquidityContract.sol', 'LiquidityContract.json');
 const RDCBuild = path.join(__dirname, '..', '..', 'evm-erc20', 'artifacts', 'contracts', 'RevenueDistributionContract.sol', 'RevenueDistributionContract.json');
 const RSCBuild = path.join(__dirname, '..', '..', 'evm-erc20', 'artifacts', 'contracts', 'RevenueStreamContract.sol', 'RevenueStreamContract.json');
+
+// Get GSC ABI
+const contractPath = path.join(GSCBuild);
+const contractJSON = JSON.parse(fs.readFileSync(contractPath, 'utf8'));
+const GSCABI = contractJSON.abi;
+// Get SC ABI
+const SCcontractPath = path.join(SCBuild);
+const SCcontractJSON = JSON.parse(fs.readFileSync(SCcontractPath, 'utf8'));
+const SCABI = SCcontractJSON.abi;
+// Get TC ABI
+const TCcontractPath = path.join(TCBuild);
+const TCcontractJSON = JSON.parse(fs.readFileSync(TCcontractPath, 'utf8'));
+const TCABI = TCcontractJSON.abi;
 
 const passport = require('passport');
 const JwtStrategy = require('passport-jwt').Strategy;
@@ -61,7 +75,7 @@ async function estimateAndSend(transaction, fromAddress, fromPrivateKey, toAddre
     // Estimate gas for the transaction
     const estimatedGas = await transaction.estimateGas({ from: fromAddress });
 
-    const bufferGas = estimatedGas * 110n / 100n;  // Adding a 10% buffer
+    const bufferGas = estimatedGas * 150n / 100n;  // Adding a 10% buffer
     const roundedGas = bufferGas + (10n - bufferGas % 10n);  // Rounding up to the nearest 10
     let currentGasPrice = await getCurrentGasPrice();
 
@@ -235,66 +249,58 @@ router.post('/investor/login', async (req, res) => {
  * @swagger
  * /api/investor/verify:
  *   post:
- *     summary: Verify an investor's KYC on the blockchain
+ *     summary: Verify an investor (KYC) and add their wallet address to the GlobalStateContract whitelist.
  *     tags: 
- *     - Investor
+ *       - Investor
  *     requestBody:
  *       required: true
  *       content:
  *         application/json:
  *           schema:
  *             type: object
+ *             required:
+ *               - investorId
  *             properties:
- *               investorWalletAddress:
+ *               investorId:
  *                 type: string
+ *                 description: The unique identifier of the investor.
  *     responses:
  *       200:
  *         description: Investor successfully verified.
+ *       404:
+ *         description: Investor not found.
  *       500:
  *         description: An error occurred or transaction failed.
  */
 
+// TODO: update "verified" status in Investor db instance. Add kyc data, such as passport number, date and signature of KYC provider
 // Investor KYC
 router.post('/investor/verify', async (req, res) => {
     try {
-        const { investorWalletAddress } = req.body;
+        const { investorId } = req.body;
 
-        // Get GSC ABI
-        const contractPath = path.join(GSCBuild);
-        const contractJSON = JSON.parse(fs.readFileSync(contractPath, 'utf8'));
-        const GSCABI = contractJSON.abi;
+        // Fetch investor from the database
+        const investor = await Investor.findById(investorId);
+        if (!investor) {
+            return res.status(404).send('Investor not found');
+        }
+
+        // Get investor's public Ethereum address
+        const investorWalletAddress = investor.ethereumPublicKey;
 
         // Prepare the contract instance
         const contract = new web3.eth.Contract(GSCABI, GSCAddress);
-        //console.log("contract: ", contract);
-
-        // Prepare the transaction data
-        const data = contract.methods.verifyInvestor(investorWalletAddress).encodeABI();
-        //console.log("data: ", data);
-
-        // Fetch the nonce for the sender's address
-        const senderAddress = MASTER_ADDRESS; // Replace with the sender's Ethereum address
-        const nonce = await web3.eth.getTransactionCount(senderAddress);
 
         // Prepare the transaction object
-        let currentGasPrice = await getCurrentGasPrice();
+        const transaction = contract.methods.verifyInvestor(investorWalletAddress);
 
-        const gasLimit = 200000; // Adjust the gas limit as needed
-        const rawTransaction = {
-            from: MASTER_ADDRESS,
-            to: GSCAddress,
-            gas: gasLimit,
-            gasPrice: currentGasPrice,
-            nonce,
-            data,
-        };
-
-        // Sign the transaction with the private key
-        const signedTransaction = await web3.eth.accounts.signTransaction(rawTransaction, MASTER_PRIVATE_KEY);
-        console.log("signedTransaction: ", signedTransaction);
-
-        // Send the signed transaction to the network
-        const receipt = await web3.eth.sendSignedTransaction(signedTransaction.rawTransaction);
+        // Send the transaction using the estimateAndSend helper function
+        const receipt = await estimateAndSend(
+            transaction,
+            MASTER_ADDRESS,
+            MASTER_PRIVATE_KEY,
+            GSCAddress
+        );
 
         // Handle the transaction receipt
         console.log('Transaction receipt:', receipt);
@@ -305,11 +311,14 @@ router.post('/investor/verify', async (req, res) => {
         } else {
             return res.status(500).json({ error: 'Transaction failed' });
         }
+
     } catch (error) {
-        console.error('Error in investor registration:', error);
+        console.error('Error in investor verification:', error);
         return res.status(500).json({ error: 'An error occurred' });
     }
 });
+
+
 
 /**
  * @swagger
@@ -383,16 +392,6 @@ router.post('/investor/buyToken', async (req, res) => {
         // Step 3: Decrypt the private key
         const decryptedPrivateKey = decryptPrivateKey(investor.ethereumPrivateKey, SECRET_KEY);
         console.log("decryptedPrivateKey: ", decryptedPrivateKey);
-
-        // Get SC ABI
-        const SCcontractPath = path.join(SCBuild);
-        const SCcontractJSON = JSON.parse(fs.readFileSync(SCcontractPath, 'utf8'));
-        const SCABI = SCcontractJSON.abi;
-
-        // Get TC ABI
-        const TCcontractPath = path.join(TCBuild);
-        const TCcontractJSON = JSON.parse(fs.readFileSync(TCcontractPath, 'utf8'));
-        const TCABI = TCcontractJSON.abi;
 
         const ServiceContract = new web3.eth.Contract(SCABI, serviceContractAddress);
 
@@ -471,7 +470,7 @@ router.post('/investor/buyToken', async (req, res) => {
                 } catch (error) {
                     // If decoding fails, it might be a different event
                 }
-                
+
                 // Decode EtherRequired Event
                 try {
                     decodedLog = web3.eth.abi.decodeLog(EtherRequiredABI.inputs, log.data, log.topics);
@@ -479,7 +478,7 @@ router.post('/investor/buyToken', async (req, res) => {
                 } catch (error) {
                     // If decoding fails, it might be a different event
                 }
-                
+
                 // Decode TokensPurchased Event
                 try {
                     decodedLog = web3.eth.abi.decodeLog(TokensPurchasedABI.inputs, log.data, log.topics);

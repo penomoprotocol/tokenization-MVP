@@ -12,6 +12,15 @@ const LCBuild = path.join(__dirname, '..', '..', 'evm-erc20', 'artifacts', 'cont
 const RDCBuild = path.join(__dirname, '..', '..', 'evm-erc20', 'artifacts', 'contracts', 'RevenueDistributionContract.sol', 'RevenueDistributionContract.json');
 const RSCBuild = path.join(__dirname, '..', '..', 'evm-erc20', 'artifacts', 'contracts', 'RevenueStreamContract.sol', 'RevenueStreamContract.json');
 
+// Get GSC ABI
+const GSCPath = path.join(GSCBuild);
+const GSCJSON = JSON.parse(fs.readFileSync(GSCPath, 'utf8'));
+const GSCABI = GSCJSON.abi;
+// Get LC ABI
+const LCPath = path.join(LCBuild);
+const LCJSON = JSON.parse(fs.readFileSync(LCPath, 'utf8'));
+const LCABI = LCJSON.abi;
+
 
 const passport = require('passport');
 const JwtStrategy = require('passport-jwt').Strategy;
@@ -246,7 +255,7 @@ router.post('/company/login', async (req, res) => {
  * @swagger
  * /api/company/verify:
  *   post:
- *     summary: Verify a company's KYC on the blockchain
+ *     summary: Verify company (KYB+AML) and add wallet address to GlobalStateContract whitelist.
  *     tags: 
  *     - Company
  *     requestBody:
@@ -269,11 +278,6 @@ router.post('/company/login', async (req, res) => {
 router.post('/company/verify', async (req, res) => {
     try {
         const { companyWalletAddress } = req.body;
-
-        // Get GSC ABI
-        const contractPath = path.join(GSCBuild);
-        const contractJSON = JSON.parse(fs.readFileSync(contractPath, 'utf8'));
-        const GSCABI = contractJSON.abi;
 
         // Prepare the contract instance
         const contract = new web3.eth.Contract(GSCABI, GSCAddress);
@@ -326,7 +330,7 @@ router.post('/company/verify', async (req, res) => {
 * @swagger
 * /api/company/withdrawFunds:
 *   post:
-*     summary: Withdraw funds from the Liquidity Contract
+*     summary: Withdraw funds from the Liquidity Contract of tokenized asset
 *     tags: [Company]
 *     requestBody:
 *       required: true
@@ -364,11 +368,6 @@ router.post('/api/company/withdrawFunds', async (req, res) => {
     try {
         const { companyId, password, tokenAmount, liquidityContractAddress } = req.body;
 
-        // Get LC ABI
-        const contractPath = path.join(LCBuild);
-        const contractJSON = JSON.parse(fs.readFileSync(contractPath, 'utf8'));
-        const LiquidityContractABI = contractJSON.abi;
-
         // Authenticate the company
         const company = await Company.findById(companyId);
         if (!company) {
@@ -385,7 +384,7 @@ router.post('/api/company/withdrawFunds', async (req, res) => {
         const decryptedPrivateKey = decryptPrivateKey(company.ethereumPrivateKey, SECRET_KEY);
 
         // Load the contract
-        const liquidityContract = new web3.eth.Contract(LiquidityContractABI, liquidityContractAddress);
+        const liquidityContract = new web3.eth.Contract(LCABI, liquidityContractAddress);
 
         // Prepare transaction
         const transaction = liquidityContract.methods.withdrawFunds(web3.utils.toWei(tokenAmount, 'ether'));

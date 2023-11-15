@@ -15,6 +15,11 @@ const RDCBuild = path.join(__dirname, '..', '..', 'evm-erc20', 'artifacts', 'con
 const RSCBuild = path.join(__dirname, '..', '..', 'evm-erc20', 'artifacts', 'contracts', 'RevenueStreamContract.sol', 'RevenueStreamContract.json');
 const DIDBuild = path.join(__dirname, '..', '..', 'evm-erc20', 'artifacts', 'contracts', 'DID.sol', 'DID.json');
 
+// Read the DID contract's ABI
+const contractPath = path.join(DIDBuild);
+const contractJSON = JSON.parse(fs.readFileSync(contractPath, 'utf8'));
+const DIDABI = contractJSON.abi;
+
 const passport = require('passport');
 const JwtStrategy = require('passport-jwt').Strategy;
 const ExtractJwt = require('passport-jwt').ExtractJwt;
@@ -52,10 +57,6 @@ const Contract = require('../models/TokenModel');
 const Investor = require('../models/InvestorModel');
 
 // Set up DID contract
-// Read the contract's ABI
-const contractPath = path.join(DIDBuild);
-const contractJSON = JSON.parse(fs.readFileSync(contractPath, 'utf8'));
-const DIDABI = contractJSON.abi;
 
 // The address of the deployed DID contract (replace with actual address)
 const DIDContractAddress = '0x0000000000000000000000000000000000000800';
@@ -122,150 +123,6 @@ const decryptPrivateKey = (encryptedKey, SECRET_KEY) => {
     const decrypted = CryptoJS.AES.decrypt(encryptedKey, SECRET_KEY).toString(CryptoJS.enc.Utf8);
     return decrypted;
 };
-
-
-// // // DEPLOYMENT SCRIPTS // TODO: Refactor into separate file and import
-
-// Deploy Service Contract
-async function deployServiceContract(GSCAddress) {
-    const contractPath = path.join(SCBuild);
-    const contractJSON = JSON.parse(fs.readFileSync(contractPath, 'utf8'));
-    const ServiceContract = new web3.eth.Contract(contractJSON.abi);
-
-    const deploymentData = ServiceContract.deploy({
-        data: contractJSON.bytecode,
-        arguments: [GSCAddress]
-    });
-
-    const estimatedGas = await deploymentData.estimateGas({
-        from: MASTER_ADDRESS
-    });
-
-    const bufferGas = estimatedGas * 110n / 100n;  // adding a 10% buffer
-    const roundedGas = bufferGas + (10n - bufferGas % 10n);  // rounding up to the nearest 10
-    let currentGasPrice = await getCurrentGasPrice();
-
-    const deployTx = {
-        data: deploymentData.encodeABI(),
-        gas: roundedGas.toString(),
-        gasPrice: currentGasPrice,  // Using the fetched gas price
-        from: MASTER_ADDRESS
-    };
-
-    const signedTx = await web3.eth.accounts.signTransaction(deployTx, MASTER_PRIVATE_KEY);
-    const receipt = await web3.eth.sendSignedTransaction(signedTx.raw || signedTx.rawTransaction);
-
-    return receipt.contractAddress;
-}
-
-// Deploy Token Contract
-async function deployTokenContract(DIDs, revenueGoals, name, symbol, revenueShare, contractTerm, maxTokenSupply, tokenPrice, serviceContractAddress) {
-    const contractPath = path.join(TCBuild);
-    const contractJSON = JSON.parse(fs.readFileSync(contractPath, 'utf8'));
-    const TokenContract = new web3.eth.Contract(contractJSON.abi);
-
-    const constructorArgs = {
-        penomoWallet: MASTER_ADDRESS,
-        globalStateAddress: GSCAddress,
-        serviceContractAddress: serviceContractAddress,
-        name: name,
-        symbol: symbol,
-        revenueShare: revenueShare,
-        contractTerm: contractTerm,
-        maxTokenSupply: maxTokenSupply,
-        tokenPrice: tokenPrice
-    };
-
-    const deploymentData = TokenContract.deploy({
-        data: contractJSON.bytecode,
-        arguments: [constructorArgs, DIDs, revenueGoals]
-    });
-
-    const estimatedGas = await deploymentData.estimateGas({
-        from: MASTER_ADDRESS
-    });
-
-
-    const bufferGas = estimatedGas * 110n / 100n;  // adding a 10% buffer
-    const roundedGas = bufferGas + (10n - bufferGas % 10n);  // rounding up to the nearest 10
-    let currentGasPrice = await getCurrentGasPrice();
-
-    const deployTx = {
-        data: deploymentData.encodeABI(),
-        gas: roundedGas.toString(),
-        gasPrice: currentGasPrice,  // Using the fetched gas price
-        from: MASTER_ADDRESS
-    };
-
-    const signedTx = await web3.eth.accounts.signTransaction(deployTx, MASTER_PRIVATE_KEY);
-    const receipt = await web3.eth.sendSignedTransaction(signedTx.raw || signedTx.rawTransaction);
-
-    return receipt.contractAddress;
-}
-
-// Deploy Liquidity Contract
-async function deployLiquidityContract(serviceContractAddress, BBWallet, PenomoWallet) {
-    const contractPath = path.join(LCBuild); // assuming LCBuild is the build path for LiquidityContract
-    const contractJSON = JSON.parse(fs.readFileSync(contractPath, 'utf8'));
-    const LiquidityContract = new web3.eth.Contract(contractJSON.abi);
-
-    const deploymentData = LiquidityContract.deploy({
-        data: contractJSON.bytecode,
-        arguments: [serviceContractAddress, BBWallet, PenomoWallet]
-    });
-
-    const estimatedGas = await deploymentData.estimateGas({
-        from: MASTER_ADDRESS
-    });
-
-    const bufferGas = estimatedGas * 110n / 100n;  // adding a 10% buffer
-    const roundedGas = bufferGas + (10n - bufferGas % 10n);  // rounding up to the nearest 10
-    let currentGasPrice = await getCurrentGasPrice();
-
-    const deployTx = {
-        data: deploymentData.encodeABI(),
-        gas: roundedGas.toString(),
-        gasPrice: currentGasPrice,  // Using the fetched gas price
-        from: MASTER_ADDRESS
-    };
-
-    const signedTx = await web3.eth.accounts.signTransaction(deployTx, MASTER_PRIVATE_KEY);
-    const receipt = await web3.eth.sendSignedTransaction(signedTx.raw || signedTx.rawTransaction);
-
-    return receipt.contractAddress;
-}
-
-// Deploy Revenue Distribution Contract
-async function deployRevenueDistributionContract(serviceContractAddress, tokenContractERC20Address, liquidityContractAddress) {
-    const contractPath = path.join(RDCBuild); // assuming RDCBuild is the build path for RevenueDistributionContract
-    const contractJSON = JSON.parse(fs.readFileSync(contractPath, 'utf8'));
-    const RevenueDistributionContract = new web3.eth.Contract(contractJSON.abi);
-
-    const deploymentData = RevenueDistributionContract.deploy({
-        data: contractJSON.bytecode,
-        arguments: [serviceContractAddress, tokenContractERC20Address, liquidityContractAddress]
-    });
-
-    const estimatedGas = await deploymentData.estimateGas({
-        from: MASTER_ADDRESS
-    });
-
-    const bufferGas = estimatedGas * 110n / 100n;  // adding a 10% buffer
-    const roundedGas = bufferGas + (10n - bufferGas % 10n);  // rounding up to the nearest 10
-    let currentGasPrice = await getCurrentGasPrice();
-
-    const deployTx = {
-        data: deploymentData.encodeABI(),
-        gas: roundedGas.toString(),
-        gasPrice: currentGasPrice,  // Using the fetched gas price
-        from: MASTER_ADDRESS
-    };
-
-    const signedTx = await web3.eth.accounts.signTransaction(deployTx, MASTER_PRIVATE_KEY);
-    const receipt = await web3.eth.sendSignedTransaction(signedTx.raw || signedTx.rawTransaction);
-
-    return receipt.contractAddress;
-}
 
 
 /**
@@ -452,7 +309,7 @@ router.post('/asset/register', async (req, res) => {
 
 router.post('/asset/storeData', async (req, res) => {
     try {
-        const { batteryType, capacity, voltage, batteryDid, companyId, companyPassword } = req.body;
+        const {batteryDid, companyId, companyPassword, batteryType, capacity, voltage } = req.body;
 
         if (!batteryType || !capacity || !voltage || !batteryDid || !companyId || !companyPassword) {
             return res.status(400).json({ error: 'Missing required fields' });

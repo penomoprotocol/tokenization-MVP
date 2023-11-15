@@ -15,6 +15,12 @@ const RDCBuild = path.join(__dirname, '..', '..', 'evm-erc20', 'artifacts', 'con
 const RSCBuild = path.join(__dirname, '..', '..', 'evm-erc20', 'artifacts', 'contracts', 'RevenueStreamContract.sol', 'RevenueStreamContract.json');
 const DIDBuild = path.join(__dirname, '..', '..', 'evm-erc20', 'artifacts', 'contracts', 'DID.sol', 'DID.json');
 
+// Get RSC ABI & Bytecode
+const RSCContractPath = path.join(RSCBuild);
+const RSCContractJSON = JSON.parse(fs.readFileSync(RSCContractPath, 'utf8'));
+const RSCABI = RSCContractJSON.abi;
+const RSCBytecode = RSCContractJSON.bytecode;
+
 const passport = require('passport');
 const JwtStrategy = require('passport-jwt').Strategy;
 const ExtractJwt = require('passport-jwt').ExtractJwt;
@@ -197,15 +203,11 @@ router.post('/revenue/rental', async (req, res) => {
             return res.status(404).send('Asset or Contract not found');
         }
 
-        // Prepare contract ABI and bytecode
-        const RSCContractPath = path.join(RSCBuild);
-        const RSCContractJSON = JSON.parse(fs.readFileSync(RSCContractPath, 'utf8'));
-        const contractABI = RSCContractJSON.abi;
-        const contractBytecode = RSCContractJSON.bytecode;
+        // Prepare constructor arguments
         const constructorArgs = [serviceContractAddress, web3.utils.toWei(pricePerUnit.toString(), 'ether'), asset.publicKey];
 
         // Deploy the contract
-        const revenueStreamContractAddress = await deployContract(contractABI, contractBytecode, constructorArgs);
+        const revenueStreamContractAddress = await deployContract(RSCABI, RSCBytecode, constructorArgs);
 
         // Update the Asset and Contract entries in the database
         asset.revenueStreamContracts.push(revenueStreamContractAddress);
