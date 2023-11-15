@@ -529,13 +529,45 @@ router.post('/investor/buyToken', async (req, res) => {
  */
 
 // Handle investor token sell
-router.post('/investor/sellToken', (req, res) => {
-    // Sell token via orderbook (has priority over tokens held by contract)
-    // -> indicate amount to sell 
-    // -> creates listing in SC (mapping of address -> amount)
-    // -> gives allowance over amount to SC
-    // -> If somebody wants to buy a token, first check open listings from other investors
+router.post('/investor/sellToken', async (req, res) => {
+    try {
+        const { investorId, password, amount, serviceContractAddress } = req.body;
+
+        if (!investorId || !password || !amount || !serviceContractAddress) {
+            return res.status(400).send('Missing required parameters.');
+        }
+
+        // Retrieve and authenticate the investor
+        const investor = await Investor.findById(investorId);
+        if (!investor) {
+            return res.status(404).send('Investor not found.');
+        }
+
+        const isPasswordValid = await bcrypt.compare(password, investor.password);
+        if (!isPasswordValid) {
+            return res.status(401).send('Invalid credentials.');
+        }
+
+        // Decrypt the investor's private key
+        const decryptedPrivateKey = decryptPrivateKey(investor.ethereumPrivateKey, SECRET_KEY);
+
+        // Create a ServiceContract instance
+        const serviceContract = new web3.eth.Contract(SCABI, serviceContractAddress);
+
+        // Prepare the sellTokens transaction
+        const transaction = serviceContract.methods.sellTokens(amount);
+
+        // Estimate gas and send the transaction
+        const receipt = await estimateAndSend(transaction, investor.ethereumPublicKey, decryptedPrivateKey, serviceContractAddress, '0');
+
+        // Respond with the transaction receipt
+        res.status(200).json({ receipt });
+    } catch (error) {
+        console.error('Error selling tokens:', error);
+        res.status(500).send('Failed to sell tokens.');
+    }
 });
+
 
 /**
  * @swagger
