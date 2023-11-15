@@ -137,8 +137,8 @@ async function deployContract(contractABI, contractBytecode, constructorArgs) {
  * @swagger
  * /api/revenue/rental:
  *   post:
- *     summary: Deploy a new Rental RevenueStreamContract and connect it to a service contract
- *     description: Deploys a RevenueStreamContract for managing the revenue stream of a battery asset and connects it to an existing service contract. It also updates the Contract and Revenue entries in the database with the new RevenueStreamContract address.
+ *     summary: Deploy "Rental Renvenue Contract" for generating revenue by rental of battery asset.
+ *     description: Deploys RentalRenvenueContract and updates the Asset, Token and Revenue entries in the database with the new RentalRevenueContract address.
  *     tags: 
  *       - Revenue
  *     requestBody:
@@ -251,8 +251,8 @@ router.post('/revenue/rental', async (req, res) => {
  * @swagger
  * /api/revenue/grid:
  *   post:
- *     summary: Deploy a Grid Service Revenue Contract
- *     description: Deploys a Grid Service Revenue Contract for managing FCR, aFRR, or mFRR services provided by a battery asset and connects it to an existing service contract. The endpoint updates the Contract entry with the new RevenueStreamContract address and creates a Revenue entry.
+ *     summary: Deploy "Grid Revenue Contract" for managing FCR, aFRR, or mFRR services provided by battery asset (Future Release)
+ *     description: Deploys a GridRevenueContract instance and connects it to an existing ServiceContract. Updates the Asset, Token and Revenue entries in the database with the new GridRevenueContract address.
  *     tags: 
  *       - Revenue
  *     requestBody:
@@ -348,8 +348,8 @@ router.post('/revenue/grid', async (req, res) => {
  * @swagger
  * /api/revenue/arbitrage:
  *   post:
- *     summary: Deploy a Arbitrage Revenue Contract
- *     description: Deploys a Arbitrage Revenue Contract for battery asset and connects it to an existing service contract. The endpoint updates the Contract entry with the new RevenueStreamContract address and creates a Revenue entry.
+ *     summary: Deploy "Arbitrage Revenue Contract" to generate revenue stream for battery asset by trading energy, using price arbitrage. (Future Release)
+ *     description: Deploys a "ArbitrageRevenueContract" instance and connects it to an existing ServiceContract. Updates the Asset, Token and Revenue entries in the database with the new ArbitrageRevenueContract address.
  *     tags: 
  *       - Revenue
  *     requestBody:
@@ -443,10 +443,8 @@ router.post('/revenue/arbitrage', async (req, res) => {
  * @swagger
  * /api/revenue/data:
  *   post:
- *     summary: Deploy a new Data Revenue Contract (Future Release)
- *     description: >
- *       [This endpoint is currently inactive and will be part of a future release.]
- *       Deploys a Data Revenue Contract for managing revenue streams generated from data sharing or analysis, and connects it to an existing service contract. It also creates a Revenue entry in the database.
+ *     summary: Deploy "Data Revenue Contract" to generete revenue for battery asset by selling data (Future Release)
+ *     description: Deploys a DataRevenueContract instance and connects it to an existing ServiceContract. Updates the Asset, Token and Revenue entries in the database with the new DataRevenueContract address.
  *     tags: 
  *       - Revenue 
  *     requestBody:
@@ -550,8 +548,8 @@ router.post('/revenue/data', async (req, res) => {
  * @swagger
  * /api/revenue/carbon:
  *   post:
- *     summary: Deploy a new Carbon Revenue Contract and connect it to a service contract (Inactive - Future Release)
- *     description: Deploys a Carbon Revenue Contract for managing revenue streams generated from carbon credit trading and connects it to an existing service contract. It also creates a Revenue entry in the database.
+ *     summary: Deploy "Carbon Revenue Contract" to generate revenue for battery asset by minting and selling Carbon Credits, based on avoided CO2 (Future Release)
+ *     description: Deploys a CarbonRevenueContract instance and connects it to an existing ServiceContract. Updates the Asset, Token and Revenue entries in the database with the new CarbonRevenueContract address.
  *     tags: 
  *       - Revenue
  *     requestBody:
