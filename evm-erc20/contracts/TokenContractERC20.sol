@@ -20,6 +20,12 @@ contract TokenContractERC20 is ERC20 {
     Battery[] public batteries;
     address[] public tokenHolders;
 
+    struct TokenListing {
+        address seller;
+        uint256 amount;
+    }
+    TokenListing[] public listings;
+
     // Events for debugging
     event Debug(uint256 allowance);
 
@@ -80,6 +86,32 @@ contract TokenContractERC20 is ERC20 {
         uint256 amount
     ) public onlyPenomoWallet {
         _transfer(from, to, amount);
+    }
+
+    // Function to update token price
+    function updateTokenPrice(uint256 newPrice) public onlyPenomoWallet {
+        tokenPrice = newPrice;
+    }
+
+    // Function to list tokens for sale
+    function addTokenListing(address seller, uint256 amount) public {
+        require(msg.sender == serviceContract, "Only ServiceContract can add listings");
+        listings.push(TokenListing(seller, amount));
+    }
+
+    // Function to remove token listing
+    function removeTokenListing(uint256 index) public {
+        require(msg.sender == serviceContract, "Only ServiceContract can remove listings");
+        require(index < listings.length, "Invalid index");
+        listings[index] = listings[listings.length - 1];
+        listings.pop();
+    }
+
+    // Function to update token listing
+    function updateTokenListing(uint256 index, uint256 newAmount) public {
+        require(msg.sender == serviceContract, "Only ServiceContract can update listings");
+        require(index < listings.length, "Invalid index");
+        listings[index].amount = newAmount;
     }
 
     // Override the transfer function
