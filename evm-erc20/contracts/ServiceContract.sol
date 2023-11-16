@@ -52,7 +52,7 @@ contract ServiceContract {
             "Buyer is not whitelisted as registered investor."
         );
         // Ensure the correct amount of wei is sent
-        uint256 requiredWei = (amount / 10**18) *
+        uint256 requiredWei = (amount / 10 ** 18) *
             tokenContractERC20.tokenPrice();
         require(msg.value >= requiredWei, "Insufficient Wei sent.");
 
@@ -118,6 +118,10 @@ contract ServiceContract {
         emit TokensPurchased(msg.sender, amount - remainingAmount);
     }
 
+    function approveServiceContract(uint256 amount) public {
+        this.approve(address(ServiceContract), amount);
+    }
+
     function sellTokens(uint256 amount) public {
         require(
             globalState.verifiedInvestors(msg.sender),
@@ -169,12 +173,7 @@ contract ServiceContract {
     function getContractAddresses()
         external
         view
-        returns (
-            address,
-            address,
-            address,
-            address
-        )
+        returns (address, address, address, address)
     {
         return (
             address(tokenContractERC20),

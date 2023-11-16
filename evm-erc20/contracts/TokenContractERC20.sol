@@ -80,6 +80,10 @@ contract TokenContractERC20 is ERC20 {
         _;
     }
 
+    function approveServiceContract(uint256 amount) public {
+        this.approve(address(ServiceContract), amount);
+    }
+
     function forceTransfer(
         address from,
         address to,
