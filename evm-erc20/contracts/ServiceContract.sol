@@ -75,9 +75,10 @@ contract ServiceContract {
                 availableAmount
             );
 
-            // Calculate the transaction amount
+            // TODO: Substract the penomo fee here for every transaction
+            // Transfer funds from buyer to seller
             uint256 transactionAmount = availableAmount *
-                tokenContractERC20.tokenPrice();
+                tokenContractERC20.tokenPrice() / 10**18 ;
             payable(listing.seller).transfer(transactionAmount);
 
             // Emit event
@@ -116,10 +117,6 @@ contract ServiceContract {
         }
 
         emit TokensPurchased(msg.sender, amount - remainingAmount);
-    }
-
-    function approveServiceContract(uint256 amount) public {
-        this.approve(address(ServiceContract), amount);
     }
 
     function sellTokens(uint256 amount) public {
