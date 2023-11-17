@@ -15,16 +15,11 @@ contract TokenContractERC20 is ERC20 {
 
     struct Battery {
         string DID;
+        string CID;
         uint256 revenueGoal;
     }
     Battery[] public batteries;
     address[] public tokenHolders;
-
-    struct TokenListing {
-        address seller;
-        uint256 amount;
-    }
-    TokenListing[] public listings;
 
     // Events for debugging
     event Debug(uint256 allowance);
@@ -44,6 +39,7 @@ contract TokenContractERC20 is ERC20 {
     constructor(
         ConstructorArgs memory args,
         string[] memory DIDs,
+        string[] memory CIDs,
         uint256[] memory revenueGoals
     ) ERC20(args.name, args.symbol) {
         penomoWallet = args.penomoWallet;
@@ -57,6 +53,7 @@ contract TokenContractERC20 is ERC20 {
         for (uint i = 0; i < DIDs.length; i++) {
             Battery memory newBattery = Battery({
                 DID: DIDs[i],
+                CID: CIDs[i],
                 revenueGoal: revenueGoals[i]
             });
             batteries.push(newBattery);
@@ -87,42 +84,6 @@ contract TokenContractERC20 is ERC20 {
     ) public onlyPenomoWallet {
         _transfer(from, to, amount);
     }
-
-    // Function to update token price
-    function updateTokenPrice(uint256 newPrice) public onlyPenomoWallet {
-        tokenPrice = newPrice;
-    }
-
-    // Function to list tokens for sale
-    // TODO: add require statement: does seller have set allowance of amount to service contract?
-    function addTokenListing(address seller, uint256 amount) public {
-        require(msg.sender == serviceContract, "Only ServiceContract can add listings");
-        listings.push(TokenListing(seller, amount));
-    }
-
-    // Function to remove token listing
-    function removeTokenListing(uint256 index) public {
-        require(msg.sender == serviceContract, "Only ServiceContract can remove listings");
-        require(index < listings.length, "Invalid index");
-        listings[index] = listings[listings.length - 1];
-        listings.pop();
-    }
-
-    // Function to update token listing
-    function updateTokenListing(uint256 index, uint256 newAmount) public {
-        require(msg.sender == serviceContract, "Only ServiceContract can update listings");
-        require(index < listings.length, "Invalid index");
-        listings[index].amount = newAmount;
-    }
-
-    function getListing(uint index) public view returns (TokenListing memory) {
-    require(index < listings.length, "Index out of bounds");
-    return listings[index];
-}
-
-    function getListingsCount() public view returns (uint) {
-    return listings.length;
-}
 
     // Override the transfer function
     function transfer(
@@ -184,4 +145,6 @@ contract TokenContractERC20 is ERC20 {
         return tokenHolders;
     }
 
+    // Additional functions for battery data, revenue share, etc.
+    // ...
 }

@@ -404,7 +404,6 @@ router.post('/investor/buyToken', async (req, res) => {
         const tokenAmountBigInt = BigInt(tokenAmount);
         const tokenPriceBigInt = BigInt(tokenPrice);
         const requiredWei = tokenPriceBigInt * tokenAmountBigInt;
-        const requiredWeiString = requiredWei.toString();
         const tokenAmountWeiBigInt = BigInt(web3.utils.toWei(tokenAmountBigInt.toString(), 'ether'));
 
 
@@ -412,16 +411,11 @@ router.post('/investor/buyToken', async (req, res) => {
         console.log("requiredWei: ", requiredWei.toString());
         console.log("tokenAmount: ", tokenAmountBigInt.toString());
         console.log("tokenAmountInWei: ", tokenAmountWeiBigInt.toString());
+        console.log("tokenAmountWeiBigInt: ", tokenAmountWeiBigInt);
+
 
         const transaction = ServiceContract.methods.buyTokens(tokenAmountWeiBigInt.toString());
-        const receipt = await estimateAndSend(transaction, investor.ethereumPublicKey, decryptedPrivateKey, serviceContractAddress, requiredWeiString);
-
-
-        // const tokenPriceBigInt = BigInt(tokenPrice);
-        // const requiredWei = tokenPriceBigInt * BigInt(tokenAmount.toString());
-
-        // const transaction = ServiceContract.methods.buyTokens(tokenAmountWeiBigInt.toString());
-        // const receipt = await estimateAndSend(transaction, investor.ethereumPublicKey, decryptedPrivateKey, serviceContractAddress, requiredWei.toString());
+        const receipt = await estimateAndSend(transaction, investor.ethereumPublicKey, decryptedPrivateKey, serviceContractAddress, requiredWei.toString());
 
 
         const EtherRequiredABI = {

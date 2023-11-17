@@ -152,8 +152,9 @@ const decryptPrivateKey = (encryptedKey, SECRET_KEY) => {
 
 // Deploy Service Contract
 async function deployServiceContract(GSCAddress) {
-
-    const ServiceContract = new web3.eth.Contract(SCABI);
+    const contractPath = path.join(SCBuild);
+    const contractJSON = JSON.parse(fs.readFileSync(contractPath, 'utf8'));
+    const ServiceContract = new web3.eth.Contract(contractJSON.abi);
 
     const deploymentData = ServiceContract.deploy({
         data: contractJSON.bytecode,
@@ -182,8 +183,10 @@ async function deployServiceContract(GSCAddress) {
 }
 
 // Deploy Token Contract
-async function deployTokenContract(DIDs, revenueGoals, name, symbol, revenueShare, contractTerm, maxTokenSupply, tokenPrice, serviceContractAddress) {
-    const TokenContract = new web3.eth.Contract(TCABI);
+async function deployTokenContract(DIDs, CIDs, revenueGoals, name, symbol, revenueShare, contractTerm, maxTokenSupply, tokenPrice, serviceContractAddress) {
+    const contractPath = path.join(TCBuild);
+    const contractJSON = JSON.parse(fs.readFileSync(contractPath, 'utf8'));
+    const TokenContract = new web3.eth.Contract(contractJSON.abi);
 
     const constructorArgs = {
         penomoWallet: MASTER_ADDRESS,
@@ -194,12 +197,12 @@ async function deployTokenContract(DIDs, revenueGoals, name, symbol, revenueShar
         revenueShare: revenueShare,
         contractTerm: contractTerm,
         maxTokenSupply: maxTokenSupply,
-        tokenPrice: tokenPrice
+        tokenPrice: tokenPrice 
     };
 
     const deploymentData = TokenContract.deploy({
         data: contractJSON.bytecode,
-        arguments: [constructorArgs, DIDs, revenueGoals]
+        arguments: [constructorArgs, DIDs, CIDs, revenueGoals]
     });
 
     const estimatedGas = await deploymentData.estimateGas({
@@ -226,8 +229,9 @@ async function deployTokenContract(DIDs, revenueGoals, name, symbol, revenueShar
 
 // Deploy Liquidity Contract
 async function deployLiquidityContract(serviceContractAddress, BBWallet, PenomoWallet) {
-
-    const LiquidityContract = new web3.eth.Contract(LCABI);
+    const contractPath = path.join(LCBuild); // assuming LCBuild is the build path for LiquidityContract
+    const contractJSON = JSON.parse(fs.readFileSync(contractPath, 'utf8'));
+    const LiquidityContract = new web3.eth.Contract(contractJSON.abi);
 
     const deploymentData = LiquidityContract.deploy({
         data: contractJSON.bytecode,
@@ -257,8 +261,9 @@ async function deployLiquidityContract(serviceContractAddress, BBWallet, PenomoW
 
 // Deploy Revenue Distribution Contract
 async function deployRevenueDistributionContract(serviceContractAddress, tokenContractERC20Address, liquidityContractAddress) {
-
-    const RevenueDistributionContract = new web3.eth.Contract(RDCABI);
+    const contractPath = path.join(RDCBuild); // assuming RDCBuild is the build path for RevenueDistributionContract
+    const contractJSON = JSON.parse(fs.readFileSync(contractPath, 'utf8'));
+    const RevenueDistributionContract = new web3.eth.Contract(contractJSON.abi);
 
     const deploymentData = RevenueDistributionContract.deploy({
         data: contractJSON.bytecode,
@@ -285,6 +290,7 @@ async function deployRevenueDistributionContract(serviceContractAddress, tokenCo
 
     return receipt.contractAddress;
 }
+
 
 
 // /**
@@ -454,39 +460,82 @@ async function deployRevenueDistributionContract(serviceContractAddress, tokenCo
  *   post:
  *     summary: Tokenize an asset
  *     tags: 
- *     - Token
+ *       - Token
+ *     description: Deploy contracts to tokenize an asset with provided details.
  *     requestBody:
  *       required: true
  *       content:
  *         application/json:
  *           schema:
  *             type: object
+ *             required:
+ *               - companyId
+ *               - password
+ *               - DIDs
+ *               - CIDs
+ *               - revenueGoals
+ *               - name
+ *               - symbol
+ *               - revenueShare
+ *               - contractTerm
+ *               - maxTokenSupply
+ *               - tokenPrice
  *             properties:
+ *               companyId:
+ *                 type: string
+ *                 description: ID of the company initiating tokenization.
+ *               password:
+ *                 type: string
+ *                 description: Password for company authentication.
  *               DIDs:
  *                 type: array
  *                 items:
  *                   type: string
+ *                 description: Array of Digital Identifiers.
+ *               CIDs:
+ *                 type: array
+ *                 items:
+ *                   type: string
+ *                 description: Array of IPFS Identifiers. 
  *               revenueGoals:
  *                 type: array
  *                 items:
  *                   type: number
+ *                 description: Array of revenue goals for each asset.
  *               name:
  *                 type: string
+ *                 description: Name of the token.
  *               symbol:
  *                 type: string
+ *                 description: Symbol of the token.
  *               revenueShare:
  *                 type: number
+ *                 description: Percentage of revenue share.
  *               contractTerm:
  *                 type: number
+ *                 description: Term length of the contract.
  *               maxTokenSupply:
  *                 type: number
+ *                 description: Maximum supply of the tokens.
  *               tokenPrice:
  *                 type: number
- *               BBWalletAddress:
- *                 type: string
+ *                 description: Price of each token.
  *     responses:
  *       200:
  *         description: Successfully tokenized asset and returned contract addresses.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 tokenContractAddress:
+ *                   type: string
+ *                 serviceContractAddress:
+ *                   type: string
+ *                 liquidityContractAddress:
+ *                   type: string
+ *                 revenueDistributionContractAddress:
+ *                   type: string
  *       400:
  *         description: Missing required parameters.
  *       500:
@@ -497,17 +546,35 @@ async function deployRevenueDistributionContract(serviceContractAddress, tokenCo
 router.post('/token/deploy', async (req, res) => {
     try {
         // Get data from the request
-        const { DIDs, revenueGoals, name, symbol, revenueShare, contractTerm, maxTokenSupply, tokenPrice, BBWalletAddress } = req.body;
+        const { companyId, password, DIDs, CIDs, revenueGoals, name, symbol, revenueShare, contractTerm, maxTokenSupply, tokenPrice } = req.body;
 
-        if (!DIDs || !revenueGoals || !name || !symbol || !revenueShare || !contractTerm || !maxTokenSupply || !tokenPrice || !BBWalletAddress) {
+        if (!companyId || !password || !DIDs || !CIDs || !revenueGoals || !name || !symbol || !revenueShare || !contractTerm || !maxTokenSupply || !tokenPrice) {
             return res.status(400).send('Missing required parameters.');
         }
+
+        // Step 1: Get the company from the database using the provided companyId
+        const company = await Company.findById(companyId);
+        if (!company) {
+            console.log('Company not found:', companyId);
+            return res.status(401).send('Company not found');
+        }
+
+        // Step 2: Verify password
+        const isPasswordValid = await bcrypt.compare(password, company.password);
+        if (!isPasswordValid) {
+            console.log('Invalid credentials for company ID:', companyId);
+            return res.status(401).send('Invalid credentials');
+        }
+
+        console.log("company.ethereumPublicKey: ", company.ethereumPublicKey);
+        
+        BBWalletAddress =  company.ethereumPublicKey;
 
         // Deploy the ServiceContract and get its address
         const serviceContractAddress = await deployServiceContract(GSCAddress);
 
         // Deploy the TokenContract using the ServiceContract's address
-        const tokenContractAddress = await deployTokenContract(DIDs, revenueGoals, name, symbol, revenueShare, contractTerm, maxTokenSupply, tokenPrice, serviceContractAddress);
+        const tokenContractAddress = await deployTokenContract(DIDs, CIDs, revenueGoals, name, symbol, revenueShare, contractTerm, maxTokenSupply, tokenPrice, serviceContractAddress);
 
         // Deploy LiquidityContract
         const liquidityContractAddress = await deployLiquidityContract(serviceContractAddress, BBWalletAddress, MASTER_ADDRESS);
@@ -523,9 +590,24 @@ router.post('/token/deploy', async (req, res) => {
         // Create a ServiceContract instance
         const ServiceContract = new web3.eth.Contract(SCABI, serviceContractAddress);
 
+        // Prepare the transaction object
+        const transaction = ServiceContract.methods.setContractAddresses(tokenContractAddress, liquidityContractAddress, revenueDistributionContractAddress);
 
         // Call setTokenContract with gas estimation and send
-        await estimateAndSend(ServiceContract.methods.setContractAddresses(tokenContractAddress, liquidityContractAddress, revenueDistributionContractAddress), MASTER_ADDRESS, serviceContractAddress);
+        receipt = await estimateAndSend(transaction, MASTER_ADDRESS, MASTER_PRIVATE_KEY, serviceContractAddress);
+
+        // Generate DB entry for new tokenization contracts
+        const newContractEntry = new Contract({
+            serviceContractAddress: serviceContractAddress,
+            tokenContractAddress: tokenContractAddress,
+            liquidityContractAddress: liquidityContractAddress,
+            revenueDistributionContractAddress: revenueDistributionContractAddress,
+            assetDIDs: DIDs, // Assuming DIDs is an array of asset DIDs
+            companyId: companyId
+        });
+
+        // Save the new contract entry to the database
+        await newContractEntry.save();
 
         // Respond with the deployed contracts' addresses
         res.status(200).json({

@@ -56,6 +56,7 @@ const Asset = require('../models/AssetModel');
 const Company = require('../models/CompanyModel');
 const Contract = require('../models/TokenModel');
 const Investor = require('../models/InvestorModel');
+const Revenue = require('../models/RevenueModel');
 
 
 // // // FUNCTIONS
@@ -63,6 +64,7 @@ const Investor = require('../models/InvestorModel');
 // Get gas price
 async function getCurrentGasPrice() {
     let gasPrice = await web3.eth.getGasPrice(); // This will get the current gas price in wei
+    gasPrice = 200n/100n*gasPrice;
     return gasPrice;
 }
 
@@ -154,12 +156,15 @@ async function deployContract(contractABI, contractBytecode, constructorArgs) {
  *           schema:
  *             type: object
  *             required:
+ *               - batteryDid
  *               - serviceContractAddress
  *               - pricePerUnit
- *               - batteryDid
  *               - unit
  *               - currency
  *             properties:
+ *               batteryDid:
+ *                 type: string
+ *                 description: DID of the battery asset.
  *               serviceContractAddress:
  *                 type: string
  *                 description: Ethereum address of the service contract.
@@ -173,9 +178,6 @@ async function deployContract(contractABI, contractBytecode, constructorArgs) {
  *               currency:
  *                 type: string
  *                 description: The currency of the price (e.g., 'USDC').
- *               batteryDid:
- *                 type: string
- *                 description: DID of the battery asset.
  *     responses:
  *       200:
  *         description: Revenue stream contract deployed and connected.
@@ -188,7 +190,7 @@ async function deployContract(contractABI, contractBytecode, constructorArgs) {
 
 router.post('/revenue/rental', async (req, res) => {
     try {
-        const { serviceContractAddress, pricePerUnit, batteryDid, unit, currency } = req.body;
+        const { batteryDid, serviceContractAddress, pricePerUnit, unit, currency } = req.body;
 
         // Validate inputs
         if (!serviceContractAddress || !pricePerUnit || !batteryDid || !unit || !currency) {
