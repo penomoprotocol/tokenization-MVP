@@ -501,85 +501,85 @@ router.post('/investor/buyToken', async (req, res) => {
     }
 });
 
-// /**
-//  * @swagger
-//  * /api/investor/sellToken:
-//  *   post:
-//  *     summary: Investor sells tokens by listing them for sale
-//  *     description: Allows an investor to list a specified amount of tokens for sale on the platform.
-//  *     tags:
-//  *       - Investor
-//  *     requestBody:
-//  *       required: true
-//  *       content:
-//  *         application/json:
-//  *           schema:
-//  *             type: object
-//  *             required:
-//  *               - investorId
-//  *               - password
-//  *               - amount
-//  *               - serviceContractAddress
-//  *             properties:
-//  *               investorId:
-//  *                 type: string
-//  *                 description: The unique identifier of the investor.
-//  *               password:
-//  *                 type: string
-//  *                 description: The password for the investor's account.
-//  *               amount:
-//  *                 type: number
-//  *                 description: The number of tokens the investor wishes to sell.
-//  *               serviceContractAddress:
-//  *                 type: string
-//  *                 description: The Ethereum address of the service contract.
-//  *     responses:
-//  *       200:
-//  *         description: Successfully sold tokens.
-//  *       500:
-//  *         description: Error selling tokens.
-//  */
+/**
+ * @swagger
+ * /api/investor/sellToken:
+ *   post:
+ *     summary: Investor sells tokens by listing them for sale
+ *     description: Allows an investor to list a specified amount of tokens for sale on the platform.
+ *     tags:
+ *       - Investor
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - investorId
+ *               - password
+ *               - amount
+ *               - serviceContractAddress
+ *             properties:
+ *               investorId:
+ *                 type: string
+ *                 description: The unique identifier of the investor.
+ *               password:
+ *                 type: string
+ *                 description: The password for the investor's account.
+ *               amount:
+ *                 type: number
+ *                 description: The number of tokens the investor wishes to sell.
+ *               serviceContractAddress:
+ *                 type: string
+ *                 description: The Ethereum address of the service contract.
+ *     responses:
+ *       200:
+ *         description: Successfully sold tokens.
+ *       500:
+ *         description: Error selling tokens.
+ */
 
 
-// // Handle investor token sell
-// router.post('/investor/sellToken', async (req, res) => {
-//     try {
-//         const { investorId, password, amount, serviceContractAddress } = req.body;
+// Handle investor token sell
+router.post('/investor/sellToken', async (req, res) => {
+    try {
+        const { investorId, password, amount, serviceContractAddress } = req.body;
 
-//         if (!investorId || !password || !amount || !serviceContractAddress) {
-//             return res.status(400).send('Missing required parameters.');
-//         }
+        if (!investorId || !password || !amount || !serviceContractAddress) {
+            return res.status(400).send('Missing required parameters.');
+        }
 
-//         // Retrieve and authenticate the investor
-//         const investor = await Investor.findById(investorId);
-//         if (!investor) {
-//             return res.status(404).send('Investor not found.');
-//         }
+        // Retrieve and authenticate the investor
+        const investor = await Investor.findById(investorId);
+        if (!investor) {
+            return res.status(404).send('Investor not found.');
+        }
 
-//         const isPasswordValid = await bcrypt.compare(password, investor.password);
-//         if (!isPasswordValid) {
-//             return res.status(401).send('Invalid credentials.');
-//         }
+        const isPasswordValid = await bcrypt.compare(password, investor.password);
+        if (!isPasswordValid) {
+            return res.status(401).send('Invalid credentials.');
+        }
 
-//         // Decrypt the investor's private key
-//         const decryptedPrivateKey = decryptPrivateKey(investor.ethereumPrivateKey, SECRET_KEY);
+        // Decrypt the investor's private key
+        const decryptedPrivateKey = decryptPrivateKey(investor.ethereumPrivateKey, SECRET_KEY);
 
-//         // Create a ServiceContract instance
-//         const serviceContract = new web3.eth.Contract(SCABI, serviceContractAddress);
+        // Create a ServiceContract instance
+        const serviceContract = new web3.eth.Contract(SCABI, serviceContractAddress);
 
-//         // Prepare the sellTokens transaction
-//         const transaction = serviceContract.methods.sellTokens(amount);
+        // Prepare the sellTokens transaction
+        const transaction = serviceContract.methods.sellTokens(amount);
 
-//         // Estimate gas and send the transaction
-//         const receipt = await estimateAndSend(transaction, investor.ethereumPublicKey, decryptedPrivateKey, serviceContractAddress, '0');
+        // Estimate gas and send the transaction
+        const receipt = await estimateAndSend(transaction, investor.ethereumPublicKey, decryptedPrivateKey, serviceContractAddress, '0');
 
-//         // Respond with the transaction receipt
-//         res.status(200).json({ receipt });
-//     } catch (error) {
-//         console.error('Error selling tokens:', error);
-//         res.status(500).send('Failed to sell tokens.');
-//     }
-// });
+        // Respond with the transaction receipt
+        res.status(200).json({ receipt });
+    } catch (error) {
+        console.error('Error selling tokens:', error);
+        res.status(500).send('Failed to sell tokens.');
+    }
+});
 
 
 /**
