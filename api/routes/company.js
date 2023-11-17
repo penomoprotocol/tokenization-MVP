@@ -392,7 +392,7 @@ router.post('/company/withdrawFunds', async (req, res) => {
         const receipt = await estimateAndSend(transaction, company.ethereumPublicKey, decryptedPrivateKey, liquidityContractAddress);
 
         // If the transaction is successful
-        return res.status(200).json({ receipt: receipt });
+        return res.status(200).json({ receipt: serializeBigIntInObject(receipt) });
 
     } catch (error) {
         console.error('Error while withdrawing funds:', error);
