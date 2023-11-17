@@ -86,6 +86,7 @@ const DIDContract = new web3.eth.Contract(DIDABI, DIDContractAddress);
 // Get gas price
 async function getCurrentGasPrice() {
     let gasPrice = await web3.eth.getGasPrice();
+    gasPrice = BigInt(gasPrice) * 200n / 100n;
     console.log(`Current Gas Price: ${gasPrice}`);
     return gasPrice;
 }
@@ -100,7 +101,7 @@ async function estimateAndSend(transaction, fromAddress, fromPrivateKey, toAddre
         const estimatedGas = await transaction.estimateGas({ from: fromAddress });
         console.log(`Estimated Gas: ${estimatedGas}`);
 
-        const bufferGas = estimatedGas * 200n / 100n;
+        const bufferGas = estimatedGas * 110n / 100n;
         const roundedGas = bufferGas + (10n - bufferGas % 10n);
         let currentGasPrice = await getCurrentGasPrice();
 
@@ -163,7 +164,7 @@ async function deployServiceContract(GSCAddress) {
         from: MASTER_ADDRESS
     });
 
-    const bufferGas = estimatedGas * 500n / 100n;  // adding a 10% buffer
+    const bufferGas = estimatedGas * 110n / 100n;  // adding a 10% buffer
     const roundedGas = bufferGas + (10n - bufferGas % 10n);  // rounding up to the nearest 10
     let currentGasPrice = await getCurrentGasPrice();
 
@@ -207,7 +208,7 @@ async function deployTokenContract(DIDs, revenueGoals, name, symbol, revenueShar
     });
 
 
-    const bufferGas = estimatedGas * 500n / 100n;  // adding a 10% buffer
+    const bufferGas = estimatedGas * 110n / 100n;  // adding a 10% buffer
     const roundedGas = bufferGas + (10n - bufferGas % 10n);  // rounding up to the nearest 10
     let currentGasPrice = await getCurrentGasPrice();
 
@@ -238,7 +239,7 @@ async function deployLiquidityContract(serviceContractAddress, BBWallet, PenomoW
         from: MASTER_ADDRESS
     });
 
-    const bufferGas = estimatedGas * 500n / 100n;  // adding a 10% buffer
+    const bufferGas = estimatedGas * 110n / 100n;  // adding a 10% buffer
     const roundedGas = bufferGas + (10n - bufferGas % 10n);  // rounding up to the nearest 10
     let currentGasPrice = await getCurrentGasPrice();
 
@@ -269,7 +270,7 @@ async function deployRevenueDistributionContract(serviceContractAddress, tokenCo
         from: MASTER_ADDRESS
     });
 
-    const bufferGas = estimatedGas * 500n / 100n;  // adding a 10% buffer
+    const bufferGas = estimatedGas * 110n / 100n;  // adding a 10% buffer
     const roundedGas = bufferGas + (10n - bufferGas % 10n);  // rounding up to the nearest 10
     let currentGasPrice = await getCurrentGasPrice();
 
