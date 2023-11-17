@@ -80,10 +80,6 @@ contract TokenContractERC20 is ERC20 {
         _;
     }
 
-    function approveServiceContract(uint256 amount) public {
-        this.approve(serviceContract, amount);
-    }
-
     function forceTransfer(
         address from,
         address to,
@@ -98,6 +94,7 @@ contract TokenContractERC20 is ERC20 {
     }
 
     // Function to list tokens for sale
+    // TODO: add require statement: does seller have set allowance of amount to service contract?
     function addTokenListing(address seller, uint256 amount) public {
         require(msg.sender == serviceContract, "Only ServiceContract can add listings");
         listings.push(TokenListing(seller, amount));

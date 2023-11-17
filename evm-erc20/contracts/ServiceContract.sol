@@ -58,44 +58,44 @@ contract ServiceContract {
 
         // Loop through token listings to fulfill order
         uint256 remainingAmount = amount;
-        while (
-            remainingAmount > 0 && tokenContractERC20.getListingsCount() > 0
-        ) {
-            TokenContractERC20.TokenListing memory listing = tokenContractERC20
-                .getListing(0);
+        // while (
+        //     remainingAmount > 0 && tokenContractERC20.getListingsCount() > 0
+        // ) {
+        //     TokenContractERC20.TokenListing memory listing = tokenContractERC20
+        //         .getListing(0);
 
-            uint256 availableAmount = listing.amount > remainingAmount
-                ? remainingAmount
-                : listing.amount;
+        //     uint256 availableAmount = listing.amount > remainingAmount
+        //         ? remainingAmount
+        //         : listing.amount;
 
-            // Transfer tokens from seller to buyer
-            tokenContractERC20.transferFrom(
-                listing.seller,
-                msg.sender,
-                availableAmount
-            );
+        //     // Transfer tokens from seller to buyer
+        //     tokenContractERC20.transferFrom(
+        //         listing.seller,
+        //         msg.sender,
+        //         availableAmount
+        //     );
 
-            // TODO: Substract the penomo fee here for every transaction
-            // Transfer funds from buyer to seller
-            uint256 transactionAmount = availableAmount *
-                tokenContractERC20.tokenPrice() / 10**18 ;
-            payable(listing.seller).transfer(transactionAmount);
+        //     // TODO: Substract the penomo fee here for every transaction
+        //     // Transfer funds from buyer to seller
+        //     uint256 transactionAmount = availableAmount *
+        //         tokenContractERC20.tokenPrice() / 10**18 ;
+        //     payable(listing.seller).transfer(transactionAmount);
 
-            // Emit event
-            emit TokensSold(msg.sender, listing.seller, availableAmount);
+        //     // Emit event
+        //     emit TokensSold(msg.sender, listing.seller, availableAmount);
 
-            // Update listing or remove if fulfilled
-            if (listing.amount == availableAmount) {
-                tokenContractERC20.removeTokenListing(0);
-            } else {
-                tokenContractERC20.updateTokenListing(
-                    0,
-                    listing.amount - availableAmount
-                );
-            }
+        //     // Update listing or remove if fulfilled
+        //     if (listing.amount == availableAmount) {
+        //         tokenContractERC20.removeTokenListing(0);
+        //     } else {
+        //         tokenContractERC20.updateTokenListing(
+        //             0,
+        //             listing.amount - availableAmount
+        //         );
+        //     }
 
-            remainingAmount -= availableAmount;
-        }
+        //     remainingAmount -= availableAmount;
+        // }
 
         // If there are still tokens to buy, buy from the token contract
         if (remainingAmount > 0) {
