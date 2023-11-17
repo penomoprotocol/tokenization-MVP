@@ -57,42 +57,46 @@ const Investor = require('../models/InvestorModel');
 
 // Get gas price
 async function getCurrentGasPrice() {
-    let gasPrice = await web3.eth.getGasPrice(); // This will get the current gas price in wei
+    let gasPrice = await web3.eth.getGasPrice();
+    console.log(`Current Gas Price: ${gasPrice}`);
     return gasPrice;
 }
 
 
 // Helper function to estimate gas and send a transaction
 async function estimateAndSend(transaction, fromAddress, fromPrivateKey, toAddress) {
+    try {
+        let currentNonce = await web3.eth.getTransactionCount(fromAddress, 'pending');
+        console.log(`Current Nonce: ${currentNonce}`);
 
-    // Fetch the current nonce
-    let currentNonce = await web3.eth.getTransactionCount(fromAddress, 'pending');
+        const estimatedGas = await transaction.estimateGas({ from: fromAddress });
+        console.log(`Estimated Gas: ${estimatedGas}`);
 
-    // Estimate gas for the transaction
-    const estimatedGas = await transaction.estimateGas({ from: fromAddress });
+        const bufferGas = estimatedGas * 200n / 100n;
+        const roundedGas = bufferGas + (10n - bufferGas % 10n);
+        let currentGasPrice = await getCurrentGasPrice();
 
-    const bufferGas = estimatedGas * 110n / 100n;  // adding a 10% buffer
-    const roundedGas = bufferGas + (10n - bufferGas % 10n);  // rounding up to the nearest 10
-    let currentGasPrice = await getCurrentGasPrice();
+        const txData = {
+            from: fromAddress,
+            to: toAddress,
+            data: transaction.encodeABI(),
+            gas: roundedGas.toString(),
+            gasPrice: currentGasPrice,
+            nonce: currentNonce
+        };
 
-    // Prepare the transaction data with nonce
-    const txData = {
-        from: fromAddress,
-        to: toAddress,
-        data: transaction.encodeABI(),
-        gas: roundedGas.toString(),
-        gasPrice: currentGasPrice,
-        nonce: currentNonce
-    };
+        console.log('Transaction Data:', txData);
 
-    // Increment the nonce for the next transaction
-    currentNonce++;
+        const signedTx = await web3.eth.accounts.signTransaction(txData, fromPrivateKey);
+        console.log('Signed Transaction:', signedTx);
 
-    // Sign the transaction
-    const signedTx = await web3.eth.accounts.signTransaction(txData, fromPrivateKey);
-
-    // Send the signed transaction
-    return web3.eth.sendSignedTransaction(signedTx.rawTransaction);
+        const receipt = await web3.eth.sendSignedTransaction(signedTx.rawTransaction);
+        console.log('Transaction Receipt:', receipt);
+        return receipt;
+    } catch (error) {
+        console.error('Error in estimateAndSend:', error);
+        throw error;
+    }
 }
 
 // Function to create a new Ethereum wallet and return the private key

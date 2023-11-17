@@ -10,27 +10,27 @@ const options = {
         tags: [
             {
                 name: 'Investor',
-                description: 'Endpoints related to investors'
+                description: 'Endpoints related to investor interactions'
             },
             {
                 name: 'Company',
-                description: 'Endpoints related to companies'
+                description: 'Endpoints related to company interactions'
             },
             {
                 name: 'Asset',
-                description: 'Endpoints related to assets'
+                description: 'Endpoints related to asset registration and data storage'
             },
             {
                 name: 'Token',
-                description: 'Endpoints related to tokenization'
+                description: 'Endpoints related to tokenization contracts'
             },
             {
                 name: 'Revenue',
-                description: 'Endpoints related to revenue streams'
+                description: 'Endpoints related to asset revenue streams'
             },
             {
                 name: 'Transaction',
-                description: 'Endpoints related to transactions'
+                description: 'Endpoints related to transaction data and billing'
             },
         ]
     },

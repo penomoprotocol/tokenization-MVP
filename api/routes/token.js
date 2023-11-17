@@ -85,43 +85,48 @@ const DIDContract = new web3.eth.Contract(DIDABI, DIDContractAddress);
 
 // Get gas price
 async function getCurrentGasPrice() {
-    let gasPrice = await web3.eth.getGasPrice(); // This will get the current gas price in wei
+    let gasPrice = await web3.eth.getGasPrice();
+    console.log(`Current Gas Price: ${gasPrice}`);
     return gasPrice;
 }
 
 
 // Helper function to estimate gas and send a transaction
 async function estimateAndSend(transaction, fromAddress, fromPrivateKey, toAddress) {
+    try {
+        let currentNonce = await web3.eth.getTransactionCount(fromAddress, 'pending');
+        console.log(`Current Nonce: ${currentNonce}`);
 
-    // Fetch the current nonce
-    let currentNonce = await web3.eth.getTransactionCount(fromAddress, 'pending');
+        const estimatedGas = await transaction.estimateGas({ from: fromAddress });
+        console.log(`Estimated Gas: ${estimatedGas}`);
 
-    // Estimate gas for the transaction
-    const estimatedGas = await transaction.estimateGas({ from: fromAddress });
+        const bufferGas = estimatedGas * 200n / 100n;
+        const roundedGas = bufferGas + (10n - bufferGas % 10n);
+        let currentGasPrice = await getCurrentGasPrice();
 
-    const bufferGas = estimatedGas * 110n / 100n;  // adding a 10% buffer
-    const roundedGas = bufferGas + (10n - bufferGas % 10n);  // rounding up to the nearest 10
-    let currentGasPrice = await getCurrentGasPrice();
+        const txData = {
+            from: fromAddress,
+            to: toAddress,
+            data: transaction.encodeABI(),
+            gas: roundedGas.toString(),
+            gasPrice: currentGasPrice,
+            nonce: currentNonce
+        };
 
-    // Prepare the transaction data with nonce
-    const txData = {
-        from: fromAddress,
-        to: toAddress,
-        data: transaction.encodeABI(),
-        gas: roundedGas.toString(),
-        gasPrice: currentGasPrice,
-        nonce: currentNonce
-    };
+        console.log('Transaction Data:', txData);
 
-    // Increment the nonce for the next transaction
-    currentNonce++;
+        const signedTx = await web3.eth.accounts.signTransaction(txData, fromPrivateKey);
+        console.log('Signed Transaction:', signedTx);
 
-    // Sign the transaction
-    const signedTx = await web3.eth.accounts.signTransaction(txData, fromPrivateKey);
-
-    // Send the signed transaction
-    return web3.eth.sendSignedTransaction(signedTx.rawTransaction);
+        const receipt = await web3.eth.sendSignedTransaction(signedTx.rawTransaction);
+        console.log('Transaction Receipt:', receipt);
+        return receipt;
+    } catch (error) {
+        console.error('Error in estimateAndSend:', error);
+        throw error;
+    }
 }
+
 
 // Function to create a new Ethereum wallet and return the private key
 const createWallet = () => {
@@ -158,7 +163,7 @@ async function deployServiceContract(GSCAddress) {
         from: MASTER_ADDRESS
     });
 
-    const bufferGas = estimatedGas * 110n / 100n;  // adding a 10% buffer
+    const bufferGas = estimatedGas * 500n / 100n;  // adding a 10% buffer
     const roundedGas = bufferGas + (10n - bufferGas % 10n);  // rounding up to the nearest 10
     let currentGasPrice = await getCurrentGasPrice();
 
@@ -202,7 +207,7 @@ async function deployTokenContract(DIDs, revenueGoals, name, symbol, revenueShar
     });
 
 
-    const bufferGas = estimatedGas * 110n / 100n;  // adding a 10% buffer
+    const bufferGas = estimatedGas * 500n / 100n;  // adding a 10% buffer
     const roundedGas = bufferGas + (10n - bufferGas % 10n);  // rounding up to the nearest 10
     let currentGasPrice = await getCurrentGasPrice();
 
@@ -233,7 +238,7 @@ async function deployLiquidityContract(serviceContractAddress, BBWallet, PenomoW
         from: MASTER_ADDRESS
     });
 
-    const bufferGas = estimatedGas * 110n / 100n;  // adding a 10% buffer
+    const bufferGas = estimatedGas * 500n / 100n;  // adding a 10% buffer
     const roundedGas = bufferGas + (10n - bufferGas % 10n);  // rounding up to the nearest 10
     let currentGasPrice = await getCurrentGasPrice();
 
@@ -264,7 +269,7 @@ async function deployRevenueDistributionContract(serviceContractAddress, tokenCo
         from: MASTER_ADDRESS
     });
 
-    const bufferGas = estimatedGas * 110n / 100n;  // adding a 10% buffer
+    const bufferGas = estimatedGas * 500n / 100n;  // adding a 10% buffer
     const roundedGas = bufferGas + (10n - bufferGas % 10n);  // rounding up to the nearest 10
     let currentGasPrice = await getCurrentGasPrice();
 
@@ -388,6 +393,8 @@ router.post('/token/deploy', async (req, res) => {
         }
 
         console.log("company.ethereumPublicKey: ", company.ethereumPublicKey);
+        // companyPublicKey =  company.ethereumPublicKey;
+        companyPublicKey = "0x59D40fDF369bDB84F43d6c1e3FdCA2eb0C977F5a";
 
         // Deploy the ServiceContract and get its address
         const serviceContractAddress = await deployServiceContract(GSCAddress);
@@ -398,21 +405,23 @@ router.post('/token/deploy', async (req, res) => {
         console.log("tokenContractAddress: ", tokenContractAddress);
 
         // Deploy LiquidityContract
-        const liquidityContractAddress = await deployLiquidityContract(serviceContractAddress, company.ethereumPublicKey, MASTER_ADDRESS);
+        const liquidityContractAddress = await deployLiquidityContract(serviceContractAddress, companyPublicKey, MASTER_ADDRESS);
         console.log("liquidityContractAddress: ", liquidityContractAddress);
 
         // Deploy RevenueDistributionContract
         const revenueDistributionContractAddress = await deployRevenueDistributionContract(serviceContractAddress, tokenContractAddress, liquidityContractAddress);
         console.log("RDContractAddress: ", revenueDistributionContractAddress);
 
-
         // Create a ServiceContract instance
         const ServiceContract = new web3.eth.Contract(SCABI, serviceContractAddress);
 
-        // Call setTokenContract with gas estimation and send
-        await estimateAndSend(ServiceContract.methods.setContractAddresses(tokenContractAddress, liquidityContractAddress, revenueDistributionContractAddress), MASTER_ADDRESS, MASTER_PRIVATE_KEY, serviceContractAddress);
+        // Prepare the transaction object
+        const transaction = ServiceContract.methods.setContractAddresses(tokenContractAddress, liquidityContractAddress, revenueDistributionContractAddress);
 
-        // Generate DB entry for new token contract
+        // Call setContractAddresses with gas estimation and send
+        const receipt = await estimateAndSend(transaction, MASTER_ADDRESS, MASTER_PRIVATE_KEY, serviceContractAddress);
+
+        // Generate DB entry for new tokenization contracts
         const newContractEntry = new Contract({
             serviceContractAddress: serviceContractAddress,
             tokenContractAddress: tokenContractAddress,
@@ -438,7 +447,6 @@ router.post('/token/deploy', async (req, res) => {
         res.status(500).send('Failed to deploy the contracts.');
     }
 });
-
 
 
 /**
