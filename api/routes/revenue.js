@@ -64,7 +64,8 @@ const Revenue = require('../models/RevenueModel');
 // Get gas price
 async function getCurrentGasPrice() {
     let gasPrice = await web3.eth.getGasPrice(); // This will get the current gas price in wei
-    gasPrice = 200n/100n*gasPrice;
+    console.log(`Current Gas Price: ${gasPrice}`);
+    gasPrice = BigInt(gasPrice) * 200n / 100n;
     return gasPrice;
 }
 

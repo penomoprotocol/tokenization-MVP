@@ -86,8 +86,8 @@ const DIDContract = new web3.eth.Contract(DIDABI, DIDContractAddress);
 // Get gas price
 async function getCurrentGasPrice() {
     let gasPrice = await web3.eth.getGasPrice();
-    gasPrice = BigInt(gasPrice) * 200n / 100n;
     console.log(`Current Gas Price: ${gasPrice}`);
+    gasPrice = BigInt(gasPrice) * 200n / 100n;
     return gasPrice;
 }
 

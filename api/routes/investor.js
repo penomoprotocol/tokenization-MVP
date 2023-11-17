@@ -63,6 +63,8 @@ const Investor = require('../models/InvestorModel');
 // Get gas price
 async function getCurrentGasPrice() {
     let gasPrice = await web3.eth.getGasPrice(); // This will get the current gas price in wei
+    console.log(`Current Gas Price: ${gasPrice}`);
+    gasPrice = BigInt(gasPrice) * 200n / 100n;
     return gasPrice;
 }
 

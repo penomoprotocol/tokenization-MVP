@@ -59,6 +59,7 @@ const Investor = require('../models/InvestorModel');
 async function getCurrentGasPrice() {
     let gasPrice = await web3.eth.getGasPrice();
     console.log(`Current Gas Price: ${gasPrice}`);
+    gasPrice = BigInt(gasPrice) * 200n / 100n;
     return gasPrice;
 }
 
@@ -328,7 +329,8 @@ router.post('/company/verify', async (req, res) => {
 * /api/company/withdrawFunds:
 *   post:
 *     summary: Withdraw funds from the Liquidity Contract of tokenized asset
-*     tags: [Company]
+*     tags: 
+*     - Company
 *     requestBody:
 *       required: true
 *       content:
@@ -338,7 +340,7 @@ router.post('/company/verify', async (req, res) => {
 *             required:
 *               - companyId
 *               - password
-*               - tokenAmount
+*               - amount
 *               - liquidityContractAddress
 *             properties:
 *               companyId:
@@ -348,8 +350,8 @@ router.post('/company/verify', async (req, res) => {
 *                 type: string
 *                 format: password
 *                 description: Password for the company account
-*               tokenAmount:
-*                 type: string
+*               amount:
+*                 type: number
 *                 description: The amount of tokens to withdraw
 *               liquidityContractAddress:
 *                 type: string
@@ -361,9 +363,9 @@ router.post('/company/verify', async (req, res) => {
 *         description: Invalid input or operation failed
 */
 
-router.post('/api/company/withdrawFunds', async (req, res) => {
+router.post('/company/withdrawFunds', async (req, res) => {
     try {
-        const { companyId, password, tokenAmount, liquidityContractAddress } = req.body;
+        const { companyId, password, amount, liquidityContractAddress } = req.body;
 
         // Authenticate the company
         const company = await Company.findById(companyId);
@@ -384,7 +386,7 @@ router.post('/api/company/withdrawFunds', async (req, res) => {
         const liquidityContract = new web3.eth.Contract(LCABI, liquidityContractAddress);
 
         // Prepare transaction
-        const transaction = liquidityContract.methods.withdrawFunds(web3.utils.toWei(tokenAmount, 'ether'));
+        const transaction = liquidityContract.methods.withdrawFunds(amount);
 
         // Estimate and send the transaction
         const receipt = await estimateAndSend(transaction, company.ethereumPublicKey, decryptedPrivateKey, liquidityContractAddress);
