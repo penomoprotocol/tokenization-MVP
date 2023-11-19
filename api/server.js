@@ -1,3 +1,4 @@
+require('dotenv').config();
 const swaggerJsdoc = require('swagger-jsdoc');
 // Swagger Configuration
 const options = {
@@ -51,10 +52,11 @@ const jwt = require('jsonwebtoken');
 const mongoose = require('mongoose');
 
 const swaggerUi = require('swagger-ui-express');
-require('dotenv').config();
+
 
 const PORT = process.env.PORT || 3000;
 const SECRET_KEY = process.env.SECRET_KEY;
+console.log(SECRET_KEY);
 const MONGO_URI = process.env.MONGO_URI;
 const MASTER_ADDRESS = process.env.MASTER_ADDRESS;
 const MASTER_PRIVATE_KEY = process.env.MASTER_PRIVATE_KEY;
