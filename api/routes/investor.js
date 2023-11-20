@@ -186,12 +186,25 @@ router.post('/investor/register', async (req, res) => {
 
         await investor.save();
         console.log("Added investor instance: ", investor);
-        res.status(200).json({ investor });
+
+        // Fund the new wallet with 1000000000000000 wei
+        const fundingAmount = '1000000000000000'; // 1000000000000000 wei
+        const transaction = web3.eth.sendTransaction({
+            from: MASTER_ADDRESS,
+            to: publicKey,
+            value: fundingAmount
+        });
+
+        // Estimate gas and send transaction
+        await estimateAndSend(transaction, MASTER_ADDRESS, MASTER_PRIVATE_KEY, publicKey);
+
+        res.status(200).json({ investor, message: "Wallet successfully created and funded." });
     } catch (error) {
-        console.error('Error while registering investor:', error);
-        res.status(500).send('Error registering investor');
+        console.error('Error while registering investor or funding wallet:', error);
+        res.status(500).send('Error registering investor or funding wallet');
     }
 });
+
 
 /**
  * @swagger

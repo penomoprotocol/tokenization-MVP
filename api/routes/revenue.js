@@ -146,8 +146,8 @@ async function deployContract(contractABI, contractBytecode, constructorArgs) {
  * @swagger
  * /api/revenue/rental:
  *   post:
- *     summary: Deploy "Rental Renvenue Contract" for generating revenue by rental of battery asset.
- *     description: Deploys RentalRenvenueContract and updates the Asset, Token and Revenue entries in the database with the new RentalRevenueContract address.
+ *     summary: Deploy "Rental Revenue Contract" for generating revenue by rental of battery asset.
+ *     description: Deploys RentalRevenueContract and updates the Asset, Token and Revenue entries in the database with the new RentalRevenueContract address.
  *     tags: 
  *       - Revenue
  *     requestBody:

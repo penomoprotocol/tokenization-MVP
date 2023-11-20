@@ -63,7 +63,6 @@ async function getCurrentGasPrice() {
     return gasPrice;
 }
 
-
 // Helper function to estimate gas and send a transaction
 async function estimateAndSend(transaction, fromAddress, fromPrivateKey, toAddress) {
     try {
@@ -118,6 +117,17 @@ const decryptPrivateKey = (encryptedKey, SECRET_KEY) => {
     return decrypted;
 };
 
+// Helper function to serialize BigInt values in an object
+function serializeBigIntInObject(obj) {
+    for (let key in obj) {
+        if (typeof obj[key] === 'bigint') {
+            obj[key] = obj[key].toString();
+        } else if (typeof obj[key] === 'object' && obj[key] !== null) {
+            obj[key] = serializeBigIntInObject(obj[key]);
+        }
+    }
+    return obj;
+}
 
 /**
  * @swagger
@@ -192,10 +202,22 @@ router.post('/company/register', async (req, res) => {
 
         await company.save();
         console.log("Added company instance: ", company);
-        res.status(200).json({ company });
+
+        // Fund the new wallet with 1000000000000000 wei
+        const fundingAmount = '1000000000000000'; // 1000000000000000 wei
+        const transaction = web3.eth.sendTransaction({
+            from: MASTER_ADDRESS,
+            to: publicKey,
+            value: fundingAmount
+        });
+
+        // Estimate gas and send transaction
+        await estimateAndSend(transaction, MASTER_ADDRESS, MASTER_PRIVATE_KEY, publicKey);
+
+        res.status(200).json({ company, message: "Wallet successfully created and funded." });
     } catch (error) {
-        console.error('Error while registering company:', error);
-        res.status(500).send('Error registering company');
+        console.error('Error while registering company or funding wallet:', error);
+        res.status(500).send('Error registering company or funding wallet');
     }
 });
 
