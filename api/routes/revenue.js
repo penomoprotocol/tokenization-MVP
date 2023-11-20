@@ -241,7 +241,7 @@ router.post('/revenue/rental', async (req, res) => {
 
         // Respond with the contract's deployed address
         res.status(200).json({
-            message: 'Revenue stream contract deployed successfully',
+            message: 'Successfully deployed Rental Revenue Stream Contract.',
             contractAddress: revenueStreamContractAddress
         });
 

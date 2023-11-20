@@ -601,6 +601,7 @@ router.post('/token/deploy', async (req, res) => {
 
         // Respond with the deployed contracts' addresses
         res.status(200).json({
+            message: "Successfully deployed tokenization contracts.",
             tokenContractAddress: tokenContractAddress,
             serviceContractAddress: serviceContractAddress,
             liquidityContractAddress: liquidityContractAddress,
