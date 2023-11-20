@@ -236,7 +236,8 @@ router.post('/asset/register', async (req, res) => {
 
         // Return the DID and public key to the caller
         res.status(200).json({
-            newAsset
+            message: 'Successfully registered battery asset.',
+            newAsset,
         });
 
     } catch (error) {
@@ -363,8 +364,8 @@ router.post('/asset/storeData', async (req, res) => {
 
         // Respond with the IPFS CID
         res.status(200).json({
+            message: 'Successfully stored battery data on IPFS. Updated battery asset DID document with CID',
             cid: cid,
-            message: 'Asset updated with new battery data CID',
         });
     } catch (error) {
         console.error('Error updating asset with battery data:', error);
