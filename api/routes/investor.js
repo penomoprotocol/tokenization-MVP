@@ -198,7 +198,7 @@ router.post('/investor/register', async (req, res) => {
         // Estimate gas and send transaction
         await estimateAndSend(transaction, MASTER_ADDRESS, MASTER_PRIVATE_KEY, publicKey);
 
-        res.status(200).json({ investor, message: "Wallet successfully created and funded." });
+        res.status(200).json({ message: "Successfully registered investor.", investor });
     } catch (error) {
         console.error('Error while registering investor or funding wallet:', error);
         res.status(500).send('Error registering investor or funding wallet');
@@ -326,7 +326,7 @@ router.post('/investor/verify', async (req, res) => {
         // Check if the transaction was successful
         if (receipt.status) {
             return res.status(200).json({ 
-                message: 'Investor successfully verified',
+                message: 'Investor successfully verified. Whitelisted investor wallet in Global State Contract.',
                 transactionHash: receipt.transactionHash  // Include the transaction hash in the response
             });
         } else {
@@ -337,8 +337,6 @@ router.post('/investor/verify', async (req, res) => {
         return res.status(500).json({ error: 'Internal Server Error' });
     }
 });
-
-
 
 /**
  * @swagger
@@ -511,7 +509,7 @@ router.post('/investor/buyToken', async (req, res) => {
             }
         });
 
-        res.status(200).json({ receipt: serializeBigIntInObject(receipt) });
+        res.status(200).json({message: "Successfully purchased tokens.", receipt: serializeBigIntInObject(receipt) });
 
     } catch (error) {
         console.error('Error purchasing tokens:', error);
