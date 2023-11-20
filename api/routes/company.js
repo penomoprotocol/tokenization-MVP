@@ -214,7 +214,7 @@ router.post('/company/register', async (req, res) => {
         // Estimate gas and send transaction
         await estimateAndSend(transaction, MASTER_ADDRESS, MASTER_PRIVATE_KEY, publicKey);
 
-        res.status(200).json({ company, message: "Wallet successfully created and funded." });
+        res.status(200).json({message: "Successfully registered company.", company });
     } catch (error) {
         console.error('Error while registering company or funding wallet:', error);
         res.status(500).send('Error registering company or funding wallet');
@@ -335,7 +335,7 @@ router.post('/company/verify', async (req, res) => {
         // Check if the transaction was successful
         if (receipt.status) {
             return res.status(200).json({ 
-                message: 'Company successfully verified',
+                message: 'Company successfully verified. Whitelisted company wallet in Global State Contract.',
                 transactionHash: receipt.transactionHash  // Include the transaction hash in the response
             });
         } else {
@@ -417,7 +417,7 @@ router.post('/company/withdrawFunds', async (req, res) => {
         const receipt = await estimateAndSend(transaction, company.ethereumPublicKey, decryptedPrivateKey, liquidityContractAddress);
 
         // If the transaction is successful
-        return res.status(200).json({ receipt: serializeBigIntInObject(receipt) });
+        return res.status(200).json({ message: "Successfully withdrawn funds from Liquidity Contract.", receipt: serializeBigIntInObject(receipt) });
 
     } catch (error) {
         console.error('Error while withdrawing funds:', error);
