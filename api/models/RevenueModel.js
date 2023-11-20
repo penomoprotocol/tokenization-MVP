@@ -39,14 +39,6 @@ const revenueSchema = new mongoose.Schema({
         ref: 'Company', // Reference to the Company model
         required: true,
     },
-    createdAt: {
-        type: Date,
-        default: Date.now,
-    },
-    updatedAt: {
-        type: Date,
-        default: Date.now,
-    },
 });
 
 // Optional: Add indexes for faster query performance
@@ -54,11 +46,6 @@ revenueSchema.index({ serviceContractAddress: 1 });
 revenueSchema.index({ assetDID: 1 });
 revenueSchema.index({ companyId: 1 });
 
-// Optional: Add pre-save middleware to handle updatedAt field
-revenueSchema.pre('save', function(next) {
-    this.updatedAt = Date.now();
-    next();
-});
 
 const Revenue = mongoose.model('Revenue', revenueSchema);
 
