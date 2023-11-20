@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.20;
 
-import "./TokenContractERC20.sol"; // Import the previously defined token contract
+import "./TokenContractERC20.sol"; // Import ERC20 template
 import "./LiquidityContract.sol";
 
 contract RevenueDistributionContract {

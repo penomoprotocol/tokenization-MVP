@@ -4,7 +4,7 @@ pragma solidity ^0.8.20;
 contract LiquidityContract {
     address public serviceContract; // Address of the ServiceContract
     address public BBWallet; // Address of the Battery Business Wallet
-    address public PenomoWallet; // Address of the Penomo platform's wallet
+    address public PenomoWallet; // Address of the penomo master wallet
 
     // Events
     event ReceivedFunds(address indexed from, uint256 amount);

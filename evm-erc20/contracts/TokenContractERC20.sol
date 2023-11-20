@@ -14,9 +14,9 @@ contract TokenContractERC20 is ERC20 {
     address public penomoWallet;
 
     struct Battery {
-        string DID;
-        string CID;
-        uint256 revenueGoal;
+        string DID; // Battery DID
+        string CID; // Battery Data CID (IPFS)
+        uint256 revenueGoal; // Battery Revenue Goal in wei for contract term
     }
     Battery[] public batteries;
     address[] public tokenHolders;
@@ -145,6 +145,4 @@ contract TokenContractERC20 is ERC20 {
         return tokenHolders;
     }
 
-    // Additional functions for battery data, revenue share, etc.
-    // ...
 }
