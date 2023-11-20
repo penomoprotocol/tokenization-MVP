@@ -94,6 +94,9 @@ contract RevenueStreamContract {
         payable(owner).transfer(address(this).balance);
     }
 
+    // Function to up Ether
+    function topUp() external payable {}
+
     // Fallback function to accept Ether
     receive() external payable {}
 }

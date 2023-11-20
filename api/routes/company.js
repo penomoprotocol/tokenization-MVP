@@ -205,16 +205,23 @@ router.post('/company/register', async (req, res) => {
 
         // Fund the new wallet with 1000000000000000 wei
         const fundingAmount = '1000000000000000'; // 1000000000000000 wei
-        const transaction = web3.eth.sendTransaction({
+
+        // Create a raw transaction object
+        const transaction = {
             from: MASTER_ADDRESS,
             to: publicKey,
-            value: fundingAmount
-        });
+            value: fundingAmount,
+            gasLimit: web3.utils.toHex(21000), // Standard gas limit for Ether transfers
+            gasPrice: web3.utils.toHex(await web3.eth.getGasPrice()) // Get current gas price
+        };
+        // Sign the transaction with the master's private key
+        const signedTx = await web3.eth.accounts.signTransaction(transaction, MASTER_PRIVATE_KEY);
 
-        // Estimate gas and send transaction
-        await estimateAndSend(transaction, MASTER_ADDRESS, MASTER_PRIVATE_KEY, publicKey);
+        // Send the signed transaction
+        const receipt = await web3.eth.sendSignedTransaction(signedTx.rawTransaction);
 
-        res.status(200).json({message: "Successfully registered company.", company });
+
+        res.status(200).json({ message: "Successfully registered company.", company });
     } catch (error) {
         console.error('Error while registering company or funding wallet:', error);
         res.status(500).send('Error registering company or funding wallet');
@@ -334,7 +341,7 @@ router.post('/company/verify', async (req, res) => {
 
         // Check if the transaction was successful
         if (receipt.status) {
-            return res.status(200).json({ 
+            return res.status(200).json({
                 message: 'Company successfully verified. Whitelisted company wallet in Global State Contract.',
                 transactionHash: receipt.transactionHash  // Include the transaction hash in the response
             });

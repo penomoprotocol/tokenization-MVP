@@ -207,7 +207,7 @@ router.post('/revenue/rental', async (req, res) => {
         }
 
         // Prepare constructor arguments
-        const constructorArgs = [serviceContractAddress, web3.utils.toWei(pricePerUnit.toString(), 'ether'), asset.publicKey];
+        const constructorArgs = [serviceContractAddress, pricePerUnit, asset.publicKey];
 
         // Deploy the contract
         const revenueStreamContractAddress = await deployContract(RSCABI, RSCBytecode, constructorArgs);
