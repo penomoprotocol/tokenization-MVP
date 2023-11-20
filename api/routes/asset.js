@@ -236,8 +236,7 @@ router.post('/asset/register', async (req, res) => {
 
         // Return the DID and public key to the caller
         res.status(200).json({
-            did: did,
-            publicKey: publicKey
+            newAsset
         });
 
     } catch (error) {

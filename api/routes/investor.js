@@ -145,7 +145,9 @@ function serializeBigIntInObject(obj) {
  *           schema:
  *             type: object
  *             properties:
- *               name:
+ *               surname:
+ *                 type: string
+ *               firstname:
  *                 type: string
  *               email:
  *                 type: string
@@ -161,7 +163,7 @@ function serializeBigIntInObject(obj) {
 // Investor Registration
 router.post('/investor/register', async (req, res) => {
     try {
-        const { name, email, password } = req.body;
+        const { surname, firstname, email, password } = req.body;
         const hashedPassword = await bcrypt.hash(password, 10);
 
         // Create a new Ethereum wallet and get the private key
@@ -174,7 +176,8 @@ router.post('/investor/register', async (req, res) => {
         const encryptedPrivateKey = encryptPrivateKey(privateKey, SECRET_KEY);
 
         const investor = new Investor({
-            name,
+            surname,
+            firstname,
             email,
             password: hashedPassword,
             ethereumPrivateKey: encryptedPrivateKey, // Store the encrypted private key
@@ -309,14 +312,16 @@ router.post('/investor/verify', async (req, res) => {
 
         // Check if the transaction was successful
         if (receipt.status) {
-            return res.status(200).json({ message: 'Investor successfully verified' });
+            return res.status(200).json({ 
+                message: 'Investor successfully verified',
+                transactionHash: receipt.transactionHash  // Include the transaction hash in the response
+            });
         } else {
             return res.status(500).json({ error: 'Transaction failed' });
         }
-
     } catch (error) {
-        console.error('Error in investor verification:', error);
-        return res.status(500).json({ error: 'An error occurred' });
+        console.error('Error:', error);
+        return res.status(500).json({ error: 'Internal Server Error' });
     }
 });
 

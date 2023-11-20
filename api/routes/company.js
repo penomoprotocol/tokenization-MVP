@@ -312,7 +312,10 @@ router.post('/company/verify', async (req, res) => {
 
         // Check if the transaction was successful
         if (receipt.status) {
-            return res.status(200).json({ message: 'Company successfully verified' });
+            return res.status(200).json({ 
+                message: 'Company successfully verified',
+                transactionHash: receipt.transactionHash  // Include the transaction hash in the response
+            });
         } else {
             return res.status(500).json({ error: 'Transaction failed' });
         }

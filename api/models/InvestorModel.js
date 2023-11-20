@@ -2,7 +2,11 @@ const mongoose = require('mongoose');
 
 // Define investor schema
 const investorSchema = new mongoose.Schema({
-    name: {
+    surname: {
+        type: String,
+        required: true
+    },    
+    firstname: {
         type: String,
         required: true
     },

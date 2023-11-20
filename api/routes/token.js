@@ -311,7 +311,6 @@ async function deployRevenueDistributionContract(serviceContractAddress, tokenCo
 //  *               - companyId
 //  *               - password
 //  *               - DIDs
-//  *               - revenueGoals
 //  *               - name
 //  *               - symbol
 //  *               - revenueShare
@@ -330,11 +329,6 @@ async function deployRevenueDistributionContract(serviceContractAddress, tokenCo
 //  *                 items:
 //  *                   type: string
 //  *                 description: Array of Digital Identity Identifiers.
-//  *               revenueGoals:
-//  *                 type: array
-//  *                 items:
-//  *                   type: number
-//  *                 description: Array of revenue goals for each asset.
 //  *               name:
 //  *                 type: string
 //  *                 description: Name of the token.
@@ -473,7 +467,6 @@ async function deployRevenueDistributionContract(serviceContractAddress, tokenCo
  *               - password
  *               - DIDs
  *               - CIDs
- *               - revenueGoals
  *               - name
  *               - symbol
  *               - revenueShare
@@ -497,11 +490,6 @@ async function deployRevenueDistributionContract(serviceContractAddress, tokenCo
  *                 items:
  *                   type: string
  *                 description: Array of IPFS Identifiers. 
- *               revenueGoals:
- *                 type: array
- *                 items:
- *                   type: number
- *                 description: Array of revenue goals for each asset.
  *               name:
  *                 type: string
  *                 description: Name of the token.
@@ -546,9 +534,9 @@ async function deployRevenueDistributionContract(serviceContractAddress, tokenCo
 router.post('/token/deploy', async (req, res) => {
     try {
         // Get data from the request
-        const { companyId, password, DIDs, CIDs, revenueGoals, name, symbol, revenueShare, contractTerm, maxTokenSupply, tokenPrice } = req.body;
+        const { companyId, password, DIDs, CIDs, name, symbol, revenueShare, contractTerm, maxTokenSupply, tokenPrice } = req.body;
 
-        if (!companyId || !password || !DIDs || !CIDs || !revenueGoals || !name || !symbol || !revenueShare || !contractTerm || !maxTokenSupply || !tokenPrice) {
+        if (!companyId || !password || !DIDs || !CIDs || !name || !symbol || !revenueShare || !contractTerm || !maxTokenSupply || !tokenPrice) {
             return res.status(400).send('Missing required parameters.');
         }
 
@@ -574,7 +562,7 @@ router.post('/token/deploy', async (req, res) => {
         const serviceContractAddress = await deployServiceContract(GSCAddress);
 
         // Deploy the TokenContract using the ServiceContract's address
-        const tokenContractAddress = await deployTokenContract(DIDs, CIDs, revenueGoals, name, symbol, revenueShare, contractTerm, maxTokenSupply, tokenPrice, serviceContractAddress);
+        const tokenContractAddress = await deployTokenContract(DIDs, CIDs, [10000], name, symbol, revenueShare, contractTerm, maxTokenSupply, tokenPrice, serviceContractAddress);
 
         // Deploy LiquidityContract
         const liquidityContractAddress = await deployLiquidityContract(serviceContractAddress, BBWalletAddress, MASTER_ADDRESS);
@@ -598,6 +586,8 @@ router.post('/token/deploy', async (req, res) => {
 
         // Generate DB entry for new tokenization contracts
         const newContractEntry = new Contract({
+            name:name,
+            symbol: symbol,
             serviceContractAddress: serviceContractAddress,
             tokenContractAddress: tokenContractAddress,
             liquidityContractAddress: liquidityContractAddress,
