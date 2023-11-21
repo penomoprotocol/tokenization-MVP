@@ -1,20 +1,27 @@
-.footer {
+/* Footer container */
+.footer-container {
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh; /* Full height of the viewport */
+  }
+  
+  /* Content wrapper */
+  .content-wrap {
+    flex: 1; /* Allows content to expand and push footer down */
+  }
+  
+  /* Footer styling */
+  .footer {
     background-color: #f8f9fa;
     border-top: 1px solid #e7e7e7;
     text-align: center;
-    padding: 20px;
+    margin-top: auto; /* Pushes the footer to the bottom */
+    padding: 10px 0;
     position: relative;
-    left: 0;
-    bottom: 0;
     width: 100%;
+    font-size: 0.8rem;
+    line-height: 1.2;
   }
   
-  .footer-container {
-    max-width: 1170px;
-    margin: 0 auto;
-  }
   
-  .footer-text {
-    margin: 0;
-  }
   

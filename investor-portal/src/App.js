@@ -15,22 +15,32 @@ import TransactionHistoryPage from './pages/TransactionHistoryPage';
 import NavBar from './components/NavBar';
 import Footer from './components/Footer';
 
+// Importing styling
+import './App.css'; 
+import './components/Footer.css'; // Import the CSS for Footer
+
 function App() {
   return (
-    <Router>
-      <NavBar />
-      <Routes>
-        <Route path="/" element={<Home />} />
-        <Route path="/register" element={<RegistrationPage />} />
-        <Route path="/login" element={<LoginPage />} />
-        <Route path="/dashboard" element={<InvestorDashboard />} />
-        <Route path="/buy-tokens" element={<BuyTokensPage />} />
-        <Route path="/update-profile" element={<ProfileUpdatePage />} />
-        <Route path="/kyc-verification" element={<KYCVerificationPage />} />
-        <Route path="/transaction-history" element={<TransactionHistoryPage />} />
-      </Routes>
-      <Footer />
-    </Router>
+    <div id="root">
+      <div className="footer-container">
+        <div className="content-wrap">
+          <Router>
+            <NavBar />
+            <Routes>
+              <Route path="/" element={<Home />} />
+              <Route path="/register" element={<RegistrationPage />} />
+              <Route path="/login" element={<LoginPage />} />
+              <Route path="/dashboard" element={<InvestorDashboard />} />
+              <Route path="/buy-tokens" element={<BuyTokensPage />} />
+              <Route path="/update-profile" element={<ProfileUpdatePage />} />
+              <Route path="/kyc-verification" element={<KYCVerificationPage />} />
+              <Route path="/transaction-history" element={<TransactionHistoryPage />} />
+            </Routes>
+          </Router>
+        </div>
+        <Footer />
+      </div>
+    </div>
   );
 }
 
