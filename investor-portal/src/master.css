@@ -66,6 +66,19 @@ html, body {
     background-color: #333;
     color: white;
   }
+
+  .btn-penomo {
+    background-color: #00b39f; /* Penomo color */
+    color: black;
+    margin-left: 25%;
+    margin-right:25%;
+    /* Add any additional styling you want for the button */
+  }
+  
+  .btn-penomo:hover {
+    background-color: #00897b; /* A darker variant of Penomo color for hover effect */
+    /* Adjust hover effect as desired */
+  }
   
 
 /* Modal styles */

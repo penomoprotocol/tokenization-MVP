@@ -9,7 +9,7 @@ import InvestorDashboard from './pages/InvestorDashboard';
 import BuyTokens from './components/BuyTokens';
 import ProfileUpdatePage from './pages/ProfileUpdatePage';
 import KYCVerificationPage from './pages/KYCVerificationPage';
-import TransactionHistoryPage from './pages/TransactionHistoryPage';
+import Transactions from './pages/Transactions';
 
 // Importing common components
 import NavBar from './components/NavBar';
@@ -36,7 +36,7 @@ function App() {
               <Route path="/marketplace" element={<Marketplace />} />
               <Route path="/update-profile" element={<ProfileUpdatePage />} />
               <Route path="/kyc-verification" element={<KYCVerificationPage />} />
-              <Route path="/transaction-history" element={<TransactionHistoryPage />} />
+              <Route path="/transaction-history" element={<Transactions />} />
             </Routes>
           </Router>
         </div>
