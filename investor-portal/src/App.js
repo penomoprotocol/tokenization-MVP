@@ -6,7 +6,7 @@ import Home from './pages/Home';
 import RegistrationPage from './pages/RegistrationPage';
 import LoginPage from './pages/LoginPage';
 import InvestorDashboard from './pages/InvestorDashboard';
-import BuyTokensPage from './pages/BuyTokensPage';
+import BuyTokens from './components/BuyTokens';
 import ProfileUpdatePage from './pages/ProfileUpdatePage';
 import KYCVerificationPage from './pages/KYCVerificationPage';
 import TransactionHistoryPage from './pages/TransactionHistoryPage';
@@ -16,8 +16,10 @@ import NavBar from './components/NavBar';
 import Footer from './components/Footer';
 
 // Importing styling
+import './master.css'
 import './App.css'; 
 import './components/Footer.css'; // Import the CSS for Footer
+import Marketplace from './pages/Marketplace';
 
 function App() {
   return (
@@ -31,7 +33,7 @@ function App() {
               <Route path="/register" element={<RegistrationPage />} />
               <Route path="/login" element={<LoginPage />} />
               <Route path="/dashboard" element={<InvestorDashboard />} />
-              <Route path="/buy-tokens" element={<BuyTokensPage />} />
+              <Route path="/marketplace" element={<Marketplace />} />
               <Route path="/update-profile" element={<ProfileUpdatePage />} />
               <Route path="/kyc-verification" element={<KYCVerificationPage />} />
               <Route path="/transaction-history" element={<TransactionHistoryPage />} />

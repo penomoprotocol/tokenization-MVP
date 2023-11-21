@@ -11,17 +11,24 @@
   }
   
   /* Footer styling */
-  .footer {
+  /* .footer {
     background-color: #f8f9fa;
     border-top: 1px solid #e7e7e7;
     text-align: center;
-    margin-top: auto; /* Pushes the footer to the bottom */
+    margin-top: auto; /* Pushes the footer to the bottom 
     padding: 10px 0;
     position: relative;
     width: 100%;
     font-size: 0.8rem;
     line-height: 1.2;
-  }
+  } 
+  */
   
-  
+    /* Footer */
+    .footer {
+      text-align: center;
+      padding: 1rem 0;
+      background-color: #333;
+      color: white;
+    }
   

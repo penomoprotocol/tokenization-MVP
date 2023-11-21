@@ -1,9 +1,23 @@
-.navbar-brand {
-    font-weight: bold;
+.navbar {
+    height: 60px; /* Adjust to the height you want */
+    padding: 0 1rem; /* Adjust horizontal padding if needed, remove vertical padding */
   }
   
-  .nav-link {
-    color: #007bff;
+  .navbar-brand {
+    display: flex;
+    align-items: center; /* Centers the logo vertically */
+    height: 100%;
   }
-
   
+  .navbar-logo {
+    max-height: 30px; /* 90% of the navbar's height */
+    width: auto; /* Maintain aspect ratio */
+    margin-right: 10px;
+  }
+  
+  .navbar-brand-text {
+    max-height: 1px; 
+    font-size: smaller;
+    width: auto; 
+    margin-right: 10px;
+  }

@@ -1,0 +1,30 @@
+/* Add to your CSS file */
+.section-container {
+    display: flex;
+    flex-direction: column;
+    height: 100%; /* Make sure the container takes the full height */
+  }
+  
+  .card-content {
+    flex: 1; /* This will push the button to the bottom */
+  }
+  
+  .btn-container {
+    margin-top: auto; /* This will push the button to the bottom of the card */
+  }
+  
+  /* Marketplace.css */
+
+.btn-penomo {
+    background-color: #00b39f; /* Penomo color */
+    color: black;
+    margin-left: 25%;
+    margin-right:25%;
+    /* Add any additional styling you want for the button */
+  }
+  
+  .btn-penomo:hover {
+    background-color: #00897b; /* A darker variant of Penomo color for hover effect */
+    /* Adjust hover effect as desired */
+  }
+  
