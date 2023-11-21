@@ -1,0 +1,25 @@
+.home {
+    text-align: center;
+    margin: 20px;
+  }
+  
+  .navigation-links {
+    margin-top: 20px;
+  }
+  
+  .btn {
+    margin: 10px;
+    padding: 10px 15px;
+    text-decoration: none;
+    color: white;
+    border-radius: 5px;
+  }
+  
+  .btn-primary {
+    background-color: #007bff;
+  }
+  
+  .btn-secondary {
+    background-color: #6c757d;
+  }
+  
