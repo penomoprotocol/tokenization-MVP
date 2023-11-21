@@ -6,10 +6,10 @@ import Home from './pages/Home';
 import RegistrationPage from './pages/RegistrationPage';
 import LoginPage from './pages/LoginPage';
 import InvestorDashboard from './pages/InvestorDashboard';
-import BuyTokens from './components/BuyTokens';
 import ProfileUpdatePage from './pages/ProfileUpdatePage';
 import KYCVerificationPage from './pages/KYCVerificationPage';
 import Transactions from './pages/Transactions';
+import Marketplace from './pages/Marketplace';
 
 // Importing common components
 import NavBar from './components/NavBar';
@@ -19,7 +19,6 @@ import Footer from './components/Footer';
 import './master.css'
 import './App.css'; 
 import './components/Footer.css'; // Import the CSS for Footer
-import Marketplace from './pages/Marketplace';
 
 function App() {
   return (

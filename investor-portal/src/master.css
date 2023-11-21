@@ -69,15 +69,18 @@ html, body {
 
   .btn-penomo {
     background-color: #00b39f; /* Penomo color */
-    color: black;
-    margin-left: 25%;
-    margin-right:25%;
-    /* Add any additional styling you want for the button */
+    color: #000; /* Text color set to black */
+    border: none; /* Removes any default border */
+    padding: 10px 20px; /* Padding for size */
+    border-radius: 5px; /* Rounded corners */
+    font-weight: bold; /* Bold font */
+    cursor: pointer; /* Cursor indicates clickable button */
+    outline: none; /* Removes outline on focus for some browsers */
+    transition: background-color 0.3s; /* Smooth transition for hover effect */
   }
   
   .btn-penomo:hover {
-    background-color: #00897b; /* A darker variant of Penomo color for hover effect */
-    /* Adjust hover effect as desired */
+    background-color: #00897b; /* Darker shade of Penomo color for hover state */
   }
   
 
