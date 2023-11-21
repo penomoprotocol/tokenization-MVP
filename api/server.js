@@ -1,6 +1,7 @@
 require('dotenv').config();
-const swaggerJsdoc = require('swagger-jsdoc');
+
 // Swagger Configuration
+const swaggerJsdoc = require('swagger-jsdoc');
 const options = {
     definition: {
         openapi: '3.0.0',
@@ -39,6 +40,7 @@ const options = {
 }
 const openapiSpecification = swaggerJsdoc(options);
 
+// Imports
 const express = require('express');
 const CryptoJS = require('crypto-js');
 const { web3, networkId, GSCAddress } = require('./config/web3Config');
@@ -53,7 +55,7 @@ const mongoose = require('mongoose');
 
 const swaggerUi = require('swagger-ui-express');
 
-
+// Load environment variables
 const PORT = process.env.PORT || 3000;
 const SECRET_KEY = process.env.SECRET_KEY;
 console.log(SECRET_KEY);
@@ -61,6 +63,7 @@ const MONGO_URI = process.env.MONGO_URI;
 const MASTER_ADDRESS = process.env.MASTER_ADDRESS;
 const MASTER_PRIVATE_KEY = process.env.MASTER_PRIVATE_KEY;
 
+// Initiate express
 const app = express();
 app.use(express.json());
 
@@ -68,7 +71,6 @@ app.use(express.json());
 mongoose.connect(MONGO_URI, { useNewUrlParser: true, useUnifiedTopology: true })
     .then(() => console.log('Connected to MongoDB'))
     .catch(err => console.error('Could not connect to MongoDB', err));
-
 
 // JWT configuration
 const jwtOptions = {
