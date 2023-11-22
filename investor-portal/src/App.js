@@ -18,7 +18,8 @@ import Footer from './components/Footer';
 // Importing styling
 import './master.css'
 import './App.css'; 
-import './components/Footer.css'; // Import the CSS for Footer
+import './components/Footer.css';
+
 
 function App() {
   return (

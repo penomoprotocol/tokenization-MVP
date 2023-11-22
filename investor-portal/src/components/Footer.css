@@ -2,33 +2,24 @@
 .footer-container {
     display: flex;
     flex-direction: column;
-    min-height: 100vh; /* Full height of the viewport */
+    min-height: 5rem; /* Full height of the viewport */
   }
   
   /* Content wrapper */
-  .content-wrap {
-    flex: 1; /* Allows content to expand and push footer down */
-  }
+  /* .content-wrap {
+    flex: 1; /* Allows content to expand and push footer down 
+  } */
   
   /* Footer styling */
-  /* .footer {
-    background-color: #f8f9fa;
+  .footer {
+    background-color: #333;
     border-top: 1px solid #e7e7e7;
     text-align: center;
-    margin-top: auto; /* Pushes the footer to the bottom 
-    padding: 10px 0;
-    position: relative;
+    padding: 1rem 0;
+    /* position: relative; */
     width: 100%;
-    font-size: 0.8rem;
-    line-height: 1.2;
-  } 
-  */
-  
-    /* Footer */
-    .footer {
-      text-align: center;
-      padding: 1rem 0;
-      background-color: #333;
-      color: white;
-    }
+    color: white;
+    /* font-size: 0.8rem; */
+    /* line-height: 1.2; */
+  }
   

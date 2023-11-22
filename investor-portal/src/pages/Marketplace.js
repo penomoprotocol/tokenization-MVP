@@ -72,7 +72,7 @@ const Marketplace = () => {
   };
 
   return (
-    <div className="container">
+    <div className="page-container">
       <h1 className="section-header">Marketplace</h1>
       <div className="row">
         {projects.map((project) => (
@@ -89,7 +89,7 @@ const Marketplace = () => {
                 </ul>
               </div>
               <button
-                  className="btn btn-penomo"
+                  className="btn-penomo"
                   onClick={() => handleBuyTokensClick(project)}
                 >
                   Buy Tokens

@@ -1,5 +1,5 @@
 .navbar {
-    height: 60px; /* Adjust to the height you want */
+    min-height: 5rem; /* Adjust to the height you want */
     padding: 0 1rem; /* Adjust horizontal padding if needed, remove vertical padding */
   }
   

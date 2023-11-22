@@ -2,49 +2,58 @@
 /* Include this file in your main entry file like index.js or App.js */
 
 /* Global settings */
-html, body {
+html,
+body {
     margin: 0;
     padding: 0;
-    font-family: 'Arial', sans-serif; /* Use your preferred font */
+    font-family: 'Arial', sans-serif;
+    /* Use your preferred font */
+}
+
+.page-container {
+    width: 80%;
+    margin: 0 auto; /* This centers the container on the page */
   }
   
-  /* Container for each major section */
-  .section-container {
+/* Container for each major section */
+.section-container {
     background-color: #f8f9fa;
     border-radius: 8px;
     padding: 2rem;
     margin-bottom: 2rem;
     box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-  }
-  
-  /* Common header for sections */
-  .section-header {
+}
+
+/* Common header for sections */
+.section-header {
     color: #333;
-    margin-bottom: 1rem;
-  }
-  
-  /* Styled list for sections */
-  .section-list {
+    margin-top: 3rem;
+    margin-bottom: 3rem;
+    text-align: center;
+}
+
+/* Styled list for sections */
+.section-list {
     list-style: none;
     padding: 0;
-  }
-  
-  /* Styled list item */
-  .section-list-item {
+}
+
+/* Styled list item */
+.section-list-item {
     background-color: #fff;
     border: 1px solid #e1e1e1;
     padding: 1rem;
     margin-bottom: 1rem;
     border-radius: 5px;
     transition: background-color 0.3s ease;
-  }
-  
-  .section-list-item:hover {
+}
+
+.section-list-item:hover {
     background-color: #eef6ff;
-  }
-  
-  /* Common button styling */
-  .btn {
+}
+
+/* Common button styling */
+.btn {
     background-color: #0056b3;
     color: white;
     text-decoration: none;
@@ -53,36 +62,45 @@ html, body {
     border-radius: 5px;
     display: inline-block;
     transition: background-color 0.3s ease;
-  }
-  
-  .btn:hover {
-    background-color: #003d82;
-  }
-  
-  /* Footer */
-  .footer {
-    text-align: center;
-    padding: 1rem 0;
-    background-color: #333;
-    color: white;
-  }
+}
 
-  .btn-penomo {
-    background-color: #00b39f; /* Penomo color */
-    color: #000; /* Text color set to black */
-    border: none; /* Removes any default border */
-    padding: 10px 20px; /* Padding for size */
-    border-radius: 5px; /* Rounded corners */
-    font-weight: bold; /* Bold font */
-    cursor: pointer; /* Cursor indicates clickable button */
-    outline: none; /* Removes outline on focus for some browsers */
-    transition: background-color 0.3s; /* Smooth transition for hover effect */
-  }
-  
-  .btn-penomo:hover {
-    background-color: #00897b; /* Darker shade of Penomo color for hover state */
-  }
-  
+.btn:hover {
+    background-color: #003d82;
+}
+
+
+/* Content wrapper */
+.content-wrap {
+    flex: 1;
+    /* Allows content to expand and push footer down */
+}
+
+.btn-penomo {
+    background-color: #00b39f;
+    /* Penomo color */
+    color: #000;
+    /* Text color set to black */
+    border: none;
+    /* Removes any default border */
+    padding: 10px 20px;
+    /* Padding for size */
+    border-radius: 5px;
+    /* Rounded corners */
+    font-weight: bold;
+    /* Bold font */
+    cursor: pointer;
+    /* Cursor indicates clickable button */
+    outline: none;
+    /* Removes outline on focus for some browsers */
+    transition: background-color 0.3s;
+    /* Smooth transition for hover effect */
+}
+
+.btn-penomo:hover {
+    background-color: #00897b;
+    /* Darker shade of Penomo color for hover state */
+}
+
 
 /* Modal styles */
 .modal {
@@ -94,36 +112,35 @@ html, body {
     height: 100%;
     overflow: auto;
     background-color: rgba(0, 0, 0, 0.5);
-  }
-  
-  .modal-content {
+}
+
+.modal-content {
     background-color: #fefefe;
     margin: 15% auto;
     padding: 20px;
     border: 1px solid #888;
     width: 80%;
     border-radius: 8px;
-  }
-  
-  .close {
+}
+
+.close {
     color: #aaa;
     float: right;
     font-size: 28px;
     font-weight: bold;
-  }
-  
-  .close:hover,
-  .close:focus {
+}
+
+.close:hover,
+.close:focus {
     color: black;
     text-decoration: none;
     cursor: pointer;
-  }
-  
-  /* Additional responsive adjustments */
-  @media (max-width: 600px) {
+}
+
+/* Additional responsive adjustments */
+@media (max-width: 600px) {
     .modal-content {
-      margin: 10% auto;
-      width: 90%;
+        margin: 10% auto;
+        width: 90%;
     }
-  }
-  
+}

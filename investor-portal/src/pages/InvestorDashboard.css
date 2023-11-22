@@ -1,67 +1,45 @@
-.investor-dashboard {
-  padding: 2rem;
-  max-width: 1200px;
-  margin: auto;
-  font-family: 'Arial', sans-serif;
-}
-
-.dashboard-header {
-  text-align: center;
-  margin-bottom: 2rem;
-}
-
-.wallet-balance, .recent-transactions {
+/* For the wallet balance section */
+.wallet-balance {
+  display: flex;
+  justify-content: space-between; /* Space between the text and buttons */
+  align-items: center; /* Center items vertically */
+  padding: 1rem;
   background-color: #f8f9fa;
   border-radius: 8px;
-  padding: 2rem;
-  margin-bottom: 2rem;
   box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
 }
 
-.wallet-balance h2, .recent-transactions h2 {
-  color: #333;
-  margin-bottom: 1rem;
-}
-
-.recent-transactions ul {
-  list-style: none;
-  padding: 0;
-}
-
-.recent-transactions li {
-  background-color: #fff;
-  border: 1px solid #e1e1e1;
+/* For the individual token box in the portfolio */
+.portfolio-item {
+  display: flex;
+  justify-content: space-between; /* Space between the text and buttons */
+  align-items: center; /* Center items vertically */
   padding: 1rem;
+  background-color: #f8f9fa;
   margin-bottom: 1rem;
-  border-radius: 5px;
-  transition: background-color 0.3s ease;
+  border-radius: 8px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
 }
 
-.recent-transactions li:hover {
-  background-color: #eef6ff;
+/* For text content within the wallet and token boxes */
+.wallet-content,
+.token-content {
+  flex-grow: 1;
 }
 
-/* You may comment out the .dashboard-actions if you're not using it */
-.dashboard-actions {
-  text-align: center;
+/* For the button container within wallet and token boxes */
+.btn-container {
+  display: flex;
+  justify-content: flex-end;
 }
 
-.btn {
-  background-color: #0056b3;
-  color: white;
-  text-decoration: none;
-  padding: 10px 15px;
-  margin: 0 10px;
-  border-radius: 5px;
-  display: inline-block;
+.btn-container button {
+  margin-left: 10px; /* Adds space between buttons */
 }
 
-.btn:hover {
-  background-color: #003d82;
+/* Button styling for the Penomo color button */
+.btn-penomo {
+  margin-left: 0.5rem; /* Adds space between buttons if multiple */
+  /* Other styles remain the same */
 }
 
-/* If you are using the commented out .dashboard-actions */
-.dashboard-actions .btn {
-  padding: 0.5rem 1rem;
-  font-size: 1rem;
-}

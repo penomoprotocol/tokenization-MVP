@@ -1,13 +1,15 @@
 import React, { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
+import './InvestorDashboard.css'; // Assuming this CSS file includes the master styling
 
-
-import './InvestorDashboard.css';
-
-// Mock data for the dashboard, this would be fetched from an API in a real app
+// Mock data for the dashboard
 const mockData = {
   investorName: 'John Doe',
-  walletBalance: '10,000',
+  walletBalance: 10000,
+  portfolio: [
+    { tokenName: 'Token A', balance: 500, totalRevenue: 1500 },
+    { tokenName: 'Token B', balance: 300, totalRevenue: 900 },
+    // ...add more tokens as necessary
+  ],
   recentTransactions: [
     { id: 1, type: 'Buy', token: 'Token A', amount: '1,000', date: '2023-01-01' },
     { id: 2, type: 'Sell', token: 'Token B', amount: '500', date: '2023-01-02' },
@@ -18,37 +20,46 @@ const mockData = {
 const InvestorDashboard = () => {
   const [investorData, setInvestorData] = useState(mockData);
 
-  // In a real app, you would fetch this data from an API
   useEffect(() => {
-    // fetchInvestorData();
+    // Fetch data from API
   }, []);
 
-  // Placeholder for fetch function
-  const fetchInvestorData = async () => {
-    // const response = await apiCallToFetchData();
-    // setInvestorData(response.data);
-  };
 
   return (
-    <div className="investor-dashboard">
-      <div className="dashboard-header">
-        <h1>Welcome, {investorData.investorName}</h1>
+    <div className="page-container">
+      <h1 className="section-header">Welcome, {investorData.investorName}</h1>
+      
+      <div className="wallet-balance section-container">
+        <span>Wallet Balance: ${investorData.walletBalance.toFixed(2)}</span>
+        <div className="btn-container">
+          <button className="btn-penomo">Top Up</button>
+          <button className="btn-penomo">Withdraw</button>
+        </div>
       </div>
-      <div className="wallet-balance">
-        <h2>Wallet Balance</h2>
-        <p>{investorData.walletBalance}</p>
+
+      <div className="section-container">
+        <h2 className="section-header">Your Portfolio</h2>
+        {investorData.portfolio.map((token) => (
+          <div className="portfolio-item" key={token.tokenName}>
+            <span>
+              <strong>{token.tokenName}</strong> Balance: {token.balance} Total Revenue: ${token.totalRevenue.toFixed(2)}
+            </span>
+            <div className="btn-container">
+              <button className="btn-penomo">Sell</button>
+            </div>
+          </div>
+        ))}
       </div>
-      <div className="recent-transactions">
+<div className="recent-transactions section-container">
         <h2>Recent Transactions</h2>
-        <ul>
+        <ul className="section-list">
           {investorData.recentTransactions.map((transaction) => (
-            <li key={transaction.id}>
+            <li className="section-list-item" key={transaction.id}>
               <strong>{transaction.date}:</strong> {transaction.type} {transaction.token} - <strong>Amount:</strong> {transaction.amount}
             </li>
           ))}
         </ul>
       </div>
-      {/* You can uncomment and use the .dashboard-actions if needed */}
     </div>
   );
 };
