@@ -23,7 +23,7 @@ const Transactions = () => {
 
   return (
     <div className="page-container">
-      <h1 className="section-header">Transaction History</h1>
+      <h1 className="page-header">Transaction History</h1>
       <div className="section-container">
         {transactions.length > 0 ? (
           <ul className="section-list">

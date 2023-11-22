@@ -73,7 +73,7 @@ const Marketplace = () => {
 
   return (
     <div className="page-container">
-      <h1 className="section-header">Marketplace</h1>
+      <h1 className="page-header">Marketplace</h1>
       <div className="row">
         {projects.map((project) => (
           <div key={project.id} className="col-12 col-md-6 col-lg-4 mb-4">

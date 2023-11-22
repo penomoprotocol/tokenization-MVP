@@ -7,18 +7,32 @@
   background-color: #f8f9fa;
   border-radius: 8px;
   box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  margin-block: 1rem;
 }
 
 /* For the individual token box in the portfolio */
 .portfolio-item {
   display: flex;
-  justify-content: space-between; /* Space between the text and buttons */
+  justify-content: space-between; /* Align the content with space between */
   align-items: center; /* Center items vertically */
   padding: 1rem;
   background-color: #f8f9fa;
   margin-bottom: 1rem;
+  margin-right: 4rem;
   border-radius: 8px;
   box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+/* Style for the content inside the portfolio item */
+.portfolio-content {
+  flex-grow: 1; /* Allows the content to grow and fill the space */
+  margin-right: 1rem; /* Add some space before the button */
+  justify-content: space-between; /* Align the content with space between */
+}
+
+/* Adjusts the button to be at the end of the box */
+.portfolio-item button {
+  margin-left: auto; /* Pushes the button to the end of the flex container */
 }
 
 /* For text content within the wallet and token boxes */
@@ -42,4 +56,22 @@
   margin-left: 0.5rem; /* Adds space between buttons if multiple */
   /* Other styles remain the same */
 }
+
+.balances-container {
+  display: flex;
+  justify-content: space-between;
+}
+
+.wallet-balances-container {
+  width: 50%;
+  margin-right: 2rem;
+}
+
+.balance-chart-container {
+  width: 50%;
+  /* Insert your styles for the chart container here */
+  /* You may want to ensure this container has a min-height to maintain aspect ratio */
+}
+
+/* Assuming .balance-title and .balance-amount are styled accordingly */
 

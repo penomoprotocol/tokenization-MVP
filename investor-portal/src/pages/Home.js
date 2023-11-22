@@ -4,7 +4,7 @@ import React from 'react';
 const Home = () => {
   return (
     <div className="page-container">
-      <h1 className="section-header">penomo Investor Portal</h1>
+      <h1 className="page-header">penomo Investor Portal</h1>
       {/* Hero section */}
       <div className="section-container">
         <h1 className="section-header">Invest in Energy, Empower the Future</h1>

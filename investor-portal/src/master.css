@@ -15,21 +15,29 @@ body {
     margin: 0 auto; /* This centers the container on the page */
   }
   
+/* Common header for pages */
+.page-header {
+    color: #333;
+    margin-top: 1rem;
+    margin-bottom: 1rem;
+    text-align: center;
+}
+
 /* Container for each major section */
 .section-container {
     background-color: #f8f9fa;
     border-radius: 8px;
-    padding: 2rem;
-    margin-bottom: 2rem;
+    padding: 1rem;
+    margin-block: 1rem;
     box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
 }
 
 /* Common header for sections */
 .section-header {
     color: #333;
-    margin-top: 3rem;
-    margin-bottom: 3rem;
-    text-align: center;
+    margin-top: 0.3rem;
+    margin-bottom: 1rem;
+    text-align: left;
 }
 
 /* Styled list for sections */
