@@ -434,11 +434,11 @@ router.post('/company/withdrawFunds', async (req, res) => {
 
 /**
  * @swagger
- * /api/company/{email}:
+ * /api/company/email/{email}:
  *   get:
  *     summary: Retrieve company details by email
  *     tags: 
- *     - Company
+ *       - Company
  *     parameters:
  *       - in: path
  *         name: email
@@ -447,14 +447,19 @@ router.post('/company/withdrawFunds', async (req, res) => {
  *     responses:
  *       200:
  *         description: Details of the company.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Company'
  *       404:
  *         description: Company not found.
  *       500:
  *         description: Error retrieving company.
  */
 
+
 // Retrieve company details by Email
-router.get('/company/:email', async (req, res) => {
+router.get('/company/email/:email', async (req, res) => {
     try {
         const email = req.params.email;
         console.log('Retrieving company details for email:', email); // Add this line for debugging
@@ -473,38 +478,28 @@ router.get('/company/:email', async (req, res) => {
 
 /**
  * @swagger
- * /api/company/{id}:
+ * /api/company/email/{email}:
  *   put:
- *     summary: Update company details by ID
+ *     summary: Update company details by email
  *     tags: 
- *     - Company
+ *       - Company
  *     parameters:
  *       - in: path
- *         name: id
+ *         name: email
  *         required: true
- *         description: The ID of the company to update.
+ *         description: The email of the company to update.
  *     requestBody:
  *       required: true
  *       content:
  *         application/json:
  *           schema:
  *             type: object
- *             required:
- *               - name
- *               - email
- *               - password
  *             properties:
  *               name:
  *                 type: string
- *                 description: Name of the company
- *               email:
- *                 type: string
- *                 format: email
- *                 description: Email of the company
  *               password:
  *                 type: string
  *                 format: password
- *                 description: Password for the company account
  *     responses:
  *       200:
  *         description: Details of the updated company.
@@ -514,12 +509,13 @@ router.get('/company/:email', async (req, res) => {
  *         description: Error updating company.
  */
 
-// Update company details by ID
-router.put('/company/:id', async (req, res) => {
+
+// Update company details by Email
+router.put('/company/email/:email', async (req, res) => {
     try {
-        const companyId = req.params.id;
+        const email = req.params.email;
         const updates = req.body;
-        const updatedCompany = await Company.findByIdAndUpdate(companyId, updates, { new: true });
+        const updatedCompany = await Company.findOneAndUpdate({ email }, updates, { new: true });
         if (!updatedCompany) {
             return res.status(404).send('Company not found');
         }
@@ -530,18 +526,19 @@ router.put('/company/:id', async (req, res) => {
     }
 });
 
+
 /**
  * @swagger
- * /api/company/{id}:
+ * /api/company/email/{email}:
  *   delete:
- *     summary: Delete company by ID
+ *     summary: Delete company by email
  *     tags: 
- *     - Company
+ *       - Company
  *     parameters:
  *       - in: path
- *         name: id
+ *         name: email
  *         required: true
- *         description: The ID of the company to delete.
+ *         description: The email of the company to delete.
  *     responses:
  *       200:
  *         description: Details of the deleted company.
@@ -551,11 +548,11 @@ router.put('/company/:id', async (req, res) => {
  *         description: Error deleting company.
  */
 
-// Delete company by ID
-router.delete('/company/:id', async (req, res) => {
+// Delete company by Email
+router.delete('/company/email/:email', async (req, res) => {
     try {
-        const companyId = req.params.id;
-        const deletedCompany = await Company.findByIdAndDelete(companyId);
+        const email = req.params.email;
+        const deletedCompany = await Company.findOneAndDelete({ email });
         if (!deletedCompany) {
             return res.status(404).send('Company not found');
         }
@@ -565,5 +562,6 @@ router.delete('/company/:id', async (req, res) => {
         res.status(500).send('Error deleting company');
     }
 });
+
 
 module.exports = router;

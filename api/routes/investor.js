@@ -604,13 +604,14 @@ router.post('/investor/buyToken', async (req, res) => {
 // });
 
 
+// Retrieve investor details by email
 /**
  * @swagger
- * /api/investor/{email}:
+ * /api/investor/email/{email}:
  *   get:
  *     summary: Retrieve investor details by email
  *     tags: 
- *     - Investor
+ *       - Investor
  *     parameters:
  *       - in: path
  *         name: email
@@ -635,37 +636,32 @@ router.post('/investor/buyToken', async (req, res) => {
  *       500:
  *         description: Error retrieving investor.
  */
-
-// Retrieve investor details by email
-router.get('/investor/:email', async (req, res) => {
+router.get('/investor/email/:email', async (req, res) => {
     try {
         const email = req.params.email;
-        console.log('Retrieving investor details for email:', email); // Add this line for debugging
-        const investor = await Investor.find({email});
+        const investor = await Investor.findOne({ email });
         if (!investor) {
-            console.log('Investor not found:', email); // Add this line for debugging
             return res.status(404).send('Investor not found');
         }
-        console.log('Investor details retrieved:', investor); // Add this line for debugging
         res.json(investor);
     } catch (error) {
-        console.error('Error retrieving investor:', error);
-        res.status(500).send('Error retrieving investor');
+        res.status(500).send('Error retrieving investor: ' + error.message);
     }
 });
 
+// Update investor details by email
 /**
  * @swagger
- * /api/investor/{id}:
+ * /api/investor/email/{email}:
  *   put:
- *     summary: Update investor details by ID
+ *     summary: Update investor details by email
  *     tags: 
- *     - Investor
+ *       - Investor
  *     parameters:
  *       - in: path
- *         name: id
+ *         name: email
  *         required: true
- *         description: The ID of the investor to update.
+ *         description: The email of the investor to update.
  *     requestBody:
  *       required: true
  *       content:
@@ -673,103 +669,65 @@ router.get('/investor/:email', async (req, res) => {
  *           schema:
  *             type: object
  *             properties:
- *               _id:
- *                 type: string
  *               name:
  *                 type: string
  *               email:
  *                 type: string
- *               password:
- *                 type: string
+ *               balance:
+ *                 type: number
  *     responses:
  *       200:
- *         description: Details of the updated investor.
- *         content:
- *           application/json:
- *             schema:
- *               type: object
- *               properties:
- *                 name:
- *                   type: string
- *                 email:
- *                   type: string
- *                 balance:
- *                   type: number
+ *         description: Updated investor details.
  *       404:
  *         description: Investor not found.
  *       500:
  *         description: Error updating investor.
  */
-
-// Update investor details by ID
-router.put('/investor/:id', async (req, res) => {
+router.put('/investor/email/:email', async (req, res) => {
     try {
-        const investorId = req.params.id;
+        const email = req.params.email;
         const updates = req.body;
-        const updatedInvestor = await Investor.findByIdAndUpdate(investorId, updates, { new: true });
+        const updatedInvestor = await Investor.findOneAndUpdate({ email }, updates, { new: true });
         if (!updatedInvestor) {
             return res.status(404).send('Investor not found');
         }
         res.json(updatedInvestor);
     } catch (error) {
-        console.error('Error updating investor:', error);
-        res.status(500).send('Error updating investor');
+        res.status(500).send('Error updating investor: ' + error.message);
     }
 });
 
+// Delete investor by email
 /**
  * @swagger
- * /api/investor/{id}:
+ * /api/investor/email/{email}:
  *   delete:
- *     summary: Delete investor by ID
+ *     summary: Delete investor by email
  *     tags: 
- *     - Investor
+ *       - Investor
  *     parameters:
  *       - in: path
- *         name: id
+ *         name: email
  *         required: true
- *         description: The ID of the investor to delete.
- *     requestBody:
- *       required: true
- *       content:
- *         application/json:
- *           schema:
- *             type: object
- *             properties:
- *               _id:
- *                 type: string
+ *         description: The email of the investor to delete.
  *     responses:
  *       200:
- *         description: Details of the deleted investor.
- *         content:
- *           application/json:
- *             schema:
- *               type: object
- *               properties:
- *                 name:
- *                   type: string
- *                 email:
- *                   type: string
- *                 balance:
- *                   type: number
+ *         description: Deleted investor.
  *       404:
  *         description: Investor not found.
  *       500:
  *         description: Error deleting investor.
  */
-
-// Delete investor by ID
-router.delete('/investor/:id', async (req, res) => {
+router.delete('/investor/email/:email', async (req, res) => {
     try {
-        const investorId = req.params.id;
-        const deletedInvestor = await Investor.findByIdAndRemove(investorId);
+        const email = req.params.email;
+        const deletedInvestor = await Investor.findOneAndDelete({ email });
         if (!deletedInvestor) {
             return res.status(404).send('Investor not found');
         }
         res.json(deletedInvestor);
     } catch (error) {
-        console.error('Error deleting investor:', error);
-        res.status(500).send('Error deleting investor');
+        res.status(500).send('Error deleting investor: ' + error.message);
     }
 });
 
