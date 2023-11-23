@@ -20,10 +20,6 @@ import './master.css'
 import './App.css'; 
 import './components/Footer.css';
 
-// Importing env variables
-const apiURL = process.env.PENOMO_API_URL;
-
-
 function App() {
   return (
     <div id="root">

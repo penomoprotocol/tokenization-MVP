@@ -67,6 +67,10 @@ const MASTER_PRIVATE_KEY = process.env.MASTER_PRIVATE_KEY;
 const app = express();
 app.use(express.json());
 
+// Enable CORS for all routes
+const cors = require('cors');
+app.use(cors());
+
 // Connect to MongoDB
 mongoose.connect(MONGO_URI, { useNewUrlParser: true, useUnifiedTopology: true })
     .then(() => console.log('Connected to MongoDB'))

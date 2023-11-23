@@ -15,3 +15,35 @@
   
   /* Marketplace.css */
 
+/* Add styles to ensure the content fits well within the card and is responsive */
+.section-container {
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+}
+
+.card-content {
+    word-wrap: break-word; /* Ensures long text doesn't overflow */
+}
+
+.card-content a {
+    color: #007bff; /* Style for links */
+    text-decoration: none;
+}
+
+.card-content a:hover {
+    text-decoration: underline;
+}
+
+.btn-penomo {
+    align-self: center; /* Center the button */
+    margin-top: 20px; /* Space above the button */
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+    .card-content {
+        font-size: smaller; /* Reduce font size on smaller screens */
+    }
+}
