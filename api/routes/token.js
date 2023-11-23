@@ -70,7 +70,7 @@ mongoose.connect(MONGO_URI, { useNewUrlParser: true, useUnifiedTopology: true })
 // Import Mongoose models:
 const Asset = require('../models/AssetModel');
 const Company = require('../models/CompanyModel');
-const Contract = require('../models/TokenModel');
+const Token = require('../models/TokenModel');
 const Investor = require('../models/InvestorModel');
 
 // Set up DID contract
@@ -291,162 +291,7 @@ async function deployRevenueDistributionContract(serviceContractAddress, tokenCo
     return receipt.contractAddress;
 }
 
-
-
-// /**
-//  * @swagger
-//  * /api/token/deploy:
-//  *   post:
-//  *     summary: Tokenize an asset
-//  *     tags: 
-//  *       - Token
-//  *     description: Deploy contracts to tokenize an asset with provided details.
-//  *     requestBody:
-//  *       required: true
-//  *       content:
-//  *         application/json:
-//  *           schema:
-//  *             type: object
-//  *             required:
-//  *               - companyId
-//  *               - password
-//  *               - DIDs
-//  *               - name
-//  *               - symbol
-//  *               - revenueShare
-//  *               - contractTerm
-//  *               - maxTokenSupply
-//  *               - tokenPrice
-//  *             properties:
-//  *               companyId:
-//  *                 type: string
-//  *                 description: ID of the company initiating tokenization.
-//  *               password:
-//  *                 type: string
-//  *                 description: Password for company authentication.
-//  *               DIDs:
-//  *                 type: array
-//  *                 items:
-//  *                   type: string
-//  *                 description: Array of Digital Identity Identifiers.
-//  *               name:
-//  *                 type: string
-//  *                 description: Name of the token.
-//  *               symbol:
-//  *                 type: string
-//  *                 description: Symbol of the token.
-//  *               revenueShare:
-//  *                 type: number
-//  *                 description: Percentage of revenue share.
-//  *               contractTerm:
-//  *                 type: number
-//  *                 description: Term length of the contract.
-//  *               maxTokenSupply:
-//  *                 type: number
-//  *                 description: Maximum supply of the tokens.
-//  *               tokenPrice:
-//  *                 type: number
-//  *                 description: Price of each token.
-//  *     responses:
-//  *       200:
-//  *         description: Successfully tokenized asset and returned contract addresses.
-//  *         content:
-//  *           application/json:
-//  *             schema:
-//  *               type: object
-//  *               properties:
-//  *                 tokenContractAddress:
-//  *                   type: string
-//  *                 serviceContractAddress:
-//  *                   type: string
-//  *                 liquidityContractAddress:
-//  *                   type: string
-//  *                 revenueDistributionContractAddress:
-//  *                   type: string
-//  *       400:
-//  *         description: Missing required parameters.
-//  *       500:
-//  *         description: Failed to deploy the contracts.
-//  */
-
-// router.post('/token/deploy', async (req, res) => {
-//     try {
-//         // Get data from the request
-//         const { companyId, password, DIDs, revenueGoals, name, symbol, revenueShare, contractTerm, maxTokenSupply, tokenPrice } = req.body;
-
-//         if (!companyId || !password || !DIDs || !revenueGoals || !name || !symbol || !revenueShare || !contractTerm || !maxTokenSupply || !tokenPrice) {
-//             return res.status(400).send('Missing required parameters.');
-//         }
-
-//         // Step 1: Get the company from the database using the provided companyId
-//         const company = await Company.findById(companyId);
-//         if (!company) {
-//             console.log('Company not found:', companyId);
-//             return res.status(401).send('Company not found');
-//         }
-
-//         // Step 2: Verify password
-//         const isPasswordValid = await bcrypt.compare(password, company.password);
-//         if (!isPasswordValid) {
-//             console.log('Invalid credentials for company ID:', companyId);
-//             return res.status(401).send('Invalid credentials');
-//         }
-
-//         console.log("company.ethereumPublicKey: ", company.ethereumPublicKey);
-//         // companyPublicKey =  company.ethereumPublicKey;
-//         companyPublicKey = "0x59D40fDF369bDB84F43d6c1e3FdCA2eb0C977F5a";
-
-//         // Deploy the ServiceContract and get its address
-//         const serviceContractAddress = await deployServiceContract(GSCAddress);
-//         console.log("serviceContractAddress: ", serviceContractAddress);
-
-//         // Deploy the TokenContract using the ServiceContract's address
-//         const tokenContractAddress = await deployTokenContract(DIDs, revenueGoals, name, symbol, revenueShare, contractTerm, maxTokenSupply, tokenPrice, serviceContractAddress);
-//         console.log("tokenContractAddress: ", tokenContractAddress);
-
-//         // Deploy LiquidityContract
-//         const liquidityContractAddress = await deployLiquidityContract(serviceContractAddress, companyPublicKey, MASTER_ADDRESS);
-//         console.log("liquidityContractAddress: ", liquidityContractAddress);
-
-//         // Deploy RevenueDistributionContract
-//         const revenueDistributionContractAddress = await deployRevenueDistributionContract(serviceContractAddress, tokenContractAddress, liquidityContractAddress);
-//         console.log("RDContractAddress: ", revenueDistributionContractAddress);
-
-//         // Create a ServiceContract instance
-//         const ServiceContract = new web3.eth.Contract(SCABI, serviceContractAddress);
-
-//         // Prepare the transaction object
-//         const transaction = ServiceContract.methods.setContractAddresses(tokenContractAddress, liquidityContractAddress, revenueDistributionContractAddress);
-
-//         // Call setContractAddresses with gas estimation and send
-//         const receipt = await estimateAndSend(transaction, MASTER_ADDRESS, MASTER_PRIVATE_KEY, serviceContractAddress);
-
-//         // Generate DB entry for new tokenization contracts
-//         const newContractEntry = new Contract({
-//             serviceContractAddress: serviceContractAddress,
-//             tokenContractAddress: tokenContractAddress,
-//             liquidityContractAddress: liquidityContractAddress,
-//             revenueDistributionContractAddress: revenueDistributionContractAddress,
-//             assetDIDs: DIDs, // Assuming DIDs is an array of asset DIDs
-//             companyId: companyId
-//         });
-
-//         // Save the new contract entry to the database
-//         await newContractEntry.save();
-
-//         // Respond with the service contract address as the primary reference
-//         res.status(200).json({
-//             serviceContractAddress: serviceContractAddress, // Primary reference
-//             tokenContractAddress: tokenContractAddress,
-//             liquidityContractAddress: liquidityContractAddress,
-//             revenueDistributionContractAddress: revenueDistributionContractAddress
-//         });
-
-//     } catch (error) {
-//         console.error('Error deploying Contracts:', error);
-//         res.status(500).send('Failed to deploy the contracts.');
-//     }
-// });
+// // TOKEN ROUTES
 
 /**
  * @swagger
@@ -585,7 +430,7 @@ router.post('/token/deploy', async (req, res) => {
         receipt = await estimateAndSend(transaction, MASTER_ADDRESS, MASTER_PRIVATE_KEY, serviceContractAddress);
 
         // Generate DB entry for new tokenization contracts
-        const newContractEntry = new Contract({
+        const newTokenEntry = new Token({
             name:name,
             symbol: symbol,
             serviceContractAddress: serviceContractAddress,
@@ -597,20 +442,84 @@ router.post('/token/deploy', async (req, res) => {
         });
 
         // Save the new contract entry to the database
-        await newContractEntry.save();
+        await newTokenEntry.save();
 
         // Respond with the deployed contracts' addresses
         res.status(200).json({
             message: "Successfully deployed tokenization contracts.",
-            tokenContractAddress: tokenContractAddress,
-            serviceContractAddress: serviceContractAddress,
-            liquidityContractAddress: liquidityContractAddress,
-            revenueDistributionContractAddress: revenueDistributionContractAddress,
+            newTokenEntry
         });
 
     } catch (error) {
         console.error('Error deploying Contracts:', error);
         res.status(500).send('Failed to deploy the contracts.');
+    }
+});
+
+/**
+ * @swagger
+ * /api/tokens:
+ *   get:
+ *     summary: Retrieve a list of all tokens
+ *     tags:
+ *       - Token
+ *     description: Retrieve a list of all token objects from the database.
+ *     responses:
+ *       200:
+ *         description: A list of tokens.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: array
+ *               items:
+ *                 $ref: '#/components/schemas/Token'
+ *       500:
+ *         description: An error occurred while retrieving tokens.
+ * components:
+ *   schemas:
+ *     Token:
+ *       type: object
+ *       required:
+ *         - name
+ *         - symbol
+ *         - serviceContractAddress
+ *         - tokenContractAddress
+ *         - liquidityContractAddress
+ *         - revenueDistributionContractAddress
+ *         - companyId
+ *       properties:
+ *         name:
+ *           type: string
+ *           description: Name of the token.
+ *         symbol:
+ *           type: string
+ *           description: Symbol of the token.
+ *         serviceContractAddress:
+ *           type: string
+ *           description: Blockchain address of the service contract.
+ *         tokenContractAddress:
+ *           type: string
+ *           description: Blockchain address of the token contract.
+ *         liquidityContractAddress:
+ *           type: string
+ *           description: Blockchain address of the liquidity contract.
+ *         revenueDistributionContractAddress:
+ *           type: string
+ *           description: Blockchain address of the revenue distribution contract.
+ *         companyId:
+ *           type: string
+ *           description: ID of the company that owns the token.
+ */
+router.get('/tokens', async (req, res) => {
+    try {
+        // Assuming Token is your Mongoose model for the token contracts
+        const tokens = await Token.find({});
+
+        // Respond with an array of all token contracts
+        res.status(200).json(tokens);
+    } catch (error) {
+        console.error('Error retrieving tokens:', error);
+        res.status(500).send('Error retrieving tokens.');
     }
 });
 
@@ -636,9 +545,23 @@ router.post('/token/deploy', async (req, res) => {
  *         description: Error retrieving asset.
  */
 
-router.get('/token/:address', (req, res) => {
-    // Retrieve asset details
+router.get('/token/:address', async (req, res) => {
+    try {
+        const { address } = req.params;
+        const token = await Token.findOne({ tokenContractAddress: address });
+
+        if (!token) {
+            return res.status(404).send('Token contract not found.');
+        }
+
+        // Respond with the token contract data
+        res.status(200).json(token);
+    } catch (error) {
+        console.error('Error retrieving token contract:', error);
+        res.status(500).send('Error retrieving token contract.');
+    }
 });
+
 
 /**
  * @swagger
