@@ -18,7 +18,7 @@
   padding: 1rem;
   background-color: #f8f9fa;
   margin-bottom: 1rem;
-  margin-right: 4rem;
+  margin-right: 1rem;
   border-radius: 8px;
   box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
 }
@@ -63,12 +63,12 @@
 }
 
 .wallet-balances-container {
-  width: 50%;
+  width: 100%;
   margin-right: 2rem;
 }
 
 .balance-chart-container {
-  width: 50%;
+  width: 100%;
   /* Insert your styles for the chart container here */
   /* You may want to ensure this container has a min-height to maintain aspect ratio */
 }

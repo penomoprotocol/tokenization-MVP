@@ -17,20 +17,52 @@ const mockChartData = {
 };
 
 const options = {
-  scales: {
-    y: {
-      beginAtZero: true
-    }
-  },
-  maintainAspectRatio: false
-};
+    plugins: {
+      legend: {
+        display: false, // Hide the legend if you don't need it
+      },
+    },
+    scales: {
+      x: {
+        grid: {
+          display: false, // Hide grid lines for x-axis
+          drawBorder: false, // Remove the axis border
+        },
+        ticks: {
+          display: true, // If you want to show x-axis labels
+        },
+      },
+      y: {
+        beginAtZero: true,
+        grid: {
+          display: false, // Hide grid lines for y-axis
+          drawBorder: false, // Remove the axis border
+        },
+        ticks: {
+          display: true, // Hide y-axis labels
+        },
+      },
+    },
+    maintainAspectRatio: false,
+    elements: {
+      point:{
+        radius: 0 // Hide the points on the line
+      },
+      line: {
+        borderWidth: 2, // Set the line thickness
+      },
+    },
+  };
+  
+  const BalanceChart = () => {
+    return (
+      <div style={{ position: "relative", height: "40vh" }}>
+        <Line data={mockChartData} options={options} />
+      </div>
+    );
+  };
+  
+  export default BalanceChart;
 
-const BalanceChart = () => {
-  return (
-    <div style={{ position: "relative", height: "40vh" }}>
-      <Line data={mockChartData} options={options} />
-    </div>
-  );
-};
 
-export default BalanceChart;
+  
