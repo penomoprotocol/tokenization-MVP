@@ -373,9 +373,100 @@ router.post('/asset/storeData', async (req, res) => {
     }
 });
 
-router.get('/asset/:did', (req, res) => {
-    // Retrieve asset details
+/**
+ * @swagger
+ * /api/asset:
+ *   get:
+ *     summary: Retrieve all assets
+ *     tags: 
+ *       - Asset
+ *     responses:
+ *       200:
+ *         description: A list of assets.
+ *       500:
+ *         description: Server error
+ */
+// Retrieve all assets
+router.get('/asset', async (req, res) => {
+    try {
+        const assets = await Asset.find({});
+        res.status(200).json(assets);
+    } catch (error) {
+        console.error('Error retrieving all assets:', error);
+        res.status(500).send('Error retrieving all assets.');
+    }
 });
+
+/**
+ * @swagger
+ * /api/asset/did/{did}:
+ *   get:
+ *     summary: Retrieve an asset by DID
+ *     tags: 
+ *       - Asset
+ *     parameters:
+ *       - in: path
+ *         name: did
+ *         required: true
+ *         description: Digital Identifier of the asset to retrieve.
+ *     responses:
+ *       200:
+ *         description: Asset object.
+ *       404:
+ *         description: Asset not found.
+ *       500:
+ *         description: Server error
+ */
+// Retrieve an asset by DID
+router.get('/asset/did/:did', async (req, res) => {
+    try {
+        const { did } = req.params;
+        const asset = await Asset.findOne({ DID: did });
+        if (!asset) {
+            return res.status(404).send('Asset not found.');
+        }
+        res.status(200).json(asset);
+    } catch (error) {
+        console.error('Error retrieving asset by DID:', error);
+        res.status(500).send('Error retrieving asset by DID.');
+    }
+});
+
+/**
+ * @swagger
+ * /api/asset/company/{companyId}:
+ *   get:
+ *     summary: Retrieve assets by company ID
+ *     tags: 
+ *       - Asset
+ *     parameters:
+ *       - in: path
+ *         name: companyId
+ *         required: true
+ *         description: Company ID to retrieve assets for.
+ *     responses:
+ *       200:
+ *         description: An array of assets for the given company.
+ *       404:
+ *         description: No assets found for the given company.
+ *       500:
+ *         description: Server error
+ */
+// Retrieve assets by companyId
+router.get('/asset/company/:companyId', async (req, res) => {
+    try {
+        const { companyId } = req.params;
+        const assets = await Asset.find({ companyId: companyId });
+        if (!assets || assets.length === 0) {
+            return res.status(404).send('No assets found for the given company.');
+        }
+        res.status(200).json(assets);
+    } catch (error) {
+        console.error('Error retrieving assets by company ID:', error);
+        res.status(500).send('Error retrieving assets by company ID.');
+    }
+});
+
 
 /**
  * @swagger
