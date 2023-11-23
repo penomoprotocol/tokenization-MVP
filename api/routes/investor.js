@@ -603,6 +603,55 @@ router.post('/investor/buyToken', async (req, res) => {
 //     }
 // });
 
+/**
+ * @swagger
+ * /api/investor/{id}:
+ *   get:
+ *     summary: Retrieve investor details by ID
+ *     tags: 
+ *       - Investor
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         description: The ID of the investor to retrieve.
+ *     responses:
+ *       200:
+ *         description: Details of the investor.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 name:
+ *                   type: string
+ *                 email:
+ *                   type: string
+ *                 balance:
+ *                   type: number
+ *       404:
+ *         description: Investor not found.
+ *       500:
+ *         description: Error retrieving investor.
+ */
+// Retrieve investor details by ID
+router.get('/investor/:id', async (req, res) => {
+    try {
+        const investorId = req.params.id;
+        console.log('Retrieving investor details for ID:', investorId); // For debugging
+        const investor = await Investor.findById(investorId);
+        if (!investor) {
+            console.log('Investor not found with ID:', investorId); // For debugging
+            return res.status(404).send('Investor not found');
+        }
+        console.log('Investor details retrieved:', investor); // For debugging
+        res.json(investor);
+    } catch (error) {
+        console.error('Error retrieving investor by ID:', error);
+        res.status(500).send('Error retrieving investor');
+    }
+});
+
 
 // Retrieve investor details by email
 /**

@@ -197,7 +197,7 @@ async function deployTokenContract(DIDs, CIDs, revenueGoals, name, symbol, reven
         revenueShare: revenueShare,
         contractTerm: contractTerm,
         maxTokenSupply: maxTokenSupply,
-        tokenPrice: tokenPrice 
+        tokenPrice: tokenPrice
     };
 
     const deploymentData = TokenContract.deploy({
@@ -374,8 +374,6 @@ async function deployRevenueDistributionContract(serviceContractAddress, tokenCo
  *       500:
  *         description: Failed to deploy the contracts.
  */
-
-
 router.post('/token/deploy', async (req, res) => {
     try {
         // Get data from the request
@@ -400,8 +398,8 @@ router.post('/token/deploy', async (req, res) => {
         }
 
         console.log("company.ethereumPublicKey: ", company.ethereumPublicKey);
-        
-        BBWalletAddress =  company.ethereumPublicKey;
+
+        BBWalletAddress = company.ethereumPublicKey;
 
         // Deploy the ServiceContract and get its address
         const serviceContractAddress = await deployServiceContract(GSCAddress);
@@ -431,15 +429,24 @@ router.post('/token/deploy', async (req, res) => {
 
         // Generate DB entry for new tokenization contracts
         const newTokenEntry = new Token({
-            name:name,
+            name: name,
             symbol: symbol,
+            maxTokenSupply: maxTokenSupply, // Add this field
+            tokenPrice: tokenPrice, // Add this field
+            revenueShare: revenueShare, // Add this field
+            contractTerm: contractTerm, // Add this field
             serviceContractAddress: serviceContractAddress,
             tokenContractAddress: tokenContractAddress,
             liquidityContractAddress: liquidityContractAddress,
             revenueDistributionContractAddress: revenueDistributionContractAddress,
+            revenueStreamContractAddresses: [], // Add this field if necessary
             assetDIDs: DIDs, // Assuming DIDs is an array of asset DIDs
             companyId: companyId
         });
+
+        // Save the new token entry to the database
+        await newTokenEntry.save();
+
 
         // Save the new contract entry to the database
         await newTokenEntry.save();
@@ -599,16 +606,16 @@ router.put('/token/:address', (req, res) => {
 
 /**
  * @swagger
- * /api/token/{id}:
+ * /api/token/{address}:
  *   delete:
- *     summary: Delete token by ID
+ *     summary: Delete token by address
  *     tags: 
  *     - Token
  *     parameters:
  *       - in: path
- *         name: id
+ *         name: tokenContractAddress
  *         required: true
- *         description: The ID of the token to delete.
+ *         description: The address of the token to delete.
  *     responses:
  *       200:
  *         description: Successfully deleted token.

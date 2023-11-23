@@ -434,6 +434,91 @@ router.post('/company/withdrawFunds', async (req, res) => {
 
 /**
  * @swagger
+ * /api/company/{id}:
+ *   get:
+ *     summary: Retrieve company details by ID
+ *     tags: 
+ *       - Company
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         description: The ID of the company to retrieve.
+ *     responses:
+ *       200:
+ *         description: Details of the company.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Company'
+ *       404:
+ *         description: Company not found.
+ *       500:
+ *         description: Error retrieving company.
+ */
+// Retrieve company details by ID
+router.get('/company/:id', async (req, res) => {
+    try {
+        const companyId = req.params.id;
+        console.log('Retrieving company details for ID:', companyId); // For debugging
+        const company = await Company.findById(companyId);
+        if (!company) {
+            console.log('Company not found with ID:', companyId); // For debugging
+            return res.status(404).send('Company not found');
+        }
+        console.log('Company details retrieved:', company); // For debugging
+        res.json(company);
+    } catch (error) {
+        console.error('Error retrieving company by ID:', error);
+        res.status(500).send('Error retrieving company');
+    }
+});
+
+
+/**
+ * @swagger
+ * /api/company/email/{email}:
+ *   get:
+ *     summary: Retrieve company details by email
+ *     tags: 
+ *       - Company
+ *     parameters:
+ *       - in: path
+ *         name: email
+ *         required: true
+ *         description: The email of the company to retrieve.
+ *     responses:
+ *       200:
+ *         description: Details of the company.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Company'
+ *       404:
+ *         description: Company not found.
+ *       500:
+ *         description: Error retrieving company.
+ */
+// Retrieve company details by Email
+router.get('/company/email/:email', async (req, res) => {
+    try {
+        const email = req.params.email;
+        console.log('Retrieving company details for email:', email); // Add this line for debugging
+        const company = await Company.find({email});
+        if (!company) {
+            console.log('Company not found:', email); // Add this line for debugging
+            return res.status(404).send('Company not found');
+        }
+        console.log('Company details retrieved:', company); // Add this line for debugging
+        res.json(company);
+    } catch (error) {
+        console.error('Error retrieving company:', error);
+        res.status(500).send('Error retrieving company');
+    }
+});
+
+/**
+ * @swagger
  * /api/company/email/{email}:
  *   get:
  *     summary: Retrieve company details by email

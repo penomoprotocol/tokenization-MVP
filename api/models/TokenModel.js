@@ -9,6 +9,22 @@ const tokenSchema = new mongoose.Schema({
         type: String,
         required: true
     },
+    maxTokenSupply:{
+        type: Number,
+        required: true,
+    },
+    tokenPrice:{
+        type: Number,
+        required: true,
+    },
+    revenueShare:{
+        type: Number,
+        required: true,
+    },
+    contractTerm:{
+        type: Number,
+        required: true,
+    },
     serviceContractAddress: {
         type: String,
         required: true,

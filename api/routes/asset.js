@@ -141,15 +141,15 @@ const decryptPrivateKey = (encryptedKey, SECRET_KEY) => {
  *           schema:
  *             type: object
  *             properties:
- *               batteryName:
- *                 type: string
- *                 description: The name of the battery asset to register.
  *               companyId:
  *                 type: string
  *                 description: The unique identifier of the company registering the asset.
  *               companyPassword:
  *                 type: string
  *                 description: The password for company authentication.
+ *               batteryName:
+ *                 type: string
+ *                 description: The name of the battery asset to register.
  *     responses:
  *       200:
  *         description: Successfully registered the asset and returned DID.
@@ -172,7 +172,7 @@ const decryptPrivateKey = (encryptedKey, SECRET_KEY) => {
 
 router.post('/asset/register', async (req, res) => {
     try {
-        const { batteryName, companyId, companyPassword } = req.body;
+        const { companyId, companyPassword, batteryName} = req.body;
 
         // Validate company and password
         const company = await Company.findById(companyId);
@@ -261,12 +261,12 @@ router.post('/asset/register', async (req, res) => {
  *           schema:
  *             type: object
  *             required:
+ *               - companyId
+ *               - companyPassword
+ *               - batteryDid
  *               - batteryType
  *               - capacity
  *               - voltage
- *               - batteryDid
- *               - companyId
- *               - companyPassword
  *             properties:
  *               batteryType:
  *                 type: string
@@ -310,7 +310,7 @@ router.post('/asset/register', async (req, res) => {
 
 router.post('/asset/storeData', async (req, res) => {
     try {
-        const {batteryDid, companyId, companyPassword, batteryType, capacity, voltage } = req.body;
+        const {companyId, companyPassword, batteryDid, batteryType, capacity, voltage } = req.body;
 
         if (!batteryType || !capacity || !voltage || !batteryDid || !companyId || !companyPassword) {
             return res.status(400).json({ error: 'Missing required fields' });
@@ -327,44 +327,28 @@ router.post('/asset/storeData', async (req, res) => {
             return res.status(401).send('Invalid credentials');
         }
 
-        // Store battery data on IPFS
-        const batteryData = { batteryType, capacity, voltage };
-
-        // Generate a mock CID
+        // Store battery data on IPFS (mocked for this example)
+        // In a real-world scenario, you would store this data on IPFS and get a CID
         const timestamp = new Date().getTime();
         const randomPart = crypto.randomBytes(6).toString('hex');
         const cid = `ipfs://${randomPart}${timestamp}`;
 
-        // ACTUAL LOGIC WITH IPFS:
-        // const { cid } = await ipfs.add(JSON.stringify(batteryData));
-
-        // // Prepare the attribute data
-        // const attributeKey = web3.utils.sha3('BatteryDataStorage');
-        // const attributeValue = `ipfs://${cid}`;
-
-        // // Create a transaction object
-        // const transaction = DIDContract.methods.add_attribute(
-        //     web3.utils.asciiToHex(batteryDid), // DID account in hex
-        //     attributeKey, // Attribute key as bytes32
-        //     web3.utils.asciiToHex(attributeValue), // Attribute value as hex
-        //     0 // Validity (0 if not applicable)
-        // );
-
-        // // Send the transaction using the estimateAndSend helper function
-        // const receipt = await estimateAndSend(transaction, MASTER_ADDRESS, MASTER_PRIVATE_KEY, DIDContractAddress);
-
-        // Update the Asset in the database with the CID
+        // Find the Asset using the DID
         const asset = await Asset.findOne({ DID: batteryDid });
         if (!asset) {
             return res.status(404).send('Asset not found');
         }
 
+        // Update the Asset in the database with the new fields and CID
+        asset.batteryType = batteryType;
+        asset.capacity = capacity;
+        asset.voltage = voltage;
         asset.CID = cid;
         await asset.save();
 
-        // Respond with the IPFS CID
+        // Respond with the IPFS CID and confirmation message
         res.status(200).json({
-            message: 'Successfully stored battery data on IPFS. Updated battery asset DID document with CID',
+            message: 'Successfully stored battery data on IPFS and updated the Asset document.',
             cid: cid,
         });
     } catch (error) {
@@ -372,6 +356,7 @@ router.post('/asset/storeData', async (req, res) => {
         res.status(500).json({ error: 'Failed to update asset with battery data' });
     }
 });
+
 
 /**
  * @swagger
@@ -394,6 +379,41 @@ router.get('/asset', async (req, res) => {
     } catch (error) {
         console.error('Error retrieving all assets:', error);
         res.status(500).send('Error retrieving all assets.');
+    }
+});
+
+/**
+ * @swagger
+ * /api/asset/company/{companyId}:
+ *   get:
+ *     summary: Retrieve assets by company ID
+ *      tags: 
+ *       - Asset
+ *     parameters:
+ *       - in: path
+ *         name: companyId
+ *         required: true
+ *         description: Company ID to retrieve assets for.
+ *     responses:
+ *       200:
+ *         description: An array of assets for the given company.
+ *       404:
+ *         description: No assets found for the given company.
+ *       500:
+ *         description: Server error
+ */
+// Retrieve assets by companyId
+router.get('/asset/company/:companyId', async (req, res) => {
+    try {
+        const { companyId } = req.params;
+        const assets = await Asset.find({ companyId: companyId });
+        if (!assets || assets.length === 0) {
+            return res.status(404).send('No assets found for the given company.');
+        }
+        res.status(200).json(assets);
+    } catch (error) {
+        console.error('Error retrieving assets by company ID:', error);
+        res.status(500).send('Error retrieving assets by company ID.');
     }
 });
 
@@ -432,45 +452,11 @@ router.get('/asset/did/:did', async (req, res) => {
     }
 });
 
-/**
- * @swagger
- * /api/asset/company/{companyId}:
- *   get:
- *     summary: Retrieve assets by company ID
- *     tags: 
- *       - Asset
- *     parameters:
- *       - in: path
- *         name: companyId
- *         required: true
- *         description: Company ID to retrieve assets for.
- *     responses:
- *       200:
- *         description: An array of assets for the given company.
- *       404:
- *         description: No assets found for the given company.
- *       500:
- *         description: Server error
- */
-// Retrieve assets by companyId
-router.get('/asset/company/:companyId', async (req, res) => {
-    try {
-        const { companyId } = req.params;
-        const assets = await Asset.find({ companyId: companyId });
-        if (!assets || assets.length === 0) {
-            return res.status(404).send('No assets found for the given company.');
-        }
-        res.status(200).json(assets);
-    } catch (error) {
-        console.error('Error retrieving assets by company ID:', error);
-        res.status(500).send('Error retrieving assets by company ID.');
-    }
-});
 
 
 /**
  * @swagger
- * /api/asset/{did}:
+ * /api/asset/did/{did}:
  *   put:
  *     summary: Update asset details by DID
  *     tags: 
@@ -498,22 +484,22 @@ router.get('/asset/company/:companyId', async (req, res) => {
  *         description: Error updating asset.
  */
 
-router.put('/asset/:did', (req, res) => {
+router.put('/asset/did/:did', (req, res) => {
     // Update asset details
 });
 
 /**
  * @swagger
- * /api/asset/{id}:
+ * /api/asset/did/{did}:
  *   delete:
- *     summary: Delete asset by ID
+ *     summary: Delete asset by DID
  *     tags: 
  *     - Asset
  *     parameters:
  *       - in: path
- *         name: id
+ *         name: did
  *         required: true
- *         description: The ID of the asset to delete.
+ *         description: The DID of the asset to delete.
  *     responses:
  *       200:
  *         description: Successfully deleted asset.
@@ -523,7 +509,7 @@ router.put('/asset/:did', (req, res) => {
  *         description: Error deleting asset.
  */
 
-router.delete('/asset/:id', (req, res) => {
+router.delete('/asset/did/:did', (req, res) => {
     // Delete asset 
 });
 
