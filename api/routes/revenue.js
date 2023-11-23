@@ -653,31 +653,146 @@ router.post('/revenue/carbon', async (req, res) => {
     }
 });
 
-
+// Retrieve all revenue objects
 /**
  * @swagger
- * /api/revenue/{address}:
+ * /api/revenue:
  *   get:
- *     summary: Retrieve revenue stream details by address
- *     tags: 
- *     - Revenue
- *     parameters:
- *       - in: path
- *         name: address
- *         required: true
- *         description: The address of the asset to retrieve.
+ *     summary: Retrieve all revenue objects
+ *     tags:
+ *       - Revenue
+ *     description: Retrieve all revenue objects from the database.
  *     responses:
  *       200:
- *         description: Successfully retrieved asset details.
- *       404:
- *         description: Revenue not found.
+ *         description: An array of revenue objects.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: array
+ *               items:
+ *                 $ref: '#/components/schemas/Revenue'
  *       500:
- *         description: Error retrieving asset.
+ *         description: Server error
+ */
+// Endpoint to retrieve all revenue objects
+router.get('/revenue', async (req, res) => {
+    try {
+      const revenues = await Revenue.find({});
+      res.status(200).json(revenues);
+    } catch (error) {
+      res.status(500).send('Error retrieving revenues: ' + error.message);
+    }
+  });
+
+// Retrieve revenue streams by service contract address
+/**
+ * @swagger
+ * /api/revenue/{serviceContractAddress}:
+ *   get:
+ *     summary: Retrieve revenues by service contract address
+ *     tags:
+ *       - Revenue
+ *     parameters:
+ *       - in: path
+ *         name: serviceContractAddress
+ *         required: true
+ *         description: Service contract address to retrieve the revenues for.
+ *     responses:
+ *       200:
+ *         description: Revenue objects for the given service contract address.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Revenue'
+ *       404:
+ *         description: Revenue object not found for the given service contract address.
+ *       500:
+ *         description: Server error
+ */
+// Endpoint to retrieve revenues by service contract address
+router.get('/revenue/:serviceContractAddress', async (req, res) => {
+    try {
+      const { serviceContractAddress } = req.params;
+      const revenues = await Revenue.find({ serviceContractAddress });
+      if (revenues.length === 0) { // Check if the array is empty
+        return res.status(404).send('Revenues not found for the given service contract address.');
+      }
+      res.status(200).json(revenues);
+    } catch (error) {
+      console.error('Error retrieving revenues:', error); // Log the error
+      res.status(500).send('Error retrieving revenues: ' + error.message);
+    }
+});
+
+// Retrieve revenue by type
+/**
+ * @swagger
+ * /api/revenue/type/{type}:
+ *   get:
+ *     summary: Retrieve revenue by type
+ *     tags:
+ *       - Revenue
+ *     parameters:
+ *       - in: path
+ *         name: type
+ *         required: true
+ *         description: Type of the revenue to retrieve (rental, grid, arbitrage, data, carbon).
+ *     responses:
+ *       200:
+ *         description: An array of revenue objects of the given type.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: array
+ *               items:
+ *                 $ref: '#/components/schemas/Revenue'
+ *       404:
+ *         description: No revenue objects found for the given type.
+ *       500:
+ *         description: Server error
+ */
+// Endpoint to retrieve revenue by type
+router.get('/revenue/type/:type', async (req, res) => {
+    try {
+      const { type } = req.params;
+      const revenues = await Revenue.find({ type });
+      if (revenues.length === 0) {
+        return res.status(404).send('No revenues found for type: ' + type);
+      }
+      res.status(200).json(revenues);
+    } catch (error) {
+      res.status(500).send('Error retrieving revenues by type: ' + error.message);
+    }
+  });
+  
+
+// Swagger Schema Definitions
+/**
+ * @swagger
+ * components:
+ *   schemas:
+ *     Revenue:
+ *       type: object
+ *       properties:
+ *         id:
+ *           type: string
+ *           description: The unique identifier for the revenue object.
+ *         contractAddress:
+ *           type: string
+ *           description: The blockchain address of the contract.
+ *         type:
+ *           type: string
+ *           enum: [rental, grid, arbitrage, data, carbon]
+ *           description: The type of revenue.
+ *         amount:
+ *           type: number
+ *           description: The amount of revenue.
+ *         date:
+ *           type: string
+ *           format: date
+ *           description: The date when the revenue was recorded.
  */
 
-router.get('/revenue/:address', (req, res) => {
-    // Retrieve asset details
-});
 
 /**
  * @swagger
