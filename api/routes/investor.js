@@ -606,16 +606,16 @@ router.post('/investor/buyToken', async (req, res) => {
 
 /**
  * @swagger
- * /api/investor/{id}:
+ * /api/investor/{email}:
  *   get:
- *     summary: Retrieve investor details by ID
+ *     summary: Retrieve investor details by email
  *     tags: 
  *     - Investor
  *     parameters:
  *       - in: path
- *         name: id
+ *         name: email
  *         required: true
- *         description: The ID of the investor to retrieve.
+ *         description: The email of the investor to retrieve.
  *     responses:
  *       200:
  *         description: Details of the investor.
@@ -636,14 +636,14 @@ router.post('/investor/buyToken', async (req, res) => {
  *         description: Error retrieving investor.
  */
 
-// Retrieve investor details by ID
-router.get('/investor/:id', async (req, res) => {
+// Retrieve investor details by email
+router.get('/investor/:email', async (req, res) => {
     try {
-        const investorId = req.params.id;
-        console.log('Retrieving investor details for ID:', investorId); // Add this line for debugging
-        const investor = await Investor.findById(investorId);
+        const email = req.params.email;
+        console.log('Retrieving investor details for email:', email); // Add this line for debugging
+        const investor = await Investor.find({email});
         if (!investor) {
-            console.log('Investor not found:', investorId); // Add this line for debugging
+            console.log('Investor not found:', email); // Add this line for debugging
             return res.status(404).send('Investor not found');
         }
         console.log('Investor details retrieved:', investor); // Add this line for debugging

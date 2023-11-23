@@ -434,16 +434,16 @@ router.post('/company/withdrawFunds', async (req, res) => {
 
 /**
  * @swagger
- * /api/company/{id}:
+ * /api/company/{email}:
  *   get:
- *     summary: Retrieve company details by ID
+ *     summary: Retrieve company details by email
  *     tags: 
  *     - Company
  *     parameters:
  *       - in: path
- *         name: id
+ *         name: email
  *         required: true
- *         description: The ID of the company to retrieve.
+ *         description: The email of the company to retrieve.
  *     responses:
  *       200:
  *         description: Details of the company.
@@ -453,14 +453,14 @@ router.post('/company/withdrawFunds', async (req, res) => {
  *         description: Error retrieving company.
  */
 
-// Retrieve company details by ID
-router.get('/company/:id', async (req, res) => {
+// Retrieve company details by Email
+router.get('/company/:email', async (req, res) => {
     try {
-        const companyId = req.params.id;
-        console.log('Retrieving company details for ID:', companyId); // Add this line for debugging
-        const company = await Company.findById(companyId);
+        const email = req.params.email;
+        console.log('Retrieving company details for email:', email); // Add this line for debugging
+        const company = await Company.find({email});
         if (!company) {
-            console.log('Company not found:', companyId); // Add this line for debugging
+            console.log('Company not found:', email); // Add this line for debugging
             return res.status(404).send('Company not found');
         }
         console.log('Company details retrieved:', company); // Add this line for debugging

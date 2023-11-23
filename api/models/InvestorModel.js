@@ -21,9 +21,11 @@ const investorSchema = new mongoose.Schema({
     },
     ethereumPrivateKey: {
         type: String,
+        unique: true
     },
     ethereumPublicKey: {
         type: String,
+        unique: true
     },
 });
 
