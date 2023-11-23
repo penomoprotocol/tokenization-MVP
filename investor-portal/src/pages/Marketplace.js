@@ -33,7 +33,7 @@ const Marketplace = () => {
 
     const shortAddress = (address) => `${address.slice(0, 6)}...${address.slice(-4)}`;
 
-    const fullAddressLink = (address) => `https://sepolia.etherscan.io/address/${address}`;
+    const fullTokenAddressLink = (address) => `https://sepolia.etherscan.io/token/${address}`;
     const weiToEth = (wei) => {
         const eth = wei / 1e18; // Convert wei to ETH
         const ethString = eth.toString();
@@ -56,7 +56,7 @@ const Marketplace = () => {
                             <div className="card-content">
                                 <h2>{token.name} ({token.symbol})</h2>
                                 {/* <p>Service Contract: <a href={fullAddressLink(token.serviceContractAddress)} target="_blank" rel="noopener noreferrer">{shortAddress(token.serviceContractAddress)}</a></p> */}
-                                <p>Token Contract: <a href={fullAddressLink(token.tokenContractAddress)} target="_blank" rel="noopener noreferrer">{shortAddress(token.tokenContractAddress)}</a></p>
+                                <p>Token Contract: <a href={fullTokenAddressLink(token.tokenContractAddress)} target="_blank" rel="noopener noreferrer">{shortAddress(token.tokenContractAddress)}</a></p>
                                 <p>Revenue Share: {token.revenueShare}%</p>
                                 <p>Contract Term: {token.contractTerm} months</p>
                                 <p>Max Token Supply: {token.maxTokenSupply}</p>
