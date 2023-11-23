@@ -37,14 +37,13 @@ const Marketplace = () => {
     const weiToEth = (wei) => {
         const eth = wei / 1e18; // Convert wei to ETH
         const ethString = eth.toString();
-      
+
         // Find the position of the first non-zero digit after the decimal
         const firstNonZero = ethString.indexOf('.') + 1 + ethString.substring(ethString.indexOf('.') + 1).search(/[1-9]/);
-      
+
         // Use toPrecision with the position of the first non-zero digit + 2 for two decimal places
-        return eth.toPrecision(firstNonZero-2);
-      };
-    
+        return eth.toPrecision(firstNonZero - 2);
+    };
 
     return (
         <div className="page-container">
@@ -55,22 +54,34 @@ const Marketplace = () => {
                         <div className="section-container h-100">
                             <div className="card-content">
                                 <h2>{token.name} ({token.symbol})</h2>
-                                {/* <p>Service Contract: <a href={fullAddressLink(token.serviceContractAddress)} target="_blank" rel="noopener noreferrer">{shortAddress(token.serviceContractAddress)}</a></p> */}
-                                <p>Token Contract: <a href={fullTokenAddressLink(token.tokenContractAddress)} target="_blank" rel="noopener noreferrer">{shortAddress(token.tokenContractAddress)}</a></p>
-                                <p>Revenue Share: {token.revenueShare}%</p>
-                                <p>Contract Term: {token.contractTerm} months</p>
-                                <p>Max Token Supply: {token.maxTokenSupply}</p>
-                                <p>Token Price: {weiToEth(token.tokenPrice)} ETH</p>
-                                {/* <p>Liquidity Contract: <a href={fullAddressLink(token.liquidityContractAddress)} target="_blank" rel="noopener noreferrer">{shortAddress(token.liquidityContractAddress)}</a></p>
-                                <p>Revenue Distribution Contract: <a href={fullAddressLink(token.revenueDistributionContractAddress)} target="_blank" rel="noopener noreferrer">{shortAddress(token.revenueDistributionContractAddress)}</a></p>
-                                
-                                {token.revenueStreamContractAddresses && token.revenueStreamContractAddresses.map((address, index) => (
-                                    <p key={index}>Revenue Stream Contract {index + 1}: <a href={fullAddressLink(address)} target="_blank" rel="noopener noreferrer">{shortAddress(address)}</a></p>
-                                ))}
-                                
-                                {token.assetDIDs && token.assetDIDs.map((did, index) => (
-                                    <p key={index}>Asset DID {index + 1}: {did}</p>
-                                ))}  */}
+                                <div className="token-details">
+                                    <div className="token-detail">
+                                        <div className="detail-name">Token Contract:</div>
+                                        <div className="detail-value">
+                                            <a href={fullTokenAddressLink(token.tokenContractAddress)}
+                                                target="_blank" rel="noopener noreferrer">
+                                                {shortAddress(token.tokenContractAddress)}
+                                            </a>
+                                        </div>
+                                    </div>
+                                    <div className="token-detail">
+                                        <div className="detail-name">Revenue Share:</div>
+                                        <div className="detail-value">{token.revenueShare / 100}%</div>
+                                    </div>
+                                    <div className="token-detail">
+                                        <div className="detail-name">Contract Term:</div>
+                                        <div className="detail-value">{token.contractTerm}months</div>
+                                    </div>
+                                    <div className="token-detail">
+                                        <div className="detail-name">Max Supply:</div>
+                                        <div className="detail-value">{token.maxTokenSupply}</div>
+                                    </div>
+                                    <div className="token-detail">
+                                        <div className="detail-name">Price:</div>
+                                        <div className="detail-value">{weiToEth(token.tokenPrice)}ETH</div>
+                                    </div>
+                                    {/* Add more details as needed */}
+                                </div>
                             </div>
                             <button className="btn-penomo" onClick={() => handleBuyTokensClick(token)}>Buy Tokens</button>
                         </div>
@@ -79,10 +90,14 @@ const Marketplace = () => {
             </div>
 
             {selectedToken && (
-                <BuyTokens token={selectedToken} closeModal={handleCloseModal} show={!!selectedToken} />
+                <BuyTokens
+                    token={selectedToken}
+                    closeModal={handleCloseModal}
+                    show={!!selectedToken}
+                />
             )}
         </div>
     );
-};
-
+}
 export default Marketplace;
+

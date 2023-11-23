@@ -1,49 +1,69 @@
-/* Add to your CSS file */
-.section-container {
-    display: flex;
-    flex-direction: column;
-    height: 100%; /* Make sure the container takes the full height */
-  }
-  
-  .card-content {
-    flex: 1; /* This will push the button to the bottom */
-  }
-  
-  .btn-container {
-    margin-top: auto; /* This will push the button to the bottom of the card */
-  }
-  
-  /* Marketplace.css */
+/* Marketplace.css */
 
-/* Add styles to ensure the content fits well within the card and is responsive */
+/* Card container styling */
 .section-container {
     padding: 20px;
     display: flex;
     flex-direction: column;
     justify-content: space-between;
-}
-
-.card-content {
+    height: 100%;
+  }
+  
+  /* Card content styling */
+  .card-content {
     word-wrap: break-word; /* Ensures long text doesn't overflow */
+    flex: 1; /* Pushes the button to the bottom */
+  }
+  
+  .card-content h2 {
+    text-align: center;
+    margin-bottom: 1rem;
+  }
+  
+  /* Token details layout */
+  .token-details {
+    display: flex;
+    flex-direction: column;
 }
 
-.card-content a {
+.token-detail {
+  display: flex;
+  justify-content: space-between; /* This ensures left and right alignment */
+  margin-bottom: 0.5rem; /* Space between rows */
+}
+
+.detail-name {
+  flex: 1; /* Takes up as much space as possible, pushing the value to the right */
+  text-align: left; /* Aligns the text to the left */
+  font-weight: bold; /* Makes the text bold */
+}
+
+.detail-value {
+  flex: 0; /* Does not grow, keeping the value right-aligned */
+  text-align: right; /* Aligns the text to the right */
+}
+
+
+  /* Link styling */
+  .card-content a {
     color: #007bff; /* Style for links */
     text-decoration: none;
-}
-
-.card-content a:hover {
+  }
+  
+  .card-content a:hover {
     text-decoration: underline;
-}
-
-.btn-penomo {
-    align-self: center; /* Center the button */
-    margin-top: 20px; /* Space above the button */
-}
-
-/* Responsive adjustments */
-@media (max-width: 768px) {
+  }
+  
+  /* Button styling */
+  .btn-penomo {
+    align-self: center;
+    margin-top: 20px;
+  }
+  
+  /* Responsive adjustments */
+  @media (max-width: 768px) {
     .card-content {
-        font-size: smaller; /* Reduce font size on smaller screens */
+      font-size: smaller; /* Reduce font size on smaller screens */
     }
-}
+  }
+  
