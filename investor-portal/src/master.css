@@ -19,38 +19,39 @@ body {
     display: flex;
     justify-content: center;
     align-items: center;
-  }
-  
-  /* This class can be used to center content horizontally within its parent */
-  .horizontal-center {
+}
+
+/* This class can be used to center content horizontally within its parent */
+.horizontal-center {
     display: flex;
     justify-content: center;
-  }
-  
-  /* This class can be used to center content vertically within its parent */
-  .vertical-center {
+}
+
+/* This class can be used to center content vertically within its parent */
+.vertical-center {
     display: flex;
     align-items: center;
-  }
-  
-  /* This class can be used to center content both vertically and horizontally within its parent */
-  .full-center {
+}
+
+/* This class can be used to center content both vertically and horizontally within its parent */
+.full-center {
     display: flex;
     justify-content: center;
     align-items: center;
-  }
-  
-  /* This class can be used to center text within its container */
-  .text-center {
+}
+
+/* This class can be used to center text within its container */
+.text-center {
     text-align: center;
-  }
-  
-  /* This class can be used for buttons or other clickable elements to indicate action */
-  .btn-center {
-    display: block; /* Change to block to allow margin auto to work */
+}
+
+/* This class can be used for buttons or other clickable elements to indicate action */
+.btn-center {
+    display: block;
+    /* Change to block to allow margin auto to work */
     margin-left: auto;
     margin-right: auto;
-  }
+}
 
 
 /* Containers */
@@ -64,8 +65,8 @@ body {
 /* Common header for pages */
 .page-header {
     color: #333;
-    margin-top: 1rem;
-    margin-bottom: 1rem;
+    margin-top: 2rem;
+    margin-bottom: 4rem;
     text-align: center;
 }
 
@@ -73,8 +74,9 @@ body {
 .section-container {
     background-color: #f8f9fa;
     border-radius: 8px;
-    padding: 1rem;
+    padding: 2rem;
     margin-block: 1rem;
+    margin-bottom: 4rem;
     box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
 }
 
@@ -157,17 +159,28 @@ body {
 }
 
 .btn-penomo.btn-disabled {
-    background-color: grey; /* Change the background color for the disabled state */
-    cursor: default; /* Disable the pointer cursor */
-  }
+    background-color: grey;
+    /* Change the background color for the disabled state */
+    cursor: default;
+    /* Disable the pointer cursor */
+}
 
 /* Popup styles */
 .popup-header {
-    color: #333;
-    margin-top: 0.3rem;
-    margin-bottom: 3rem;
-    text-align: left;
+    position: relative;
+    /* This ensures that absolute positioning is relative to this container */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 4rem;
 }
+
+/* Make sure the title does not overlap with the close button */
+.popup-header h2 {
+    padding-right: 40px;
+    /* Adjust as needed */
+}
+
 .popup {
     position: fixed;
     top: 0;
@@ -196,11 +209,20 @@ body {
 
 /* Close button */
 .close {
-    color: #aaa;
-    float: right;
-    font-size: 28px;
+    position: absolute;
+    /* Absolute position for the close button */
+    top: 1px;
+    /* Adjust as needed to move up towards the top corner */
+    right: 1px;
+    /* Adjust as needed to move towards the right corner */
     cursor: pointer;
+    font-size: 1.5rem;
+    /* Adjust the size as needed */
+    line-height: 1;
+    color: #333;
+    /* Adjust the color as needed */
 }
+
 
 .close:hover {
     color: #333;
