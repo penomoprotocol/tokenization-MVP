@@ -7,6 +7,7 @@ import './Marketplace.css';
 const Marketplace = () => {
     const [tokens, setTokens] = useState([]);
     const [selectedToken, setSelectedToken] = useState(null);
+    const [isModalOpen, setIsModalOpen] = useState(false);
 
     useEffect(() => {
         const fetchTokens = async () => {
@@ -24,11 +25,14 @@ const Marketplace = () => {
     }, []);
 
     const handleBuyTokensClick = (token) => {
+        console.log('Opening modal for token:', token);
         setSelectedToken(token);
+        setIsModalOpen(true);
     };
 
     const handleCloseModal = () => {
         setSelectedToken(null);
+        setIsModalOpen(false);
     };
 
     const shortAddress = (address) => `${address.slice(0, 6)}...${address.slice(-4)}`;
@@ -92,12 +96,13 @@ const Marketplace = () => {
             {selectedToken && (
                 <BuyTokens
                     token={selectedToken}
-                    closeModal={handleCloseModal}
-                    show={!!selectedToken}
+                    closeModal={() => handleCloseModal()}
+                    show={isModalOpen}
                 />
             )}
         </div>
     );
 }
+
 export default Marketplace;
 

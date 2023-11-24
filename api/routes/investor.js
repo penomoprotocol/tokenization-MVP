@@ -358,14 +358,15 @@ router.post('/investor/verify', async (req, res) => {
  *           schema:
  *             type: object
  *             required:
- *               - investorId
+ *               - investorEmail
  *               - password
  *               - tokenAmount
  *               - serviceContractAddress
  *             properties:
- *               investorId:
+ *               investorEmail:
  *                 type: string
- *                 description: The ID of the investor
+ *                 format: email
+ *                 description: The email of the investor
  *               password:
  *                 type: string
  *                 format: password
@@ -387,29 +388,28 @@ router.post('/investor/verify', async (req, res) => {
  *         description: Error buying tokens.
  */
 
-
-// Handle investor token purchase
 router.post('/investor/buyToken', async (req, res) => {
     try {
-        const { investorId, password, tokenAmount, serviceContractAddress } = req.body;
+        const { investorEmail, password, tokenAmount, serviceContractAddress } = req.body;
 
         if (!serviceContractAddress) {
             return res.status(400).send('Missing service contract address.');
         }
 
-        // Step 1: Get the investor from the database using the provided investorId
-        const investor = await Investor.findById(investorId);
+        // Step 1: Get the investor from the database using the provided email
+        const investor = await Investor.findOne({ email: investorEmail });
         if (!investor) {
-            console.log('Investor not found:', investorId);
+            console.log('Investor not found with email:', investorEmail);
             return res.status(401).send('Investor not found');
         }
 
         // Step 2: Verify password
         const isPasswordValid = await bcrypt.compare(password, investor.password);
         if (!isPasswordValid) {
-            console.log('Invalid credentials for investor ID:', investorId);
+            console.log('Invalid credentials for investor email:', investorEmail);
             return res.status(401).send('Invalid credentials');
         }
+
 
         console.log("investor.ethereumPublicKey: ", investor.ethereumPublicKey);
 

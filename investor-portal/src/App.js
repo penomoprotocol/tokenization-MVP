@@ -6,8 +6,8 @@ import Home from './pages/Home';
 import RegistrationPage from './pages/RegistrationPage';
 import LoginPage from './pages/LoginPage';
 import InvestorDashboard from './pages/InvestorDashboard';
-import ProfileUpdatePage from './pages/ProfileUpdatePage';
-import KYCVerificationPage from './pages/KYCVerificationPage';
+// import ProfileUpdatePage from './pages/ProfileUpdatePage';
+// import KYCVerificationPage from './pages/KYCVerificationPage';
 import Transactions from './pages/Transactions';
 import Marketplace from './pages/Marketplace';
 
@@ -33,8 +33,8 @@ function App() {
               <Route path="/login" element={<LoginPage />} />
               <Route path="/dashboard" element={<InvestorDashboard />} />
               <Route path="/marketplace" element={<Marketplace />} />
-              <Route path="/update-profile" element={<ProfileUpdatePage />} />
-              <Route path="/kyc-verification" element={<KYCVerificationPage />} />
+              {/* <Route path="/update-profile" element={<ProfileUpdatePage />} />
+              <Route path="/kyc-verification" element={<KYCVerificationPage />} /> */}
               <Route path="/transaction-history" element={<Transactions />} />
             </Routes>
           </Router>
