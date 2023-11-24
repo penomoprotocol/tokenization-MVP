@@ -27,21 +27,18 @@
 }
 
 .token-detail {
-  display: flex;
-  justify-content: space-between; /* This ensures left and right alignment */
-  margin-bottom: 0.5rem; /* Space between rows */
-}
-
-.detail-name {
-  flex: 1; /* Takes up as much space as possible, pushing the value to the right */
-  text-align: left; /* Aligns the text to the left */
-  font-weight: bold; /* Makes the text bold */
-}
-
-.detail-value {
-  flex: 0; /* Does not grow, keeping the value right-aligned */
-  text-align: right; /* Aligns the text to the right */
-}
+    display: flex; /* Use flexbox to layout children */
+    justify-content: space-between; /* Place space between the children */
+    align-items: center; /* Align items vertically */
+    margin-bottom: 0.5rem; /* Optional: space between token details */
+  }
+  
+  .detail-name,
+  .detail-value {
+    /* Display these as inline-block so they don't take full width */
+    display: inline-block;
+  }
+  
 
 
   /* Link styling */

@@ -74,7 +74,7 @@ const Marketplace = () => {
                                     </div>
                                     <div className="token-detail">
                                         <div className="detail-name">Contract Term:</div>
-                                        <div className="detail-value">{token.contractTerm}months</div>
+                                        <div className="detail-value">{token.contractTerm} months</div>
                                     </div>
                                     <div className="token-detail">
                                         <div className="detail-name">Max Supply:</div>
@@ -82,7 +82,7 @@ const Marketplace = () => {
                                     </div>
                                     <div className="token-detail">
                                         <div className="detail-name">Price:</div>
-                                        <div className="detail-value">{weiToEth(token.tokenPrice)}ETH</div>
+                                        <div className="detail-value">{weiToEth(token.tokenPrice)} ETH</div>
                                     </div>
                                     {/* Add more details as needed */}
                                 </div>

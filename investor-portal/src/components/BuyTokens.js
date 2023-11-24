@@ -6,10 +6,12 @@ const BuyTokens = ({ token, closeModal, show }) => {
   const [password, setPassword] = useState('');
   const [tokenAmount, setTokenAmount] = useState('');
   const [responseMessage, setResponseMessage] = useState('');
+  const [isSubmitting, setIsSubmitting] = useState(false); // New state to track form submission
 
   // Handle form submission for buying tokens
   const handleSubmit = async (e) => {
     e.preventDefault();
+    setIsSubmitting(true); // Enable the loading state
 
     try {
       const response = await axios.post(`${process.env.REACT_APP_PENOMO_API}/api/investor/buyToken`, {
@@ -23,8 +25,11 @@ const BuyTokens = ({ token, closeModal, show }) => {
       setResponseMessage(response.data.message);
     } catch (error) {
       setResponseMessage(error.response ? error.response.data : 'Failed to purchase tokens.');
+    } finally {
+      setIsSubmitting(false); // Disable the loading state regardless of the outcome
     }
   };
+
 
   // Close modal and clear message
   const handleClose = () => {
@@ -43,6 +48,8 @@ const BuyTokens = ({ token, closeModal, show }) => {
     return eth.toPrecision(firstNonZero - 2);
   };
 
+  // Conditional styling for the Buy button
+  const buyButtonClasses = isSubmitting ? "btn-penomo btn-disabled btn-center" : "btn-penomo btn-center";
 
   if (!show) {
     return null;
@@ -58,7 +65,7 @@ const BuyTokens = ({ token, closeModal, show }) => {
         {!responseMessage ? (
           <form onSubmit={handleSubmit} className="token-purchase-form">
             <div className="form-group">
-              <label htmlFor="email" className="form-label">Email:</label>
+              <label htmlFor="email" className="form-label"><strong>Email </strong></label>
               <input
                 type="email"
                 id="email"
@@ -69,7 +76,7 @@ const BuyTokens = ({ token, closeModal, show }) => {
               />
             </div>
             <div className="form-group">
-              <label htmlFor="password" className="form-label">Password:</label>
+              <label htmlFor="password" className="form-label"><strong>Password </strong></label>
               <input
                 type="password"
                 id="password"
@@ -80,7 +87,7 @@ const BuyTokens = ({ token, closeModal, show }) => {
               />
             </div>
             <div className="form-group">
-              <label htmlFor="tokenAmount" className="form-label">Amount to buy:</label>
+              <label htmlFor="tokenAmount" className="form-label"> <strong>Amount to buy </strong></label>
               <input
                 type="number"
                 id="tokenAmount"
@@ -90,15 +97,17 @@ const BuyTokens = ({ token, closeModal, show }) => {
                 required
               />
             </div>
-            <div className="price-display">
-              <strong>Current Price per Token:</strong> <span>{weiToEth(token.tokenPrice)} ETH</span>
+            <div className="price-display horizontal-center">
+              <strong>Token Price:&nbsp;</strong><span>{weiToEth(token.tokenPrice)} ETH</span>
             </div>
-            <button type="submit" className="btn-penomo">Buy</button>
+            <button type="submit" className={buyButtonClasses} disabled={isSubmitting}>
+              {isSubmitting ? 'Mining Blocks...' : 'Buy'}
+            </button>
           </form>
         ) : (
           <>
-            <p>{responseMessage}</p>
-            <button onClick={handleClose}>OK</button>
+            <p className='content-center'>{responseMessage}</p>
+            <button className="btn-penomo btn-center" onClick={handleClose}>OK</button>
           </>
         )}
       </div>

@@ -1,5 +1,4 @@
 /* Master styles that can be used across the entire application */
-/* Include this file in your main entry file like index.js or App.js */
 
 /* Global settings */
 html,
@@ -9,6 +8,52 @@ body {
     font-family: 'Arial', sans-serif;
     /* Use your preferred font */
 }
+
+/* Center Content */
+.center {
+    justify-content: center;
+    align-items: center;
+}
+
+.content-center {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+  }
+  
+  /* This class can be used to center content horizontally within its parent */
+  .horizontal-center {
+    display: flex;
+    justify-content: center;
+  }
+  
+  /* This class can be used to center content vertically within its parent */
+  .vertical-center {
+    display: flex;
+    align-items: center;
+  }
+  
+  /* This class can be used to center content both vertically and horizontally within its parent */
+  .full-center {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+  }
+  
+  /* This class can be used to center text within its container */
+  .text-center {
+    text-align: center;
+  }
+  
+  /* This class can be used for buttons or other clickable elements to indicate action */
+  .btn-center {
+    display: block; /* Change to block to allow margin auto to work */
+    margin-left: auto;
+    margin-right: auto;
+  }
+
+
+/* Containers */
 
 .page-container {
     width: 80%;
