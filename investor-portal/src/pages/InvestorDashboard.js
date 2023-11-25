@@ -1,60 +1,76 @@
 import React, { useState, useEffect } from 'react';
-
-// Import Components
+import axios from 'axios';
 import BalanceChart from '../components/BalanceChart';
-
-// Import CSS styling
-import './InvestorDashboard.css'; // Assuming this CSS file includes the master styling
-
-// Mock data for the dashboard
-const mockData = {
-    investorName: 'John Doe',
-    walletBalances: {
-        USDC: 9000,
-        ETH: 5.3
-    },
-    portfolio: [
-        { tokenName: 'Token A', balance: 500, totalRevenue: 1500, currentPrice: 2.5, contractTerm: 12 },
-        { tokenName: 'Token B', balance: 300, totalRevenue: 900, currentPrice: 1.8, contractTerm: 8 },
-        // ...add more tokens as necessary
-    ],
-    recentTransactions: [
-        { id: 1, type: 'Buy', token: 'Token A', amount: 1000, date: '2023-01-01' },
-        { id: 2, type: 'Sell', token: 'Token B', amount: 500, date: '2023-01-02' },
-        // ...more transactions
-    ],
-};
-
-const mockHistoricData = {
-    labels: ["Jan", "Feb", "Mar", "Apr", "May", "Jun"],
-    datasets: [
-        {
-            label: "USDC Balance",
-            data: [2000, 2400, 2200, 2800, 3000, 3200],
-            borderColor: "rgb(75, 192, 192)",
-            backgroundColor: "rgba(75, 192, 192, 0.5)",
-        },
-        {
-            label: "ETH Balance",
-            data: [0.5, 0.6, 0.55, 0.65, 0.64, 0.66],
-            borderColor: "rgb(153, 102, 255)",
-            backgroundColor: "rgba(153, 102, 255, 0.5)",
-        }
-    ]
-};
-
-
+import './InvestorDashboard.css';
 
 const InvestorDashboard = () => {
-    const [investorData, setInvestorData] = useState(mockData);
+    const [investorData, setInvestorData] = useState(null); // Initialize state to null
 
     useEffect(() => {
-        // Fetch data from API
+        const fetchInvestorData = async () => {
+            const userToken = localStorage.getItem('authToken'); // Retrieve JWT token
+
+            try {
+                const response = await axios.get(`${process.env.REACT_APP_PENOMO_API}/api/investor`, {
+                    headers: {
+                        Authorization: `Bearer ${userToken}` // Include JWT token in header
+                    }
+                });
+                setInvestorData(response.data); // Update state with investor data
+            } catch (error) {
+                console.error('Error fetching investor data:', error);
+                // Handle error (e.g., show a message to the user)
+            }
+        };
+
+        fetchInvestorData();
     }, []);
+
+    // Mock data for the dashboard
+    const mockData = {
+        investorName: 'John Doe',
+        walletBalances: {
+            USDC: 9000,
+            ETH: 5.3
+        },
+        portfolio: [
+            { tokenName: 'Token A', balance: 500, totalRevenue: 1500, currentPrice: 2.5, contractTerm: 12 },
+            { tokenName: 'Token B', balance: 300, totalRevenue: 900, currentPrice: 1.8, contractTerm: 8 },
+            // ...add more tokens as necessary
+        ],
+        recentTransactions: [
+            { id: 1, type: 'Buy', token: 'Token A', amount: 1000, date: '2023-01-01' },
+            { id: 2, type: 'Sell', token: 'Token B', amount: 500, date: '2023-01-02' },
+            // ...more transactions
+        ],
+    };
+
+    const mockHistoricData = {
+        labels: ["Jan", "Feb", "Mar", "Apr", "May", "Jun"],
+        datasets: [
+            {
+                label: "USDC Balance",
+                data: [2000, 2400, 2200, 2800, 3000, 3200],
+                borderColor: "rgb(75, 192, 192)",
+                backgroundColor: "rgba(75, 192, 192, 0.5)",
+            },
+            {
+                label: "ETH Balance",
+                data: [0.5, 0.6, 0.55, 0.65, 0.64, 0.66],
+                borderColor: "rgb(153, 102, 255)",
+                backgroundColor: "rgba(153, 102, 255, 0.5)",
+            }
+        ]
+    };
+
+    // Check if investorData is loaded
+    if (!investorData) {
+        return <div className='content-center page-header'>Loading...</div>; // Or any other loading state representation
+    }
 
     return (
         <div className="page-container">
-            <h1 className="page-header">Welcome, {investorData.investorName}</h1>
+            <h1 className="page-header">Welcome, {investorData.firstname} {investorData.surname}</h1>
             <div className="section-container">
                 <div className="balance-chart-container">
                     {/* Here you would render your chart component */}
@@ -120,3 +136,5 @@ const InvestorDashboard = () => {
 };
 
 export default InvestorDashboard;
+
+

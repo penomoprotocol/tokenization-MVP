@@ -33,6 +33,9 @@ const swaggerUi = require('swagger-ui-express');
 const express = require('express');
 const router = express.Router();
 
+
+const verifyToken = require('./jwtMiddleware');
+
 // const ipfsClient = require('ipfs-http-client');
 // const ipfs = ipfsClient({ host: 'localhost', port: '5001', protocol: 'http' }); // adjust if you're connecting to a different IPFS node
 

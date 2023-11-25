@@ -34,8 +34,12 @@ const TCABI = TCcontractJSON.abi;
 const passport = require('passport');
 const JwtStrategy = require('passport-jwt').Strategy;
 const ExtractJwt = require('passport-jwt').ExtractJwt;
-const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
+
+const verifyToken = require('./jwtMiddleware');
+
+const bcrypt = require('bcryptjs');
+
 const mongoose = require('mongoose');
 
 require('dotenv').config();
@@ -299,7 +303,7 @@ router.post('/investor/login', async (req, res) => {
 
 // TODO: update "verified" status in Investor db instance. Add kyc data, such as passport number, date and signature of KYC provider
 // Investor KYC
-router.post('/investor/verify', async (req, res) => {
+router.post('/investor/verify', verifyToken, async (req, res) => {
     try {
         const { investorId } = req.body;
 
@@ -605,6 +609,54 @@ router.post('/investor/buyToken', async (req, res) => {
 
 /**
  * @swagger
+ * /api/investor:
+ *   get:
+ *     summary: Retrieve logged-in investor details
+ *     tags: 
+ *       - Investor
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: Details of the logged-in investor.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 name:
+ *                   type: string
+ *                 email:
+ *                   type: string
+ *                 balance:
+ *                   type: number
+ *       401:
+ *         description: Unauthorized if token is missing or invalid.
+ *       404:
+ *         description: Investor not found.
+ *       500:
+ *         description: Error retrieving investor.
+ */
+router.get('/investor', verifyToken, async (req, res) => {
+    try {
+        const investorId = req.user.id; // ID is retrieved from the decoded JWT token
+        const investor = await Investor.findById(investorId);
+
+        if (!investor) {
+            return res.status(404).send('Investor not found');
+        }
+
+        res.json(investor);
+    } catch (error) {
+        console.error('Error retrieving investor details:', error);
+        res.status(500).send('Error retrieving investor');
+    }
+});
+
+
+
+/**
+ * @swagger
  * /api/investor/{id}:
  *   get:
  *     summary: Retrieve investor details by ID
@@ -635,9 +687,9 @@ router.post('/investor/buyToken', async (req, res) => {
  *         description: Error retrieving investor.
  */
 // Retrieve investor details by ID
-router.get('/investor/:id', async (req, res) => {
+router.get('/investor/:id',verifyToken, async (req, res) => {
     try {
-        const investorId = req.params.id;
+        const investorId = req.user.id;
         console.log('Retrieving investor details for ID:', investorId); // For debugging
         const investor = await Investor.findById(investorId);
         if (!investor) {
