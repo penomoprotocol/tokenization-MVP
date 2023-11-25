@@ -15,6 +15,9 @@ import Marketplace from './pages/Marketplace';
 import NavBar from './components/NavBar';
 import Footer from './components/Footer';
 
+// Importing auth provider
+import { AuthProvider } from './services/AuthContext';
+
 // Importing styling
 import './master.css'
 import './App.css'; 
