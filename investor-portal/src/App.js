@@ -1,8 +1,9 @@
+// App.js
 import React from 'react';
 import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
 import axios from 'axios';
 
-// Importing page components
+// Importing page components and ProtectedRoute
 import Home from './pages/Home';
 import RegistrationPage from './pages/RegistrationPage';
 import LoginPage from './pages/LoginPage';
@@ -14,8 +15,10 @@ import Marketplace from './pages/Marketplace';
 import NavBar from './components/NavBar';
 import Footer from './components/Footer';
 
-// Importing auth provider
-import { AuthProvider } from './services/AuthContext'; // Ensure this path is correct
+// Importing auth services
+import { AuthProvider } from './services/AuthContext'; 
+import ProtectedRoute from './services/ProtectedRoute'; 
+
 
 // Importing styling
 import './master.css';
@@ -37,11 +40,30 @@ function App() {
                 <Route path="/" element={<Home />} />
                 <Route path="/register" element={<RegistrationPage />} />
                 <Route path="/login" element={<LoginPage />} />
-                <Route path="/dashboard" element={<InvestorDashboard />} />
-                <Route path="/marketplace" element={<Marketplace />} />
-                <Route path="/transaction-history" element={<Transactions />} />
-                {/* <Route path="/update-profile" element={<ProfileUpdatePage />} />
-                <Route path="/kyc-verification" element={<KYCVerificationPage />} /> */}
+                <Route 
+                  path="/dashboard" 
+                  element={
+                    <ProtectedRoute>
+                      <InvestorDashboard />
+                    </ProtectedRoute>
+                  } 
+                />
+                <Route 
+                  path="/marketplace" 
+                  element={
+                    <ProtectedRoute>
+                      <Marketplace />
+                    </ProtectedRoute>
+                  } 
+                />
+                <Route 
+                  path="/transaction-history" 
+                  element={
+                    <ProtectedRoute>
+                      <Transactions />
+                    </ProtectedRoute>
+                  } 
+                />
               </Routes>
             </div>
             <Footer />
