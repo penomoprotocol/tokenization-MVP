@@ -44,6 +44,8 @@ const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const mongoose = require('mongoose');
 
+const verifyToken = require('../middleware/jwtCheck');
+
 const swaggerJsdoc = require('swagger-jsdoc');
 const swaggerUi = require('swagger-ui-express');
 
@@ -465,7 +467,7 @@ router.post('/token/deploy', async (req, res) => {
 
 /**
  * @swagger
- * /api/tokens:
+ * /api/token/all:
  *   get:
  *     summary: Retrieve a list of all tokens
  *     tags:
@@ -517,7 +519,8 @@ router.post('/token/deploy', async (req, res) => {
  *           type: string
  *           description: ID of the company that owns the token.
  */
-router.get('/tokens', async (req, res) => {
+// Get all tokens
+router.get('/token/all', async (req, res) => {
     try {
         // Assuming Token is your Mongoose model for the token contracts
         const tokens = await Token.find({});
@@ -562,8 +565,9 @@ router.get('/tokens', async (req, res) => {
  *       500:
  *         description: An error occurred while retrieving token holdings.
  */
+// Get token holdings from logged in investor
 router.get('/token/jwt', verifyToken, async (req, res) => {
-    const investorId = req.user.id; // Assuming this is how your JWT stores the user ID
+    const investorId = req.user.id; 
 
     try {
         // Fetch the investor's public key from the database
@@ -580,7 +584,7 @@ router.get('/token/jwt', verifyToken, async (req, res) => {
         // Iterate over the tokens to get the balance for the investor's public key
         let investorTokenHoldings = [];
         for (let token of tokens) {
-            const tokenContract = new web3.eth.Contract(TokenContractABI, token.tokenContractAddress);
+            const tokenContract = new web3.eth.Contract(TCABI, token.tokenContractAddress);
             const balance = await tokenContract.methods.balanceOf(publicKey).call();
             investorTokenHoldings.push({
                 tokenName: token.name,
