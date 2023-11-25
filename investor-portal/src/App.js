@@ -1,5 +1,6 @@
 import React from 'react';
 import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
+import axios from 'axios';
 
 // Importing page components
 import Home from './pages/Home';
@@ -20,6 +21,9 @@ import { AuthProvider } from './services/AuthContext'; // Ensure this path is co
 import './master.css';
 import './App.css';
 import './components/Footer.css';
+
+// Set up HTTP headers for JWT requests
+axios.defaults.headers.common['Authorization'] = `Bearer ${localStorage.getItem('authToken')}`;
 
 function App() {
   return (

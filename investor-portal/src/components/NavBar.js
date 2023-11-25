@@ -25,7 +25,7 @@ const NavBar = () => {
                         <Nav.Link as={Link} to="/transaction-history">Transaction History</Nav.Link>
                     </Nav>
                     <Nav>
-                        <Link to="/" className="btn-penomo-navbar">Login</Link>
+                        <Link to="/login" className="btn-penomo-navbar">Login</Link>
                         <Link to="/" className="btn-secondary-navbar">Register</Link>
                     </Nav>
                 </Navbar.Collapse>
