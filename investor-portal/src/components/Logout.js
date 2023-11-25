@@ -4,6 +4,9 @@ import { useNavigate } from 'react-router-dom';
 import { AuthContext } from '../services/AuthContext'; // Update the path to your AuthContext
 import axios from 'axios';
 
+// Import styling
+import '../components/NavBar.css';
+
 const Logout = () => {
   const { logout } = useContext(AuthContext);
   const navigate = useNavigate();
@@ -16,7 +19,7 @@ const Logout = () => {
   };
 
   return (
-    <button onClick={handleLogout} className="btn-penomo">Logout</button>
+    <button onClick={handleLogout} className="btn-penomo-navbar">Logout</button>
   );
 };
 
