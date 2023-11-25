@@ -36,7 +36,7 @@ const JwtStrategy = require('passport-jwt').Strategy;
 const ExtractJwt = require('passport-jwt').ExtractJwt;
 const jwt = require('jsonwebtoken');
 
-const verifyToken = require('./jwtMiddleware');
+const verifyToken = require('../middleware/jwtCheck');
 
 const bcrypt = require('bcryptjs');
 

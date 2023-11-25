@@ -16,6 +16,9 @@ const InvestorDashboard = () => {
                         Authorization: `Bearer ${userToken}` // Include JWT token in header
                     }
                 });
+                console.log(response.data);
+                const publicKey = response.data.ethereumPublicKey;
+                
                 setInvestorData(response.data); // Update state with investor data
             } catch (error) {
                 console.error('Error fetching investor data:', error);
@@ -83,7 +86,7 @@ const InvestorDashboard = () => {
                     <div className="wallet-balances-container">
                         <div className="wallet-balance">
                             <strong className="balance-title">USDC</strong>
-                            <span className="balance-amount">{investorData.walletBalances.USDC.toFixed(2)}</span>
+                            {/* <span className="balance-amount">{investorData.walletBalances.USDC.toFixed(2)}</span> */}
                             <div className="btn-container">
                                 <button className="btn-penomo">Top Up</button>
                                 <button className="btn-penomo">Withdraw</button>
@@ -91,7 +94,7 @@ const InvestorDashboard = () => {
                         </div>
                         <div className="wallet-balance">
                             <strong className="balance-title">ETH</strong>
-                            <span className="balance-amount">{investorData.walletBalances.ETH.toFixed(3)}</span>
+                            {/* <span className="balance-amount">{investorData.walletBalances.ETH.toFixed(3)}</span> */}
                             <div className="btn-container">
                                 <button className="btn-penomo">Top Up</button>
                                 <button className="btn-penomo">Withdraw</button>
@@ -103,20 +106,20 @@ const InvestorDashboard = () => {
 
             <div className="section-container">
                 <h2 className="section-header">Security Tokens</h2>
-                {investorData.portfolio.map((token) => (
-                    <div className="portfolio-item" key={token.tokenName}>
+                {/* {investorData.portfolio.map((token) => ( */}
+                    {/* <div className="portfolio-item" key={token.tokenName}> */}
 
-                        <strong>{token.tokenName}</strong>
-                        <span> Balance: {token.balance}</span>
-                        <span> Current Price: USDC {token.currentPrice.toFixed(2)}</span>
-                        <span> Total Revenue: USDC {token.totalRevenue.toFixed(2)}</span>
-                        <span> Remaining Contract Term: {token.contractTerm} months</span>
+                        {/* <strong>{token.tokenName}</strong> */}
+                        {/* <span> Balance: {token.balance}</span> */}
+                        {/* <span> Current Price: USDC {token.currentPrice.toFixed(2)}</span>
+                        <span> Total Revenue: USDC {token.totalRevenue.toFixed(2)}</span> */}
+                        {/* <span> Remaining Contract Term: {token.contractTerm} months</span> */}
 
-                        <div className="btn-container">
+                        {/* <div className="btn-container">
                             <button className="btn-penomo">Sell</button>
-                        </div>
-                    </div>
-                ))}
+                        </div> */}
+                    {/* </div> */}
+                {/* ))} */}
             </div>
 
 
@@ -124,11 +127,11 @@ const InvestorDashboard = () => {
             <div className="recent-transactions section-container">
                 <h2>Recent Transactions</h2>
                 <ul className="section-list">
-                    {investorData.recentTransactions.map((transaction) => (
+                    {/* {investorData.recentTransactions.map((transaction) => (
                         <li className="section-list-item" key={transaction.id}>
                             <strong>{transaction.date}:</strong> {transaction.type} {transaction.token} - <strong>Amount:</strong> {transaction.amount}
                         </li>
-                    ))}
+                    ))} */}
                 </ul>
             </div>
         </div >

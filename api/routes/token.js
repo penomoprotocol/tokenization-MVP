@@ -530,6 +530,71 @@ router.get('/tokens', async (req, res) => {
     }
 });
 
+/**
+ * @swagger
+ * /api/token/jwt:
+ *   get:
+ *     summary: Retrieve token holdings for the current authenticated investor
+ *     tags:
+ *       - Token
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: Token holdings of the investor.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: array
+ *               items:
+ *                 type: object
+ *                 properties:
+ *                   tokenName:
+ *                     type: string
+ *                   symbol:
+ *                     type: string
+ *                   balance:
+ *                     type: string
+ *       401:
+ *         description: Unauthorized, token required.
+ *       404:
+ *         description: Investor not found.
+ *       500:
+ *         description: An error occurred while retrieving token holdings.
+ */
+router.get('/token/jwt', verifyToken, async (req, res) => {
+    const investorId = req.user.id; // Assuming this is how your JWT stores the user ID
+
+    try {
+        // Fetch the investor's public key from the database
+        const investor = await Investor.findById(investorId);
+        if (!investor) {
+            return res.status(404).send('Investor not found');
+        }
+
+        const publicKey = investor.ethereumPublicKey;
+
+        // Fetch all tokens from the database
+        const tokens = await Token.find({});
+
+        // Iterate over the tokens to get the balance for the investor's public key
+        let investorTokenHoldings = [];
+        for (let token of tokens) {
+            const tokenContract = new web3.eth.Contract(TokenContractABI, token.tokenContractAddress);
+            const balance = await tokenContract.methods.balanceOf(publicKey).call();
+            investorTokenHoldings.push({
+                tokenName: token.name,
+                symbol: token.symbol,
+                balance: web3.utils.fromWei(balance, 'ether')
+            });
+        }
+
+        res.json(investorTokenHoldings);
+    } catch (error) {
+        console.error('Error fetching token holdings:', error);
+        res.status(500).send('Error fetching token holdings');
+    }
+});
 
 /**
  * @swagger

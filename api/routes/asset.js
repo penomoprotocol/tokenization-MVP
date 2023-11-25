@@ -34,7 +34,7 @@ const express = require('express');
 const router = express.Router();
 
 
-const verifyToken = require('./jwtMiddleware');
+const verifyToken = require('../middleware/jwtCheck');
 
 // const ipfsClient = require('ipfs-http-client');
 // const ipfs = ipfsClient({ host: 'localhost', port: '5001', protocol: 'http' }); // adjust if you're connecting to a different IPFS node
