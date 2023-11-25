@@ -1,7 +1,7 @@
 // Logout.js
 import React, { useContext } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { AuthContext } from './AuthContext'; // Update the path to your AuthContext
+import { AuthContext } from '../services/AuthContext'; // Update the path to your AuthContext
 import axios from 'axios';
 
 const Logout = () => {

@@ -1,12 +1,18 @@
-import React from 'react';
+import React, { useContext } from 'react';
 import { Navbar, Nav, Container } from 'react-bootstrap';
 import { Link } from 'react-router-dom';
 import logo from '../assets/penomo_logo.svg'; // Make sure this path is correct
+
+// Import Logout component and AuthContext
+import Logout from './Logout'; // Update the path to your Logout component
+import { AuthContext } from '../services/AuthContext'; // Update the path to your AuthContext
 
 // Import styling
 import './NavBar.css';
 
 const NavBar = () => {
+    const { authToken } = useContext(AuthContext); // Access the authentication token
+
     return (
         <Navbar bg="light" expand="lg">
             <Container>
@@ -25,8 +31,14 @@ const NavBar = () => {
                         <Nav.Link as={Link} to="/transaction-history">Transaction History</Nav.Link>
                     </Nav>
                     <Nav>
-                        <Link to="/login" className="btn-penomo-navbar">Login</Link>
-                        <Link to="/" className="btn-secondary-navbar">Register</Link>
+                        {authToken ? (
+                            <Logout />
+                        ) : (
+                            <>
+                                <Link to="/login" className="btn-penomo-navbar">Login</Link>
+                                <Link to="/register" className="btn-secondary-navbar">Register</Link>
+                            </>
+                        )}
                     </Nav>
                 </Navbar.Collapse>
             </Container>
