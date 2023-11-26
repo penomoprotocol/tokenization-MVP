@@ -35,23 +35,10 @@ const InvestorDashboard = () => {
         fetchInvestorData();
     }, []);
 
-    // Mock data for the dashboard
-    const mockData = {
-        investorName: 'John Doe',
-        walletBalances: {
-            USDC: 9000,
-            ETH: 5.3
-        },
-        portfolio: [
-            { tokenName: 'Token A', balance: 500, totalRevenue: 1500, currentPrice: 2.5, contractTerm: 12 },
-            { tokenName: 'Token B', balance: 300, totalRevenue: 900, currentPrice: 1.8, contractTerm: 8 },
-            // ...add more tokens as necessary
-        ],
-        recentTransactions: [
-            { id: 1, type: 'Buy', token: 'Token A', amount: 1000, date: '2023-01-01' },
-            { id: 2, type: 'Sell', token: 'Token B', amount: 500, date: '2023-01-02' },
-            // ...more transactions
-        ],
+    const fullTokenAddressLink = (address) => `https://sepolia.etherscan.io/token/${address}`;
+
+    const weiToEth = (wei) => {
+        return (wei / 1e18).toString();
     };
 
     const mockHistoricData = {
@@ -112,21 +99,30 @@ const InvestorDashboard = () => {
 
             <div className="section-container">
                 <h2 className="section-header">Security Tokens</h2>
-                {investorTokenHoldings.map((token) => (
-                    <div className="portfolio-item" key={token.tokenName}>
-                        <strong>{token.tokenName}</strong>
-                        <span> Balance: {token.balance}</span>
-                        {/* <span> Current Price: USDC {token.currentPrice.toFixed(2)}</span>
-                        <span> Total Revenue: USDC {token.totalRevenue.toFixed(2)}</span>
-                        <span> Remaining Contract Term: {token.contractTerm} months</span> */}
+                {investorTokenHoldings && investorTokenHoldings.length > 0 ? (
+                    investorTokenHoldings.map((token) => (
+                        <div className="portfolio-item" key={token.name}>
+                            <div><strong>{token.name} </strong>
+                                <a href={fullTokenAddressLink(token.tokenContractAddress)}
+                                    target="_blank" rel="noopener noreferrer">
+                                    {<><span>({token.symbol})</span></>}
+                                </a>
+                            </div>
+                            <span> Max Supply: {token.maxTokenSupply}</span>
+                            <span> Balance: {token.balance}</span>
+                            <span> Current Price: ETH {weiToEth(token.tokenPrice)}</span>
+                            {/* <span> Total Revenue: USDC {token.totalRevenue.toFixed(2)}</span> */}
+                            <span> Remaining Contract Term: {token.contractTerm} months</span>
 
-                        <div className="btn-container">
-                            <button className="btn-penomo">Sell</button>
+                            <div className="btn-container">
+                                <button className="btn-penomo">Sell</button>
+                            </div>
                         </div>
-                    </div>
-                ))}
+                    ))
+                ) : (
+                    <p>No token holdings found.</p> // This will display if the array is empty
+                )}
             </div>
-
 
 
             <div className="recent-transactions section-container">

@@ -567,7 +567,7 @@ router.get('/token/all', async (req, res) => {
  */
 // Get token holdings from logged in investor
 router.get('/token/jwt', verifyToken, async (req, res) => {
-    const investorId = req.user.id; 
+    const investorId = req.user.id;
 
     try {
         // Fetch the investor's public key from the database
@@ -586,11 +586,20 @@ router.get('/token/jwt', verifyToken, async (req, res) => {
         for (let token of tokens) {
             const tokenContract = new web3.eth.Contract(TCABI, token.tokenContractAddress);
             const balance = await tokenContract.methods.balanceOf(publicKey).call();
-            investorTokenHoldings.push({
-                tokenName: token.name,
-                symbol: token.symbol,
-                balance: web3.utils.fromWei(balance, 'ether')
-            });
+
+            // Convert the balance from Wei to Ether and check if it's greater than 0
+            const balanceInEth = web3.utils.fromWei(balance, 'ether');
+            if (parseFloat(balanceInEth) > 0) {
+                investorTokenHoldings.push({
+                    name: token.name,
+                    symbol: token.symbol,
+                    tokenContractAddress: token.tokenContractAddress,
+                    contractTerm: token.contractTerm,
+                    tokenPrice: token.tokenPrice,
+                    maxTokenSupply: token.maxTokenSupply,
+                    balance: balanceInEth // balance already converted to Ether
+                });
+            }
         }
 
         res.json(investorTokenHoldings);
