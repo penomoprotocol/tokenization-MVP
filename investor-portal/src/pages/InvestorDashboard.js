@@ -102,19 +102,31 @@ const InvestorDashboard = () => {
                 {investorTokenHoldings && investorTokenHoldings.length > 0 ? (
                     investorTokenHoldings.map((token) => (
                         <div className="portfolio-item" key={token.name}>
-                            <div><strong>{token.name} </strong>
+                            <div style={{ flex: '1 1 16.6%' }} className="label-value">
+                                <strong>{token.name} </strong>
                                 <a href={fullTokenAddressLink(token.tokenContractAddress)}
                                     target="_blank" rel="noopener noreferrer">
                                     {<><span>({token.symbol})</span></>}
                                 </a>
                             </div>
-                            <span> Max Supply: {token.maxTokenSupply}</span>
-                            <span> Balance: {token.balance}</span>
-                            <span> Current Price: ETH {weiToEth(token.tokenPrice)}</span>
+                            <div style={{ flex: '1 1 16.6%' }} className="label-value">
+                                <strong className="label">Max Supply</strong>
+                                <span className="value">{token.maxTokenSupply}</span>
+                            </div>
+                            <div style={{ flex: '1 1 16.6%' }} className="label-value">
+                                <strong className="label">Balance</strong>
+                                <span className="value">{token.balance}</span>
+                            </div>
+                            <div style={{ flex: '1 1 16.6%' }} className="label-value">
+                                <strong className="label">Current Price</strong>
+                                <span className="value">ETH {weiToEth(token.tokenPrice)}</span>
+                            </div>
+                            <div style={{ flex: '1 1 16.6%' }} className="label-value">
+                                <strong className="label">Remaining Contract Term</strong>
+                                <span className="value">{token.contractTerm} months</span>
+                            </div>
                             {/* <span> Total Revenue: USDC {token.totalRevenue.toFixed(2)}</span> */}
-                            <span> Remaining Contract Term: {token.contractTerm} months</span>
-
-                            <div className="btn-container">
+                            <div className="btn-container" style={{ flex: '1 1 16.6%' }}>
                                 <button className="btn-penomo">Sell</button>
                             </div>
                         </div>

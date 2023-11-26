@@ -34,14 +34,6 @@
   /* Space between buttons */
 }
 
-
-.portfolio-item {
-  flex-direction: column;
-  /* Stack the items vertically on smaller screens */
-  align-items: flex-start;
-  /* Align items to the start on smaller screens */
-}
-
 .btn-container {
   /* justify-content: flex-end Align buttons to the right */
   gap: 0.5rem; /* Space between buttons */
@@ -60,10 +52,24 @@
 
 /* Additional media query for extra small devices */
 @media (max-width: 768px) {
-  .wallet-balance .btn-container {
-    justify-content: center;
-    /* Center buttons on very small screens */
+  .portfolio-item {
+    flex-direction: column; /* Stack the items vertically */
+    align-items: center; /* Center items horizontally */
+    text-align: center; /* Center the text of each child */
   }
+
+  .portfolio-item .label-value {
+    /* This assumes you have a div wrapping the label and value with this class */
+    flex-basis: 100%; /* Each child takes full width */
+    margin-bottom: 0.5rem; /* Add some space between the stacked items */
+  }
+
+  .portfolio-item .btn-container .wallet-balance{
+    justify-content: center; /* Center buttons horizontally */
+    width: 100%; /* Buttons take full width */
+    margin-top: 1rem; /* Add some space above the button container */
+  }
+
 }
 
 /* Responsive styles for tablets and larger screens */
@@ -131,5 +137,19 @@
   margin-bottom: 2rem;
   /* Space between sections */
 }
+
+.label-value {
+  display: flex;
+  flex-direction: column; /* Stacks items vertically */
+  align-items: center; /* Centers items horizontally */
+  justify-content: center; /* Centers items vertically */
+  text-align: center; /* Centers text */
+}
+
+.label,
+.value {
+  width: 100%; /* Ensures the span takes the full width of the parent */
+}
+
 
 /* If you have additional specific styles, you can add them here */
