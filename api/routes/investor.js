@@ -609,7 +609,7 @@ router.post('/investor/buyToken', async (req, res) => {
 
 /**
  * @swagger
- * /api/investor:
+ * /api/investor/jwt:
  *   get:
  *     summary: Retrieve logged-in investor details
  *     tags: 
@@ -637,7 +637,10 @@ router.post('/investor/buyToken', async (req, res) => {
  *       500:
  *         description: Error retrieving investor.
  */
-router.get('/investor', verifyToken, async (req, res) => {
+
+// Assuming web3 is already configured and imported, and USDCContract is the instance of the USDC token contract
+
+router.get('/investor/jwt', verifyToken, async (req, res) => {
     try {
         const investorId = req.user.id; // ID is retrieved from the decoded JWT token
         const investor = await Investor.findById(investorId);
@@ -646,9 +649,23 @@ router.get('/investor', verifyToken, async (req, res) => {
             return res.status(404).send('Investor not found');
         }
 
-        res.json(investor);
+        // Get ETH balance
+        const ethBalanceWei = await web3.eth.getBalance(investor.ethereumPublicKey);
+        const ethBalance = web3.utils.fromWei(ethBalanceWei, 'ether');
+
+        // Get USDC balance
+        const usdcBalance = await USDCContract.methods.balanceOf(investor.ethereumPublicKey).call();
+
+        // Add the balances to the investor object that will be returned
+        const investorDataWithBalances = {
+            ...investor.toObject(), // Convert the mongoose document to a plain object
+            ethBalance,
+            usdcBalance
+        };
+
+        res.json(investorDataWithBalances);
     } catch (error) {
-        console.error('Error retrieving investor details:', error);
+        console.error('Error retrieving investor details and balances:', error);
         res.status(500).send('Error retrieving investor');
     }
 });
