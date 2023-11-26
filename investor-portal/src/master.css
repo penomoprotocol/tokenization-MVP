@@ -114,7 +114,7 @@ body {
     color: white;
     text-decoration: none;
     padding: 10px 15px;
-    margin: 0 10px;
+    margin: 0 0px;
     border-radius: 5px;
     display: inline-block;
     transition: background-color 0.3s ease;
@@ -139,7 +139,7 @@ body {
     /* Text color set to black */
     border: none;
     /* Removes any default border */
-    padding: 10px 20px;
+    padding: 10px 15px;
     /* Padding for size */
     border-radius: 5px;
     /* Rounded corners */
@@ -151,6 +151,8 @@ body {
     /* Removes outline on focus for some browsers */
     transition: background-color 0.3s;
     /* Smooth transition for hover effect */
+    display: block; /* Add this line */
+    margin: auto;
 }
 
 .btn-penomo:hover {
