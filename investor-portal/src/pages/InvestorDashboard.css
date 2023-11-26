@@ -7,15 +7,19 @@
   padding: 1rem;
   box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
   display: flex;
-  align-items: center; /* Center vertically */
-  justify-content: space-between; /* Center horizontally */
+  align-items: center;
+  /* Center vertically */
+  justify-content: space-between;
+  /* Center horizontally */
 }
 
 /* For the wallet balance section */
 .wallet-balance {
   display: flex;
-  align-items: center; /* Center items vertically */
-  justify-content: space-between; /* Space between the text and buttons */
+  align-items: center;
+  /* Center items vertically */
+  justify-content: space-between;
+  /* Space between the text and buttons */
   padding: 1rem;
   background-color: #f8f9fa;
   border-radius: 8px;
@@ -25,8 +29,9 @@
   margin-right: 1rem;
 }
 
-.wallet-balance .btn-container {
-  align-items: center; /* Center items vertically */
+.wallet-balance {
+  align-items: center;
+  /* Center items vertically */
   display: flex;
   flex-direction: row;
   /* Align buttons in a row */
@@ -36,10 +41,12 @@
 
 .btn-container {
   /* justify-content: flex-end Align buttons to the right */
-  gap: 0.5rem; /* Space between buttons */
+  gap: 0.5rem;
+  /* Space between buttons */
   display: flex;
   justify-content: center;
-  align-items: center; /* Center items vertically */
+  align-items: center;
+  /* Center items vertically */
 }
 
 .balances-container,
@@ -53,21 +60,36 @@
 /* Additional media query for extra small devices */
 @media (max-width: 768px) {
   .portfolio-item {
-    flex-direction: column; /* Stack the items vertically */
-    align-items: center; /* Center items horizontally */
-    text-align: center; /* Center the text of each child */
+    flex-direction: column;
+    /* Stack the items vertically */
+    align-items: center;
+    /* Center items horizontally */
+    text-align: center;
+    /* Center the text of each child */
   }
 
   .portfolio-item .label-value {
     /* This assumes you have a div wrapping the label and value with this class */
-    flex-basis: 100%; /* Each child takes full width */
-    margin-bottom: 0.5rem; /* Add some space between the stacked items */
+    flex-basis: 100%;
+    /* Each child takes full width */
+    margin-bottom: 0.5rem;
+    /* Add some space between the stacked items */
   }
 
-  .portfolio-item .btn-container .wallet-balance{
-    justify-content: center; /* Center buttons horizontally */
-    width: 100%; /* Buttons take full width */
-    margin-top: 1rem; /* Add some space above the button container */
+  .btn-container {
+    flex-direction: column; /* Stack the items vertically */
+    align-items: stretch; /* This will make the children (buttons) to stretch to the container width */
+  }
+
+  .btn-container button {
+    width: 100%; /* Make the button fill the full width of the .btn-container */
+    margin-bottom: 0.5rem; /* Optional: Adds space between the buttons if you have more than one */
+  }
+
+  .portfolio-item .wallet-balance {
+    justify-content: center; /* Center horizontally */
+    width: 100%; /* Take full width */
+    margin-top: 1rem; /* Add some space above */
   }
 
 }
@@ -140,15 +162,20 @@
 
 .label-value {
   display: flex;
-  flex-direction: column; /* Stacks items vertically */
-  align-items: center; /* Centers items horizontally */
-  justify-content: center; /* Centers items vertically */
-  text-align: center; /* Centers text */
+  flex-direction: column;
+  /* Stacks items vertically */
+  align-items: center;
+  /* Centers items horizontally */
+  justify-content: center;
+  /* Centers items vertically */
+  text-align: center;
+  /* Centers text */
 }
 
 .label,
 .value {
-  width: 100%; /* Ensures the span takes the full width of the parent */
+  width: 100%;
+  /* Ensures the span takes the full width of the parent */
 }
 
 
