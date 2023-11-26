@@ -5,21 +5,27 @@ import './InvestorDashboard.css';
 
 const InvestorDashboard = () => {
     const [investorData, setInvestorData] = useState(null); // Initialize state to null
+    const [investorTokenHoldings, setInvestorTokenHoldings] = useState(null); // Initialize state to null
 
     useEffect(() => {
         const fetchInvestorData = async () => {
             const userToken = localStorage.getItem('authToken'); // Retrieve JWT token
 
             try {
-                const response = await axios.get(`${process.env.REACT_APP_PENOMO_API}/api/investor`, {
+                const investorData = await axios.get(`${process.env.REACT_APP_PENOMO_API}/api/investor`, {
                     headers: {
                         Authorization: `Bearer ${userToken}` // Include JWT token in header
                     }
                 });
-                console.log(response.data);
-                const publicKey = response.data.ethereumPublicKey;
-                
-                setInvestorData(response.data); // Update state with investor data
+                setInvestorData(investorData.data); // Update state with investor data
+                const investorTokenHoldings = await axios.get(`${process.env.REACT_APP_PENOMO_API}/api/token/jwt`, {
+                    headers: {
+                        Authorization: `Bearer ${userToken}` // Include JWT token in header
+                    }
+                });
+                setInvestorTokenHoldings(investorTokenHoldings.data); // Update state with investor data
+                console.log("Investor Data: ", investorData);
+                console.log("Investor Token Holdings: ", investorTokenHoldings);
             } catch (error) {
                 console.error('Error fetching investor data:', error);
                 // Handle error (e.g., show a message to the user)
@@ -106,20 +112,19 @@ const InvestorDashboard = () => {
 
             <div className="section-container">
                 <h2 className="section-header">Security Tokens</h2>
-                {/* {investorData.portfolio.map((token) => ( */}
-                    {/* <div className="portfolio-item" key={token.tokenName}> */}
-
-                        {/* <strong>{token.tokenName}</strong> */}
-                        {/* <span> Balance: {token.balance}</span> */}
+                {investorTokenHoldings.map((token) => (
+                    <div className="portfolio-item" key={token.tokenName}>
+                        <strong>{token.tokenName}</strong>
+                        <span> Balance: {token.balance}</span>
                         {/* <span> Current Price: USDC {token.currentPrice.toFixed(2)}</span>
-                        <span> Total Revenue: USDC {token.totalRevenue.toFixed(2)}</span> */}
-                        {/* <span> Remaining Contract Term: {token.contractTerm} months</span> */}
+                        <span> Total Revenue: USDC {token.totalRevenue.toFixed(2)}</span>
+                        <span> Remaining Contract Term: {token.contractTerm} months</span> */}
 
-                        {/* <div className="btn-container">
+                        <div className="btn-container">
                             <button className="btn-penomo">Sell</button>
-                        </div> */}
-                    {/* </div> */}
-                {/* ))} */}
+                        </div>
+                    </div>
+                ))}
             </div>
 
 

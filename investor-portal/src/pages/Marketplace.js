@@ -12,7 +12,7 @@ const Marketplace = () => {
     useEffect(() => {
         const fetchTokens = async () => {
             try {
-                const apiUrl = `${process.env.REACT_APP_PENOMO_API}/api/tokens`;
+                const apiUrl = `${process.env.REACT_APP_PENOMO_API}/api/token/all`;
                 console.log("API URL:", apiUrl);
                 const response = await axios.get(apiUrl);
                 setTokens(response.data);
