@@ -14,6 +14,9 @@ const LCBuild = path.join(__dirname, '..', '..', 'evm-erc20', 'artifacts', 'cont
 const RDCBuild = path.join(__dirname, '..', '..', 'evm-erc20', 'artifacts', 'contracts', 'RevenueDistributionContract.sol', 'RevenueDistributionContract.json');
 const RSCBuild = path.join(__dirname, '..', '..', 'evm-erc20', 'artifacts', 'contracts', 'RevenueStreamContract.sol', 'RevenueStreamContract.json');
 const DIDBuild = path.join(__dirname, '..', '..', 'evm-erc20', 'artifacts', 'contracts', 'DID.sol', 'DID.json');
+const USDCBuild = path.join(__dirname, '..', '..', 'evm-erc20', 'artifacts', 'contracts', 'USDCContract.sol', 'USDCContract.json');
+
+
 
 // Get SC ABI
 const contractPath = path.join(SCBuild);
@@ -35,7 +38,10 @@ const RDCABI = RDCcontractJSON.abi;
 const DIDContractPath = path.join(DIDBuild);
 const DIDContractJSON = JSON.parse(fs.readFileSync(DIDContractPath, 'utf8'));
 const DIDABI = DIDContractJSON.abi;
-
+// Get USDC ABI
+const USDCContractPath = path.join(USDCBuild);
+const USDCContractJSON = JSON.parse(fs.readFileSync(USDCContractPath, 'utf8'));
+const USDCABI = USDCContractJSON.abi;
 
 const passport = require('passport');
 const JwtStrategy = require('passport-jwt').Strategy;

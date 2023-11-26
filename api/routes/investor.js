@@ -1,7 +1,7 @@
 //const web3 = require('web3');
 const CryptoJS = require('crypto-js');
 const { ethers } = require('ethers');
-const { web3, networkId, GSCAddress } = require('../config/web3Config');
+const { web3, networkId, GSCAddress, USDCContractAddress } = require('../config/web3Config');
 
 // For debugging
 console.log(web3.utils);
@@ -17,6 +17,7 @@ const TCBuild = path.join(__dirname, '..', '..', 'evm-erc20', 'artifacts', 'cont
 const LCBuild = path.join(__dirname, '..', '..', 'evm-erc20', 'artifacts', 'contracts', 'LiquidityContract.sol', 'LiquidityContract.json');
 const RDCBuild = path.join(__dirname, '..', '..', 'evm-erc20', 'artifacts', 'contracts', 'RevenueDistributionContract.sol', 'RevenueDistributionContract.json');
 const RSCBuild = path.join(__dirname, '..', '..', 'evm-erc20', 'artifacts', 'contracts', 'RevenueStreamContract.sol', 'RevenueStreamContract.json');
+const USDCBuild = path.join(__dirname, '..', '..', 'evm-erc20', 'artifacts', 'contracts', 'USDCContract.sol', 'USDCContract.json');
 
 // Get GSC ABI
 const contractPath = path.join(GSCBuild);
@@ -30,6 +31,14 @@ const SCABI = SCcontractJSON.abi;
 const TCcontractPath = path.join(TCBuild);
 const TCcontractJSON = JSON.parse(fs.readFileSync(TCcontractPath, 'utf8'));
 const TCABI = TCcontractJSON.abi;
+// Get USDC ABI
+const USDCContractPath = path.join(USDCBuild);
+const USDCContractJSON = JSON.parse(fs.readFileSync(USDCContractPath, 'utf8'));
+const USDCABI = USDCContractJSON.abi;
+
+// Initialize Global Contracts
+const GSContract = new web3.eth.Contract(GSCABI, GSCAddress);
+const USDContract = new web3.eth.Contract(USDCABI, USDCContractAddress);
 
 const passport = require('passport');
 const JwtStrategy = require('passport-jwt').Strategy;
@@ -654,7 +663,7 @@ router.get('/investor/jwt', verifyToken, async (req, res) => {
         const ethBalance = web3.utils.fromWei(ethBalanceWei, 'ether');
 
         // Get USDC balance
-        const usdcBalance = await USDCContract.methods.balanceOf(investor.ethereumPublicKey).call();
+        const usdcBalance = await USDContract.methods.balanceOf(investor.ethereumPublicKey).call();
 
         // Add the balances to the investor object that will be returned
         const investorDataWithBalances = {

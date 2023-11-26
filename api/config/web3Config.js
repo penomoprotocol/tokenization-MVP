@@ -13,8 +13,12 @@ const web3 = new Web3(providerUrl);
 // Global State Contract Address
 const GSCAddress = '0xeEBac63d9393ba35B2031E2081A7FB10A5197773';
 
+// Mock USDC Contract Address
+const USDCContractAddress = '0xeEBac63d9393ba35B2031E2081A7FB10A5197773';
+
 module.exports = {
   web3,
   networkId,
-  GSCAddress
+  GSCAddress,
+  USDCContractAddress
 };
