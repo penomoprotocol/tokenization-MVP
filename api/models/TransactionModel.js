@@ -4,7 +4,7 @@ const transactionSchema = new mongoose.Schema({
     transactionType: {
         type: String,
         required: true,
-        enum: ['token_transaction', 'revenue_generation', 'revenue_distribution'], // Define the allowed transaction types
+        enum: ['Buy Token', 'Sell Token', 'Receive Revenue', 'Top Up', 'Withdraw', 'Onramp', 'Offramp'], // Define the allowed transaction types
     },
     amount: {
         type: Number,
@@ -13,7 +13,13 @@ const transactionSchema = new mongoose.Schema({
     currency: {
         type: String,
         required: true,
-        default: 'USDC', // Default to USDC, but can be set to any currency/token
+        default: 'ETH', // Default to USDC, but can be set to any currency/token
+    },
+    tokenSymbol: {
+        type: String, // Only for Buy/Sell Token
+    },
+    tokenName: {
+        type: String, // Only for Buy/Sell Token 
     },
     fromAddress: {
         type: String,

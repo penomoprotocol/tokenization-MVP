@@ -69,7 +69,7 @@ const Asset = require('../models/AssetModel');
 const Company = require('../models/CompanyModel');
 const Contract = require('../models/TokenModel');
 const Investor = require('../models/InvestorModel');
-
+const Transaction = require('../models/TransactionModel');
 
 // // // FUNCTIONS
 
@@ -436,6 +436,8 @@ router.post('/investor/buyToken', async (req, res) => {
         const tokenContractInstance = new web3.eth.Contract(TCABI, tokenContractERC20Address);
 
         const tokenPrice = await tokenContractInstance.methods.tokenPrice().call();
+        const tokenSymbol = await tokenContractInstance.methods.symbol().call();
+        const tokenName = await tokenContractInstance.methods.name().call();
 
         // Assuming tokenAmount is the amount of tokens (not in Wei)
         const tokenAmountBigInt = BigInt(tokenAmount);
@@ -455,84 +457,54 @@ router.post('/investor/buyToken', async (req, res) => {
         const receipt = await estimateAndSend(transaction, investor.ethereumPublicKey, decryptedPrivateKey, serviceContractAddress, requiredWei.toString());
 
 
-        const EtherRequiredABI = {
-            name: 'EtherRequired',
-            type: 'event',
-            inputs: [{
-                type: 'uint256',
-                name: 'value',
-                indexed: false
-            }]
-        };
-
-        const EtherReceivedABI = {
-            name: 'EtherReceived',
-            type: 'event',
-            inputs: [{
-                type: 'uint256',
-                name: 'value',
-                indexed: false
-            }]
-        };
-
-        const TokensPurchasedABI = {
-            name: 'TokensPurchased',
-            type: 'event',
-            inputs: [{
-                type: 'address',
-                name: 'investor',
-                indexed: true
-            }, {
-                type: 'uint256',
-                name: 'amount',
-                indexed: false
-            }]
-        };
-
-
-        receipt.logs.forEach(log => {
-            try {
-                let decodedLog = null;
-
-                // Decode EtherReceived Event
-                try {
-                    decodedLog = web3.eth.abi.decodeLog(EtherReceivedABI.inputs, log.data, log.topics);
-                    console.log("EtherReceived Event:", decodedLog);
-                } catch (error) {
-                    // If decoding fails, it might be a different event
+        // Check if the transaction was successful and log the transaction
+        if (receipt.status) {
+            const transactionRecord = new Transaction({
+                transactionType: 'Buy Token',
+                amount: tokenAmountBigInt, // The amount of tokens purchased
+                currency: 'ETH', // Assuming USDC is the currency used for the purchase
+                tokenSymbol: tokenSymbol,
+                tokenName: tokenName,
+                fromAddress: investor.ethereumPublicKey, // The address of the investor (buyer)
+                toAddress: serviceContractAddress, // The address of the service contract (seller)
+                transactionHash: receipt.transactionHash, // The hash of the transaction
+                // assetDID: 'The DID of the asset if applicable',
+                // companyId: 'The ObjectId of the company if applicable',
+                status: 'pending', // Initially 'pending', update when confirmed
+                details: {
+                    // Add any additional details you might want to include
                 }
+            });
 
-                // Decode EtherRequired Event
-                try {
-                    decodedLog = web3.eth.abi.decodeLog(EtherRequiredABI.inputs, log.data, log.topics);
-                    console.log("EtherRequired Event:", decodedLog);
-                } catch (error) {
-                    // If decoding fails, it might be a different event
-                }
+            await transactionRecord.save(); // Save the transaction to the database
 
-                // Decode TokensPurchased Event
-                try {
-                    decodedLog = web3.eth.abi.decodeLog(TokensPurchasedABI.inputs, log.data, log.topics);
-                    console.log("TokensPurchased Event:", decodedLog);
-                } catch (error) {
-                    // If decoding fails, it might be a different event
-                }
+            // Update the transaction status based on the confirmation of the blockchain
+            transactionRecord.status = 'confirmed'; // or 'failed' based on the blockchain confirmation
+            await transactionRecord.save();
+        }
 
-
-                if (!decodedLog) {
-                    console.log("Unrecognized Event:", log);
-                }
-
-            } catch (error) {
-                console.error("Error decoding log:", error);
-            }
-        });
-
-        res.status(200).json({message: "Successfully purchased tokens.", receipt: serializeBigIntInObject(receipt) });
-
+        res.status(200).json({ message: "Successfully purchased tokens.", receipt: serializeBigIntInObject(receipt) });
     } catch (error) {
         console.error('Error purchasing tokens:', error);
         res.status(500).send('Failed to purchase tokens.');
+        
+        // Log the failed transaction
+        const failedTransactionRecord = new Transaction({
+            transactionType: 'token_transaction',
+            amount: tokenAmountBigInt, // The attempted purchase amount
+            currency: 'ETH', // Assuming USDC is the currency attempted for the purchase
+            tokenSymbol: tokenSymbol,
+            tokenName: tokenName,
+            fromAddress: investor.ethereumPublicKey, // The address of the investor (buyer)
+            toAddress: serviceContractAddress, // The address of the service contract (seller)
+            transactionHash: '', // You might not have a transaction hash if the transaction failed
+            status: 'failed', // The status is 'failed'
+            details: {
+                error: error.message // Log the error message
+            }
+        });
+
+        await failedTransactionRecord.save(); // Save the failed transaction to the database
     }
 });
 
