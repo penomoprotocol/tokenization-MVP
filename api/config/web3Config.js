@@ -14,7 +14,7 @@ const web3 = new Web3(providerUrl);
 const GSCAddress = '0xeEBac63d9393ba35B2031E2081A7FB10A5197773';
 
 // Mock USDC Contract Address
-const USDCContractAddress = '0xeEBac63d9393ba35B2031E2081A7FB10A5197773';
+const USDCContractAddress = '0xD0A0D62413cB0577B2B9a52CA8b05C03bb56ccE8';
 
 module.exports = {
   web3,

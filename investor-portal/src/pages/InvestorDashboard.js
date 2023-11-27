@@ -12,7 +12,7 @@ const InvestorDashboard = () => {
             const userToken = localStorage.getItem('authToken'); // Retrieve JWT token
 
             try {
-                const investorData = await axios.get(`${process.env.REACT_APP_PENOMO_API}/api/investor`, {
+                const investorData = await axios.get(`${process.env.REACT_APP_PENOMO_API}/api/investor/jwt`, {
                     headers: {
                         Authorization: `Bearer ${userToken}` // Include JWT token in header
                     }
@@ -40,6 +40,20 @@ const InvestorDashboard = () => {
     const weiToEth = (wei) => {
         return (wei / 1e18).toString();
     };
+
+    function roundToDecimals(str, x) {
+        let num = parseFloat(str);
+        if (isNaN(num)) {
+            return 'Invalid input'; // or handle the error as needed
+        }
+        // Check if the number is a whole number
+        if (num % 1 === 0) {
+            return num.toFixed(2); // For whole numbers, keep two decimal places
+        } else {
+            return parseFloat(num.toFixed(x));
+        }
+        
+    }
 
     const mockHistoricData = {
         labels: ["Jan", "Feb", "Mar", "Apr", "May", "Jun"],
@@ -73,21 +87,22 @@ const InvestorDashboard = () => {
                     <BalanceChart data={mockHistoricData} />
                 </div>
             </div>
+            
             <div className="section-container">
                 <h2 className="section-header">Cryptocurrencies</h2>
                 <div className="balances-container">
                     <div className="wallet-balances-container">
                         <div className="wallet-balance">
-                            <strong className="balance-title">USDC</strong>
-                            {/* <span className="balance-amount">{investorData.walletBalances.USDC.toFixed(2)}</span> */}
+                            <strong className="balance-title">ETH</strong>
+                            <span className="balance-amount">{roundToDecimals(investorData.ethBalance, 4)}</span>
                             <div className="btn-container">
                                 <button className="btn-penomo">Top Up</button>
                                 <button className="btn-penomo">Withdraw</button>
                             </div>
                         </div>
                         <div className="wallet-balance">
-                            <strong className="balance-title">ETH</strong>
-                            {/* <span className="balance-amount">{investorData.walletBalances.ETH.toFixed(3)}</span> */}
+                            <strong className="balance-title">USDC</strong>
+                            <span className="balance-amount">{roundToDecimals(investorData.usdcBalance, 2)}</span>
                             <div className="btn-container">
                                 <button className="btn-penomo">Top Up</button>
                                 <button className="btn-penomo">Withdraw</button>
