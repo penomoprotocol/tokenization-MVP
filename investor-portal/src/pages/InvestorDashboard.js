@@ -1,11 +1,14 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import BalanceChart from '../components/BalanceChart';
+import TopUpWallet from '../components/TopUpWallet';
+
 import './InvestorDashboard.css';
 
 const InvestorDashboard = () => {
     const [investorData, setInvestorData] = useState(null); // Initialize state to null
     const [investorTokenHoldings, setInvestorTokenHoldings] = useState(null); // Initialize state to null
+    const [showTopUp, setShowTopUp] = useState(false);
 
     useEffect(() => {
         const fetchInvestorData = async () => {
@@ -52,7 +55,7 @@ const InvestorDashboard = () => {
         } else {
             return parseFloat(num.toFixed(x));
         }
-        
+
     }
 
     const mockHistoricData = {
@@ -87,7 +90,7 @@ const InvestorDashboard = () => {
                     <BalanceChart data={mockHistoricData} />
                 </div>
             </div>
-            
+
             <div className="section-container">
                 <h2 className="section-header">Cryptocurrencies</h2>
                 <div className="balances-container">
@@ -96,7 +99,7 @@ const InvestorDashboard = () => {
                             <strong className="balance-title">ETH</strong>
                             <span className="balance-amount">{roundToDecimals(investorData.ethBalance, 4)}</span>
                             <div className="btn-container">
-                                <button className="btn-penomo">Top Up</button>
+                                <button className="btn-penomo" onClick={() => setShowTopUp(true)}>Top Up</button>
                                 <button className="btn-penomo">Withdraw</button>
                             </div>
                         </div>
@@ -104,7 +107,7 @@ const InvestorDashboard = () => {
                             <strong className="balance-title">USDC</strong>
                             <span className="balance-amount">{roundToDecimals(investorData.usdcBalance, 2)}</span>
                             <div className="btn-container">
-                                <button className="btn-penomo">Top Up</button>
+                            <button className="btn-penomo" onClick={() => setShowTopUp(true)}>Top Up</button>
                                 <button className="btn-penomo">Withdraw</button>
                             </div>
                         </div>
@@ -162,6 +165,15 @@ const InvestorDashboard = () => {
                     ))} */}
                 </ul>
             </div>
+
+            {
+                showTopUp &&
+                <TopUpWallet
+                    investorAddress={investorData.ethereumPublicKey}
+                    closeModal={() => setShowTopUp(false)}
+                    show={showTopUp}
+                />
+            }
         </div >
     );
 };

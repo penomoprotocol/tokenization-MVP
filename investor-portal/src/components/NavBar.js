@@ -29,7 +29,7 @@ const NavBar = () => {
                     <Nav className="me-auto">
                         {authToken && (
                             <>
-                                <Nav.Link as={Link} to="/dashboard">Dashboard</Nav.Link>
+                                <Nav.Link as={Link} to="/dashboard">Wallet</Nav.Link>
                                 <Nav.Link as={Link} to="/marketplace">Marketplace</Nav.Link>
                                 <Nav.Link as={Link} to="/transaction-history">Transaction History</Nav.Link>
                             </>

@@ -97,12 +97,14 @@ const BuyTokens = ({ token, closeModal, show }) => {
                 required
               />
             </div>
-            <div className="price-display horizontal-center">
+            <div className="horizontal-center price-display margin-bottom-2rem">
               <strong>Token Price:&nbsp;</strong><span>{weiToEth(token.tokenPrice)} ETH</span>
             </div>
+            <div className='horizontal-center'>
             <button type="submit" className={buyButtonClasses} disabled={isSubmitting}>
               {isSubmitting ? 'Mining Blocks...' : 'Buy'}
             </button>
+            </div>
           </form>
         ) : (
           <>

@@ -53,6 +53,9 @@ body {
     margin-right: auto;
 }
 
+.margin-bottom-2rem {
+    margin: 2rem;
+}
 
 /* Containers */
 
@@ -174,7 +177,7 @@ body {
     display: flex;
     align-items: center;
     justify-content: center;
-    margin-bottom: 4rem;
+    margin-bottom: 2rem;
 }
 
 /* Make sure the title does not overlap with the close button */
@@ -189,13 +192,13 @@ body {
     left: 0;
     width: 100%;
     height: 100%;
-    background-color: rgba(0, 0, 0, 0.5);
-    /* Semi-transparent background */
+    background-color: rgba(0, 0, 0, 0.5); /* Semi-transparent background */
     display: flex;
     justify-content: center;
     align-items: center;
-    z-index: 1000;
-    /* Ensure it's on top */
+    z-index: 1000; /* Ensure it's on top */
+    padding: 1rem; /* Add padding to ensure margin from the window borders */
+    box-sizing: border-box; /* Include padding in the width and height calculations */
 }
 
 .popup-content {
@@ -203,10 +206,13 @@ body {
     padding: 2rem;
     border-radius: 10px;
     box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
-    width: 80%;
+    width: calc(100% - 2rem); /* Adjust width to account for padding */
     max-width: 500px;
-    /* Maximum width of the modal */
-    box-sizing: border-box;
+    display: flex; /* Use flexbox to align children */
+    flex-direction: column; /* Stack children vertically */
+    justify-content: center; /* Center children vertically */
+    align-items: center; /* Center children horizontally */
+    box-sizing: border-box; /* Include padding in the width and height calculations */
 }
 
 /* Close button */
