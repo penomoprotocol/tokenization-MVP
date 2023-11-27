@@ -201,14 +201,14 @@ router.post('/investor/register', async (req, res) => {
         console.log("Added investor instance: ", investor);
 
         // Fund the new wallet with 1000000000000000 wei
-        const fundingAmount = '1000000000000000'; // 1000000000000000 wei
+        const fundingAmount = '1000000000000000'; 
 
         // Create a raw transaction object
         const transaction = {
             from: MASTER_ADDRESS,
             to: publicKey,
             value: fundingAmount,
-            gasLimit: web3.utils.toHex(21000), // Standard gas limit for Ether transfers
+            gasLimit: web3.utils.toHex(41000), // Standard gas limit for Ether transfers
             gasPrice: web3.utils.toHex(await web3.eth.getGasPrice()) // Get current gas price
         };
         // Sign the transaction with the master's private key
