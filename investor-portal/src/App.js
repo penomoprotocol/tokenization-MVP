@@ -6,7 +6,6 @@ import axios from 'axios';
 // Importing page components and ProtectedRoute
 import Home from './pages/Home';
 import RegistrationPage from './pages/RegistrationPage';
-import LoginPage from './pages/LoginPage';
 import InvestorDashboard from './pages/InvestorDashboard';
 import Transactions from './pages/Transactions';
 import Marketplace from './pages/Marketplace';
@@ -39,7 +38,6 @@ function App() {
               <Routes>
                 <Route path="/" element={<Home />} />
                 <Route path="/register" element={<RegistrationPage />} />
-                <Route path="/login" element={<LoginPage />} />
                 <Route 
                   path="/dashboard" 
                   element={

@@ -1,15 +1,16 @@
-// LoginPage.js
+// LoginModal.js
 import React, { useState, useContext } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { Modal, Button } from 'react-bootstrap';
 import axios from 'axios';
+import { Link, useNavigate } from 'react-router-dom';
 import { AuthContext } from '../services/AuthContext'; // Update the path as necessary
 
-const LoginPage = () => {
+const LoginModal = ({ show, handleClose }) => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const { login } = useContext(AuthContext);
-  const navigate = useNavigate();
+  const navigate = useNavigate(); // Initialize the navigate function
 
   const handleLogin = async (event) => {
     event.preventDefault();
@@ -17,6 +18,7 @@ const LoginPage = () => {
       const response = await axios.post(`${process.env.REACT_APP_PENOMO_API}/api/investor/login`, { email, password });
       login(response.data.token); // Your context provider will handle the state
       localStorage.setItem('authToken', response.data.token); // Store the token in localStorage
+      handleClose(); // Close the modal
       navigate('/dashboard'); // Redirect to the dashboard
     } catch (error) {
       setError('Invalid credentials or password.');
@@ -25,9 +27,11 @@ const LoginPage = () => {
   };
 
   return (
-    <div className="page-container full-center">
-      <div className="section-container">
-        <h1 className="page-header">Login</h1>
+    <Modal show={show} onHide={handleClose} centered>
+      <Modal.Header closeButton>
+        <Modal.Title>Login</Modal.Title>
+      </Modal.Header>
+      <Modal.Body>
         <form onSubmit={handleLogin}>
           <div className="form-group">
             <label htmlFor="email" className="form-label">Email:</label>
@@ -51,14 +55,19 @@ const LoginPage = () => {
               required
             />
           </div>
-          {error && <div className="text-center">{error}</div>}
-          <div className="text-center">
-            <button type="submit" className="btn-penomo">Login</button>
-          </div>
+          {error && <div className="alert alert-danger" role="alert">{error}</div>}
         </form>
-      </div>
-    </div>
+      </Modal.Body>
+      <Modal.Footer>
+        <Link className="btn-secondary-navbar" onClick={handleClose}>
+          Close
+        </Link>
+        <Link className="btn-penomo-navbar" onClick={handleLogin}>
+          Login
+        </Link>
+      </Modal.Footer>
+    </Modal>
   );
 };
 
-export default LoginPage;
+export default LoginModal;

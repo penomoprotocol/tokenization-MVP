@@ -15,7 +15,7 @@ const Logout = () => {
     logout(); // Your context provider will handle updating the state
     localStorage.removeItem('authToken'); // Remove the token from localStorage
     delete axios.defaults.headers.common['Authorization']; // Remove the auth header
-    navigate('/login'); // Redirect to the login page
+    navigate('/'); // Redirect to the home page
   };
 
   return (

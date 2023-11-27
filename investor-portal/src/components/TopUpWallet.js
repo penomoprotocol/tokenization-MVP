@@ -1,11 +1,7 @@
-import React, { useState } from 'react';
-
 const TopUpWallet = ({ investorAddress, closeModal, show }) => {
-  const [responseMessage, setResponseMessage] = useState('');
 
   // Close modal and clear message
   const handleClose = () => {
-    setResponseMessage('');
     closeModal();
   };
 
@@ -19,7 +15,7 @@ const TopUpWallet = ({ investorAddress, closeModal, show }) => {
         <div className="popup-header">
           <h2>Top Up Wallet</h2>
         </div>
-        <div className="">
+        <div>
           <p>Send funds to the following address to top up your wallet:</p>
         </div>
         <div className='margin-bottom-2rem'><strong>{investorAddress}</strong></div>

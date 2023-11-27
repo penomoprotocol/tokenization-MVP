@@ -140,13 +140,16 @@ const InvestorDashboard = () => {
                                 <span className="value">ETH {weiToEth(token.tokenPrice)}</span>
                             </div>
                             <div style={{ flex: '1 1 16.6%' }} className="label-value">
-                                <strong className="label">Remaining Contract Term</strong>
+                                <strong className="label">Rem. Contract Term</strong>
                                 <span className="value">{token.contractTerm} months</span>
                             </div>
-                            {/* <span> Total Revenue: USDC {token.totalRevenue.toFixed(2)}</span> */}
-                            <div className="btn-container" style={{ flex: '1 1 16.6%' }}>
-                                <button className="btn-penomo">Sell</button>
+                            <div style={{ flex: '1 1 16.6%' }} className="label-value">
+                                <strong className="label">Total Revenue</strong>
+                                <span className="value">USDC {"0.00"}</span>
                             </div>
+                            {/* <div className="btn-container" style={{ flex: '1 1 16.6%' }}>
+                                <button className="btn-penomo">Sell</button>
+                            </div> */}
                         </div>
                     ))
                 ) : (
