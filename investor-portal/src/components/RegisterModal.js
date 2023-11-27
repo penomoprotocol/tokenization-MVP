@@ -1,8 +1,8 @@
 // RegisterModal.js
 import React, { useState } from 'react';
-import { Modal, Button } from 'react-bootstrap';
+import { Modal } from 'react-bootstrap';
 import axios from 'axios';
-import { Link, useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 
 const RegisterModal = ({ show, handleClose }) => {
   const [surname, setSurname] = useState('');
@@ -10,25 +10,26 @@ const RegisterModal = ({ show, handleClose }) => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
+  const [isRegistering, setIsRegistering] = useState(false); // State to indicate registration process
   const navigate = useNavigate(); // For redirecting after successful registration
 
   const handleRegister = async (event) => {
     event.preventDefault();
+    setIsRegistering(true); // Start the registration process
     try {
-      const response = await axios.post(`${process.env.REACT_APP_PENOMO_API}/api/investor/register`, {
+      await axios.post(`${process.env.REACT_APP_PENOMO_API}/api/investor/register`, {
         surname,
         firstname,
         email,
         password,
       });
-      // If registration is successful, you might want to log the user in directly
-      // For now, just closing the modal and possibly redirecting or giving a success message
+      // If registration is successful, handle according to your needs
       handleClose(); // Close the modal
-      navigate('/dashboard'); // Redirect to dashboard or login page
-      // Or show a success message/modal
+      navigate('/'); // Redirect to home or dashboard as needed
     } catch (error) {
       setError('There was an error registering the account.');
       console.error('Register error:', error);
+      setIsRegistering(false); // Reset registration process indicator
     }
   };
 
@@ -85,13 +86,14 @@ const RegisterModal = ({ show, handleClose }) => {
           </div>
           {error && <div className="alert alert-danger" role="alert">{error}</div>}
         </form>
+        {error && <div className="alert alert-danger" role="alert">{error}</div>}
       </Modal.Body>
       <Modal.Footer>
-        <Link className="btn-secondary-navbar" onClick={handleClose}>
+        <Link className="btn-secondary-navbar" onClick={handleClose} disabled={isRegistering}>
           Close
         </Link>
-        <Link className="btn-penomo-navbar"onClick={handleRegister}>
-          Register
+        <Link className="btn-penomo-navbar" onClick={handleRegister} disabled={isRegistering}>
+          {isRegistering ? 'Wait...' : 'Register'}
         </Link>
       </Modal.Footer>
     </Modal>

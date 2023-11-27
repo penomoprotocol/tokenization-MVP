@@ -1,6 +1,6 @@
 // LoginModal.js
 import React, { useState, useContext } from 'react';
-import { Modal, Button } from 'react-bootstrap';
+import { Modal } from 'react-bootstrap';
 import axios from 'axios';
 import { Link, useNavigate } from 'react-router-dom';
 import { AuthContext } from '../services/AuthContext'; // Update the path as necessary
