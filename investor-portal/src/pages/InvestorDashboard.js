@@ -100,7 +100,7 @@ const InvestorDashboard = () => {
                             <span className="balance-amount">{roundToDecimals(investorData.ethBalance, 4)}</span>
                             <div className="btn-container">
                                 <button className="btn-penomo" onClick={() => setShowTopUp(true)}>Top Up</button>
-                                <button className="btn-penomo">Withdraw</button>
+                                <button className="btn-penomo-secondary">Withdraw</button>
                             </div>
                         </div>
                         <div className="wallet-balance">
@@ -108,7 +108,7 @@ const InvestorDashboard = () => {
                             <span className="balance-amount">{roundToDecimals(investorData.usdcBalance, 2)}</span>
                             <div className="btn-container">
                             <button className="btn-penomo" onClick={() => setShowTopUp(true)}>Top Up</button>
-                                <button className="btn-penomo">Withdraw</button>
+                                <button className="btn-penomo-secondary">Withdraw</button>
                             </div>
                         </div>
                     </div>

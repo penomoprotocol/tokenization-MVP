@@ -19,11 +19,13 @@ const NavBar = () => {
     const [showLoginModal, setShowLoginModal] = useState(false);
     const [showRegisterModal, setShowRegisterModal] = useState(false);
     const [isVerified, setIsVerified] = useState(true); // Assuming true by default
+    const [investorId, setInvestorId] = useState(null);
 
     const handleLoginModalClose = () => setShowLoginModal(false);
     const handleLoginModalShow = () => setShowLoginModal(true);
     const handleRegisterModalClose = () => setShowRegisterModal(false);
     const handleRegisterModalShow = () => setShowRegisterModal(true);
+
 
     useEffect(() => {
         if (authToken) {
@@ -33,6 +35,7 @@ const NavBar = () => {
                         headers: { Authorization: `Bearer ${authToken}` }
                     });
                     setIsVerified(response.data.isVerified);
+                    setInvestorId(response.data.id); // Store the investor ID
                 } catch (error) {
                     console.error('Error fetching investor data:', error);
                     // Handle error appropriately
@@ -42,6 +45,28 @@ const NavBar = () => {
         }
     }, [authToken]);
 
+    const handleVerify = async () => {
+        if (!investorId) {
+            console.error('No investor ID available for verification.');
+            return;
+        }
+
+        try {
+            const response = await axios.post(`${process.env.REACT_APP_PENOMO_API}/api/investor/verify`, {
+                investorId: investorId
+            }, {
+                headers: { Authorization: `Bearer ${authToken}` }
+            });
+    
+            // Handle the successful verification
+            console.log('Verification successful:', response.data);
+            setIsVerified(true); // Update the isVerified state
+        } catch (error) {
+            console.error('Verification failed:', error);
+            // Handle any errors
+        }
+    };
+    
     return (
         <Navbar bg="light" expand="lg">
             <Container>
@@ -67,7 +92,7 @@ const NavBar = () => {
                         {authToken ? (
                             <>
                                 {!isVerified && (
-                                    <Link variant="outline-success">Verify</Link> // Replace with your desired button
+                                    <Link onClick={handleVerify} className="btn-secondary-navbar">Verify</Link> // Replace with your desired button
                                 )}
                                 <Logout />
                             </>
