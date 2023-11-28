@@ -1,5 +1,6 @@
 // NavBar.js
-import React, { useContext, useState } from 'react';
+import React, { useContext, useState, useEffect } from 'react';
+import axios from 'axios';
 import { Navbar, Nav, Container } from 'react-bootstrap';
 import { Link } from 'react-router-dom';
 import logo from '../assets/penomo_logo.svg';
@@ -17,11 +18,29 @@ const NavBar = () => {
     const { authToken } = useContext(AuthContext); // Access the authentication token
     const [showLoginModal, setShowLoginModal] = useState(false);
     const [showRegisterModal, setShowRegisterModal] = useState(false);
+    const [isVerified, setIsVerified] = useState(true); // Assuming true by default
 
     const handleLoginModalClose = () => setShowLoginModal(false);
     const handleLoginModalShow = () => setShowLoginModal(true);
     const handleRegisterModalClose = () => setShowRegisterModal(false);
     const handleRegisterModalShow = () => setShowRegisterModal(true);
+
+    useEffect(() => {
+        if (authToken) {
+            const fetchInvestorData = async () => {
+                try {
+                    const response = await axios.get(`${process.env.REACT_APP_PENOMO_API}/api/investor/jwt`, {
+                        headers: { Authorization: `Bearer ${authToken}` }
+                    });
+                    setIsVerified(response.data.isVerified);
+                } catch (error) {
+                    console.error('Error fetching investor data:', error);
+                    // Handle error appropriately
+                }
+            };
+            fetchInvestorData();
+        }
+    }, [authToken]);
 
     return (
         <Navbar bg="light" expand="lg">
@@ -46,7 +65,12 @@ const NavBar = () => {
                     </Nav>
                     <Nav>
                         {authToken ? (
-                            <Logout />
+                            <>
+                                {!isVerified && (
+                                    <Link variant="outline-success">Verify</Link> // Replace with your desired button
+                                )}
+                                <Logout />
+                            </>
                         ) : (
                             <>
                                 <Link onClick={handleLoginModalShow} className="btn-penomo-navbar">Login</Link>
