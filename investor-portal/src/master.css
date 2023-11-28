@@ -136,7 +136,7 @@ body {
 
 /* Penomo Button */
 .btn-penomo {
-    background-color: #00b39f;
+    background-color: #00CC9C;
     /* Penomo color */
     color: #000;
     /* Text color set to black */
@@ -182,7 +182,7 @@ body {
 }
 
 .btn-penomo:hover {
-    background-color: #00897b;
+    background-color: #00CC9C;
     /* Darker shade of Penomo color for hover state */
 }
 
