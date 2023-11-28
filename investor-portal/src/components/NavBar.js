@@ -39,7 +39,7 @@ const NavBar = () => {
                         {authToken && (
                             <>
                                 <Nav.Link as={NavLink} to="/dashboard" activeStyle={{ fontWeight: "bold" }}>Wallet</Nav.Link>
-                                <Nav.Link as={NavLink} to="/marketplace" activeStyle={{ fontWeight: "bold" }}>Marketplace</Nav.Link>
+                                <Nav.Link as={NavLink} to="/marketplace" activeStyle={{ fontWeight: "bold" }}>Platform</Nav.Link>
                                 <Nav.Link as={NavLink} to="/transaction-history" activeStyle={{ fontWeight: "bold" }}>Transaction History</Nav.Link>
                             </>
                         )}

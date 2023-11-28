@@ -116,7 +116,7 @@ const InvestorDashboard = () => {
             </div>
 
             <div className="section-container">
-                <h2 className="section-header">Security Tokens</h2>
+                <h2 className="section-header">RWA Tokens</h2>
                 {investorTokenHoldings && investorTokenHoldings.length > 0 ? (
                     investorTokenHoldings.map((token) => (
                         <div className="portfolio-item" key={token.name}>

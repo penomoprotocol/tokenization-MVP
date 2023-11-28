@@ -488,23 +488,23 @@ router.post('/investor/buyToken', async (req, res) => {
         console.error('Error purchasing tokens:', error);
         res.status(500).send('Failed to purchase tokens.');
         
-        // Log the failed transaction
-        const failedTransactionRecord = new Transaction({
-            transactionType: 'token_transaction',
-            amount: tokenAmountBigInt, // The attempted purchase amount
-            currency: 'ETH', // Assuming USDC is the currency attempted for the purchase
-            tokenSymbol: tokenSymbol,
-            tokenName: tokenName,
-            fromAddress: investor.ethereumPublicKey, // The address of the investor (buyer)
-            toAddress: serviceContractAddress, // The address of the service contract (seller)
-            transactionHash: '', // You might not have a transaction hash if the transaction failed
-            status: 'failed', // The status is 'failed'
-            details: {
-                error: error.message // Log the error message
-            }
-        });
+        // // Log the failed transaction
+        // const failedTransactionRecord = new Transaction({
+        //     transactionType: 'token_transaction',
+        //     amount: tokenAmountBigInt, // The attempted purchase amount
+        //     currency: 'ETH', // Assuming USDC is the currency attempted for the purchase
+        //     tokenSymbol: tokenSymbol,
+        //     tokenName: tokenName,
+        //     fromAddress: investor.ethereumPublicKey, // The address of the investor (buyer)
+        //     toAddress: serviceContractAddress, // The address of the service contract (seller)
+        //     transactionHash: '', // You might not have a transaction hash if the transaction failed
+        //     status: 'failed', // The status is 'failed'
+        //     details: {
+        //         error: error.message // Log the error message
+        //     }
+        // });
 
-        await failedTransactionRecord.save(); // Save the failed transaction to the database
+        // await failedTransactionRecord.save(); // Save the failed transaction to the database
     }
 });
 
