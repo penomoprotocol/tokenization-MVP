@@ -1,4 +1,3 @@
-// NavBar.js
 import React, { useContext, useState, useEffect } from 'react';
 import axios from 'axios';
 import { Navbar, Nav, Container } from 'react-bootstrap';
@@ -10,22 +9,24 @@ import Logout from './Logout';
 import { AuthContext } from '../services/AuthContext';
 import LoginModal from './LoginModal';
 import RegisterModal from './RegisterModal';
+import VerifyModal from './VerifyModal'; // Import the VerifyModal component
 
-// Import styling
 import './NavBar.css';
 
 const NavBar = () => {
-    const { authToken } = useContext(AuthContext); // Access the authentication token
+    const { authToken } = useContext(AuthContext);
     const [showLoginModal, setShowLoginModal] = useState(false);
     const [showRegisterModal, setShowRegisterModal] = useState(false);
-    const [isVerified, setIsVerified] = useState(true); // Assuming true by default
+    const [showVerifyModal, setShowVerifyModal] = useState(false); // State for VerifyModal visibility
+    const [isVerified, setIsVerified] = useState(true);
     const [investorId, setInvestorId] = useState(null);
 
     const handleLoginModalClose = () => setShowLoginModal(false);
     const handleLoginModalShow = () => setShowLoginModal(true);
     const handleRegisterModalClose = () => setShowRegisterModal(false);
     const handleRegisterModalShow = () => setShowRegisterModal(true);
-
+    const handleVerifyModalShow = () => setShowVerifyModal(true);
+    const handleVerifyModalClose = () => setShowVerifyModal(false);
 
     useEffect(() => {
         if (authToken) {
@@ -45,28 +46,6 @@ const NavBar = () => {
         }
     }, [authToken]);
 
-    const handleVerify = async () => {
-        if (!investorId) {
-            console.error('No investor ID available for verification.');
-            return;
-        }
-
-        try {
-            const response = await axios.post(`${process.env.REACT_APP_PENOMO_API}/api/investor/verify`, {
-                investorId: investorId
-            }, {
-                headers: { Authorization: `Bearer ${authToken}` }
-            });
-    
-            // Handle the successful verification
-            console.log('Verification successful:', response.data);
-            setIsVerified(true); // Update the isVerified state
-        } catch (error) {
-            console.error('Verification failed:', error);
-            // Handle any errors
-        }
-    };
-    
     return (
         <Navbar bg="light" expand="lg">
             <Container>
@@ -92,7 +71,7 @@ const NavBar = () => {
                         {authToken ? (
                             <>
                                 {!isVerified && (
-                                    <Link onClick={handleVerify} className="btn-secondary-navbar">Verify</Link> // Replace with your desired button
+                                    <Link onClick={handleVerifyModalShow} className="btn-secondary-navbar">Verify</Link>
                                 )}
                                 <Logout />
                             </>
@@ -107,6 +86,11 @@ const NavBar = () => {
             </Container>
             <LoginModal show={showLoginModal} handleClose={handleLoginModalClose} />
             <RegisterModal show={showRegisterModal} handleClose={handleRegisterModalClose} />
+            <VerifyModal 
+                show={showVerifyModal} 
+                handleClose={handleVerifyModalClose} 
+                investorId={investorId} 
+            />
         </Navbar>
     );
 };
