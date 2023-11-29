@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { Modal, Form, Button } from 'react-bootstrap';
 import axios from 'axios';
 
-const VerifyModal = ({ show, handleClose, investorId, authToken}) => {
+const VerifyModal = ({ show, handleClose, investorId, authToken }) => {
     const [firstName, setFirstName] = useState('');
     const [surname, setSurname] = useState('');
     const [dob, setDob] = useState(''); // Date of birth
@@ -45,11 +45,23 @@ const VerifyModal = ({ show, handleClose, investorId, authToken}) => {
             console.log("Auth Token:", authToken);
             console.log("Investor ID:", investorId);
             // Call verification API endpoint
-            await axios.post(`${process.env.REACT_APP_PENOMO_API}/api/investor/verify`, verificationData, {
+            const response = await axios.post(`${process.env.REACT_APP_PENOMO_API}/api/investor/verify`, verificationData, {
                 headers: { Authorization: `Bearer ${authToken}` }
             });
 
-            setVerificationStatus('Successfully verified. You can now start to invest!');
+            setVerificationStatus({
+                message1: (
+                    <span>
+                        Successfully verified on Global State Contract. See tx{' '}
+                        <a href={`https://sepolia.etherscan.io/tx/${response.data.transactionHash}`} target="_blank" rel="noopener noreferrer">
+                            here
+                        </a>.
+                    </span>
+                ),
+                message2: `You can now start to invest!`
+            });
+
+
         } catch (error) {
             setVerificationStatus('Verification failed. Please try again.');
             console.error('Verification error:', error);
@@ -66,10 +78,8 @@ const VerifyModal = ({ show, handleClose, investorId, authToken}) => {
                 <Form onSubmit={handleSubmit}>
                     {verificationStatus ? (
                         <div>
-                            <p>{verificationStatus}</p>
-                            <Button variant="penomo-navbar" onClick={resetForm}>
-                                Retry
-                            </Button>
+                            {verificationStatus.message1 && <p>{verificationStatus.message1}</p>}
+                            {verificationStatus.message2 && <p>{verificationStatus.message2}</p>}
                         </div>
                     ) : (
                         <>

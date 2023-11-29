@@ -472,7 +472,7 @@ router.post('/investor/buyToken', async (req, res) => {
         if (receipt.status) {
             const transactionRecord = new Transaction({
                 transactionType: 'Buy Token',
-                amount: tokenAmountBigInt, // The amount of tokens purchased
+                amount: tokenAmount, // The amount of tokens purchased
                 currency: 'ETH', // Assuming USDC is the currency used for the purchase
                 tokenSymbol: tokenSymbol,
                 tokenName: tokenName,
