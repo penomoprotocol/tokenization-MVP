@@ -42,7 +42,8 @@ const VerifyModal = ({ show, handleClose, investorId, authToken}) => {
                 issueDate,
                 expiryDate,
             };
-
+            console.log("Auth Token:", authToken);
+            console.log("Investor ID:", investorId);
             // Call verification API endpoint
             await axios.post(`${process.env.REACT_APP_PENOMO_API}/api/investor/verify`, verificationData, {
                 headers: { Authorization: `Bearer ${authToken}` }

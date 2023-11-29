@@ -35,8 +35,9 @@ const NavBar = () => {
                     const response = await axios.get(`${process.env.REACT_APP_PENOMO_API}/api/investor/jwt`, {
                         headers: { Authorization: `Bearer ${authToken}` }
                     });
+                    console.log("Investor Data: ", response);
                     setIsVerified(response.data.isVerified);
-                    setInvestorId(response.data.id); // Store the investor ID
+                    setInvestorId(response.data._id); // Store the investor ID
                 } catch (error) {
                     console.error('Error fetching investor data:', error);
                     // Handle error appropriately
