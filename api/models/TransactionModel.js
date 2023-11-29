@@ -6,7 +6,10 @@ const transactionSchema = new mongoose.Schema({
         required: true,
         enum: ['Buy Token', 'Sell Token', 'Receive Revenue', 'Top Up', 'Withdraw', 'Onramp', 'Offramp'], // Define the allowed transaction types
     },
-    amount: {
+    tokenAmount: {
+        type: Number,
+    },
+    payableAmount: {
         type: Number,
         required: true,
     },

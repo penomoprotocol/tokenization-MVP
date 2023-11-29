@@ -454,6 +454,7 @@ router.post('/investor/buyToken', async (req, res) => {
         const tokenAmountBigInt = BigInt(tokenAmount);
         const tokenPriceBigInt = BigInt(tokenPrice);
         const requiredWei = tokenPriceBigInt * tokenAmountBigInt;
+        const requiredEther = (BigInt(tokenPrice) * BigInt(tokenAmount)) / BigInt(10**18);
         const tokenAmountWeiBigInt = BigInt(web3.utils.toWei(tokenAmountBigInt.toString(), 'ether'));
 
 
@@ -472,7 +473,8 @@ router.post('/investor/buyToken', async (req, res) => {
         if (receipt.status) {
             const transactionRecord = new Transaction({
                 transactionType: 'Buy Token',
-                amount: tokenAmount, // The amount of tokens purchased
+                tokenAmount: tokenAmount, // The amount of tokens purchased
+                payableAmount: requiredEther.toString(), // TODO: Debug loss of precision. Refine and get gas costs from transaction
                 currency: 'ETH', // Assuming USDC is the currency used for the purchase
                 tokenSymbol: tokenSymbol,
                 tokenName: tokenName,
