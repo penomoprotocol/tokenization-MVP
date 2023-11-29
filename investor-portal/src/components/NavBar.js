@@ -90,6 +90,7 @@ const NavBar = () => {
                 show={showVerifyModal} 
                 handleClose={handleVerifyModalClose} 
                 investorId={investorId} 
+                authToken={authToken}
             />
         </Navbar>
     );

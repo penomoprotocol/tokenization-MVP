@@ -314,7 +314,7 @@ router.post('/investor/login', async (req, res) => {
 // Investor KYC
 router.post('/investor/verify', verifyToken, async (req, res) => {
     try {
-        const { investorId } = req.body;
+        const { investorId, firstName, surname, dob, passportId, issueDate, expiryDate } = req.body;
 
         // Fetch investor from the database
         const investor = await Investor.findById(investorId);
@@ -342,11 +342,22 @@ router.post('/investor/verify', verifyToken, async (req, res) => {
         // Handle the transaction receipt
         console.log('Transaction receipt:', receipt);
 
-        // Check if the transaction was successful
+        // Update investor with additional verification info
+        investor.firstName = firstName;
+        investor.surname = surname;
+        investor.dob = dob;
+        investor.passportId = passportId;
+        investor.passportIssueDate = issueDate;
+        investor.passportExpiryDate = expiryDate;
+        investor.isVerified = true; // Set the investor as verified
+
+        await investor.save(); // Save the updated investor data
+
+        // Transaction receipt handling
         if (receipt.status) {
             return res.status(200).json({ 
-                message: 'Investor successfully verified. Whitelisted investor wallet in Global State Contract.',
-                transactionHash: receipt.transactionHash  // Include the transaction hash in the response
+                message: 'Investor successfully verified.',
+                transactionHash: receipt.transactionHash
             });
         } else {
             return res.status(500).json({ error: 'Transaction failed' });

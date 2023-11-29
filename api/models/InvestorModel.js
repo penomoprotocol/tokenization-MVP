@@ -27,6 +27,14 @@ const investorSchema = new mongoose.Schema({
         type: String,
         unique: true
     },
+    dob: Date, // Date of birth
+    passportId: String,
+    passportIssueDate: Date,
+    passportExpiryDate: Date,
+    isVerified: {
+        type: Boolean,
+        default: false
+    }
 });
 
 const Investor = mongoose.model('Investor', investorSchema);
