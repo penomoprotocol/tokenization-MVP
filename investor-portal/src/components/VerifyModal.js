@@ -12,8 +12,24 @@ const VerifyModal = ({ show, handleClose, investorId }) => {
     const [verificationStatus, setVerificationStatus] = useState('');
     const [isSubmitting, setIsSubmitting] = useState(false);
 
+    const resetForm = () => {
+        setFirstName('');
+        setSurname('');
+        setDob('');
+        setPassportId('');
+        setIssueDate('');
+        setExpiryDate('');
+        setVerificationStatus('');
+        setIsSubmitting(false);
+    };
+
+    const handleModalClose = () => {
+        resetForm();
+        handleClose();
+    };
+
     const handleSubmit = async (event) => {
-        event.preventDefault(); // Prevent default form submission behavior
+        event.preventDefault();
         setIsSubmitting(true);
         try {
             // Construct your verification data object
@@ -35,20 +51,24 @@ const VerifyModal = ({ show, handleClose, investorId }) => {
         } catch (error) {
             setVerificationStatus('Verification failed. Please try again.');
             console.error('Verification error:', error);
-        } finally {
-            setIsSubmitting(false);
+            setIsSubmitting(false); // Allow for retry
         }
     };
 
     return (
-        <Modal show={show} onHide={handleClose} centered>
+        <Modal show={show} onHide={handleModalClose} centered>
             <Modal.Header closeButton>
                 <Modal.Title>User Verification</Modal.Title>
             </Modal.Header>
             <Modal.Body>
                 <Form onSubmit={handleSubmit}>
                     {verificationStatus ? (
-                        <p>{verificationStatus}</p>
+                        <div>
+                            <p>{verificationStatus}</p>
+                            <Button variant="penomo-navbar" onClick={resetForm}>
+                                Retry
+                            </Button>
+                        </div>
                     ) : (
                         <>
                             {/* First Name */}
@@ -95,11 +115,11 @@ const VerifyModal = ({ show, handleClose, investorId }) => {
             </Modal.Body>
             <Modal.Footer>
                 {verificationStatus && (
-                    <Button variant="penomo-navbar" onClick={handleClose}>Okay</Button>
+                    <Button variant="penomo-navbar" onClick={handleModalClose}>Okay</Button>
                 )}
             </Modal.Footer>
         </Modal>
     );
 };
 
-export default VerifyModal
+export default VerifyModal;
