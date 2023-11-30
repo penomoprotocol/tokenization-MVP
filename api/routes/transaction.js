@@ -146,10 +146,12 @@ const Investor = require('../models/InvestorModel');
  *       500:
  *         description: Error retrieving transactions.
  */
+const Token = require('./path_to_your_token_model'); // Import your Token model
+
 router.get('/transactions/user/:address', async (req, res) => {
     try {
         const address = req.params.address;
-        const ownerWalletAddress = address; // Using the provided address as the owner's address
+        const ownerWalletAddress = address;
 
         if (!web3.utils.isAddress(address)) {
             return res.status(400).send('Invalid address');
@@ -167,14 +169,16 @@ router.get('/transactions/user/:address', async (req, res) => {
             }
         });
 
-        const formattedTransactions = response.data.result.map(tx => {
-            let transactionType, tokenAmount;
+        const formattedTransactions = await Promise.all(response.data.result.map(async (tx) => {
+            let transactionType, tokenAmount, tokenSymbol = null;
             
             if (tx.methodId === '0x3610724e') {
                 transactionType = 'Buy Token';
-                // Extracting token amount from the input data
-                // This is a simplistic extraction and may not work for all contracts
                 tokenAmount = tx.input ? parseInt(tx.input.slice(-64), 16) : null;
+
+                // Query MongoDB for the token symbol
+                const tokenData = await Token.findOne({ tokenContractAddress: tx.to });
+                tokenSymbol = tokenData ? tokenData.symbol : null;
             } else if (tx.from.toLowerCase() === ownerWalletAddress.toLowerCase()) {
                 transactionType = 'Withdraw';
             } else if (tx.to.toLowerCase() === ownerWalletAddress.toLowerCase()) {
@@ -188,11 +192,12 @@ router.get('/transactions/user/:address', async (req, res) => {
                 from: tx.from.toLowerCase() === ownerWalletAddress.toLowerCase() ? 'You' : tx.from,
                 to: tx.to.toLowerCase() === ownerWalletAddress.toLowerCase() ? 'You' : tx.to,
                 payableAmount: web3.utils.fromWei(tx.value, 'ether'),
-                tokenAmount: transactionType == "Buy Token" ? web3.utils.fromWei(tokenAmount.toString(), 'ether') : tokenAmount,
+                tokenAmount: transactionType === "Buy Token" ? web3.utils.fromWei(tokenAmount.toString(), 'ether') : tokenAmount,
+                tokenSymbol: tokenSymbol, // Adding token symbol
                 date: new Date(tx.timeStamp * 1000).toLocaleDateString(),
                 hash: tx.hash
             };
-        });
+        }));
 
         res.status(200).json(formattedTransactions);
     } catch (error) {

@@ -48,7 +48,7 @@ const InvestorDashboard = () => {
         if (investorData) {
             fetchTransactions();
         }
-    }, [investorData]); 
+    }, [investorData]);
 
     const fullTokenAddressLink = (address) => `https://sepolia.etherscan.io/token/${address}`;
 
@@ -119,7 +119,7 @@ const InvestorDashboard = () => {
                             <strong className="balance-title">USDC</strong>
                             <span className="balance-amount">{roundToDecimals(investorData.usdcBalance, 2)}</span>
                             <div className="btn-container">
-                            <button className="btn-penomo" onClick={() => setShowTopUp(true)}>Top Up</button>
+                                <button className="btn-penomo" onClick={() => setShowTopUp(true)}>Top Up</button>
                                 <button className="btn-penomo-secondary">Withdraw</button>
                             </div>
                         </div>
@@ -174,13 +174,18 @@ const InvestorDashboard = () => {
                 <h2>Recent Transactions</h2>
                 <ul className="section-list">
                     {investorTransactions.map((transaction, index) => (
-                        <li className="section-list-item" key={index}>
-                            <strong>{transaction.date}:</strong> {transaction.transactionType} - <strong>Amount:</strong> {transaction.payableAmount} ETH
-                            {transaction.tokenAmount && <span> - Tokens: {transaction.tokenAmount}</span>}
+                        <li className="section-list-item" key={index} onClick={() => window.open(`https://sepolia.etherscan.io/tx/${transaction.hash}`, '_blank')}>
+                            <strong>Date:</strong> {transaction.date}<br />
+                            <strong>Type:</strong> {transaction.transactionType}<br />
+                            <strong>From:</strong> {transaction.from}<br />
+                            <strong>To:</strong> {transaction.to}<br />
+                            <strong>Payable Amount:</strong> {transaction.payableAmount} ETH<br />
+                            {transaction.tokenAmount && <><strong>Token Amount:</strong> {transaction.tokenAmount}<br /></>}
                         </li>
                     ))}
                 </ul>
             </div>
+
 
             {
                 showTopUp &&
