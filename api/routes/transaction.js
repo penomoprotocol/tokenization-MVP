@@ -24,7 +24,7 @@ const Asset = require('../models/AssetModel');
 const Company = require('../models/CompanyModel');
 const Contract = require('../models/TokenModel');
 const Investor = require('../models/InvestorModel');
-
+const Token = require('../models/TokenModel');
 
 
 // /**
@@ -146,7 +146,7 @@ const Investor = require('../models/InvestorModel');
  *       500:
  *         description: Error retrieving transactions.
  */
-const Token = require('./path_to_your_token_model'); // Import your Token model
+
 
 router.get('/transactions/user/:address', async (req, res) => {
     try {
@@ -177,7 +177,7 @@ router.get('/transactions/user/:address', async (req, res) => {
                 tokenAmount = tx.input ? parseInt(tx.input.slice(-64), 16) : null;
 
                 // Query MongoDB for the token symbol
-                const tokenData = await Token.findOne({ tokenContractAddress: tx.to });
+                const tokenData = await Token.findOne({ serviceContractAddress: tx.to });
                 tokenSymbol = tokenData ? tokenData.symbol : null;
             } else if (tx.from.toLowerCase() === ownerWalletAddress.toLowerCase()) {
                 transactionType = 'Withdraw';
