@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import BalanceChart from '../components/BalanceChart';
 import TopUpWallet from '../components/TopUpWallet';
+import WithdrawWallet from '../components/WithdrawWallet'; // Import the WithdrawWallet component
 import './InvestorDashboard.css';
 
 const InvestorDashboard = () => {
@@ -10,6 +11,8 @@ const InvestorDashboard = () => {
     const [investorTransactions, setInvestorTransactions] = useState([]);
     const [showTopUp, setShowTopUp] = useState(false);
     const [isLoadingTokenHoldings, setIsLoadingTokenHoldings] = useState(true);
+    const [showWithdraw, setShowWithdraw] = useState(false); // State for WithdrawWallet modal
+    const [selectedCurrency, setSelectedCurrency] = useState('ETH');
 
     useEffect(() => {
         const fetchInvestorData = async () => {
@@ -51,6 +54,10 @@ const InvestorDashboard = () => {
         fetchTransactions();
     }, [investorData?.ethereumPublicKey]);
 
+    const toggleWithdraw = (currency) => {
+        setSelectedCurrency(currency); // Set the selected currency
+        setShowWithdraw(!showWithdraw);
+    };
     const fullTokenAddressLink = (address) => `https://sepolia.etherscan.io/token/${address}`;
 
     const weiToEth = (wei) => {
@@ -114,7 +121,7 @@ const InvestorDashboard = () => {
                             <span className="balance-amount">{roundToDecimals(investorData.ethBalance, 4)}</span>
                             <div className="btn-container">
                                 <button className="btn-penomo" onClick={() => setShowTopUp(true)}>Top Up</button>
-                                <button className="btn-penomo-secondary">Withdraw</button>
+                                <button className="btn-penomo-secondary" onClick={() => toggleWithdraw('ETH')}>Withdraw</button>
                             </div>
                         </div>
                         <div className="wallet-balance">
@@ -122,7 +129,7 @@ const InvestorDashboard = () => {
                             <span className="balance-amount">{roundToDecimals(investorData.usdcBalance, 2)}</span>
                             <div className="btn-container">
                                 <button className="btn-penomo" onClick={() => setShowTopUp(true)}>Top Up</button>
-                                <button className="btn-penomo-secondary">Withdraw</button>
+                                <button className="btn-penomo-secondary" onClick={() => toggleWithdraw('USDC')}>Withdraw</button>
                             </div>
                         </div>
                     </div>
@@ -201,6 +208,16 @@ const InvestorDashboard = () => {
                     show={showTopUp}
                 />
             }
+
+{
+                showWithdraw &&
+                <WithdrawWallet
+                    currency={selectedCurrency}
+                    closeModal={() => setShowWithdraw(false)}
+                    show={showWithdraw}
+                />
+            }
+
         </div >
     );
 };
