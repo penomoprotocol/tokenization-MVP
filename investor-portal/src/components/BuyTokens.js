@@ -2,8 +2,6 @@ import React, { useState } from 'react';
 import axios from 'axios';
 
 const BuyTokens = ({ token, closeModal, show }) => {
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
   const [tokenAmount, setTokenAmount] = useState('');
   const [responseMessage, setResponseMessage] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false); // New state to track form submission
@@ -12,23 +10,28 @@ const BuyTokens = ({ token, closeModal, show }) => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setIsSubmitting(true); // Enable the loading state
-
+    const userToken = localStorage.getItem('authToken');
     try {
+      // Ensure that token.serviceContractAddress is available
+      if (!token.serviceContractAddress) {
+        throw new Error("Service contract address is not available.");
+      }
+
       const response = await axios.post(`${process.env.REACT_APP_PENOMO_API}/api/investor/buyToken`, {
-        investorEmail: email,
-        password: password,
         tokenAmount: tokenAmount,
         serviceContractAddress: token.serviceContractAddress,
+      }, {
+        headers: { Authorization: `Bearer ${userToken}` }
       });
 
-      // Display response message
       setResponseMessage(response.data.message);
     } catch (error) {
       setResponseMessage(error.response ? error.response.data : 'Failed to purchase tokens.');
     } finally {
       setIsSubmitting(false); // Disable the loading state regardless of the outcome
     }
-  };
+};
+
 
 
   // Close modal and clear message
@@ -64,28 +67,6 @@ const BuyTokens = ({ token, closeModal, show }) => {
         </div>
         {!responseMessage ? (
           <form onSubmit={handleSubmit} className="token-purchase-form">
-            <div className="form-group">
-              <label htmlFor="email" className="form-label"><strong>Email </strong></label>
-              <input
-                type="email"
-                id="email"
-                className="form-control"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                required
-              />
-            </div>
-            <div className="form-group">
-              <label htmlFor="password" className="form-label"><strong>Password </strong></label>
-              <input
-                type="password"
-                id="password"
-                className="form-control"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                required
-              />
-            </div>
             <div className="form-group">
               <label htmlFor="tokenAmount" className="form-label"> <strong>Amount to buy </strong></label>
               <input

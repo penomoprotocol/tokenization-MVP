@@ -196,27 +196,27 @@ router.post('/investor/register', async (req, res) => {
         await investor.save();
         console.log("Added investor instance: ", investor);
 
-        // Fund the new wallet with 1000000000000000 wei
-        const fundingAmount = '1000000000000000'; 
+        // // Fund the new wallet with 1000000000000000 wei
+        // const fundingAmount = '1000000000000000'; 
 
-        // Create a raw transaction object
-        const transaction = {
-            from: MASTER_ADDRESS,
-            to: publicKey,
-            value: fundingAmount,
-            gasLimit: web3.utils.toHex(21000), // Standard gas limit for Ether transfers
-            gasPrice: web3.utils.toHex(await web3.eth.getGasPrice()) // Get current gas price
-        };
-        // Sign the transaction with the master's private key
-        const signedTx = await web3.eth.accounts.signTransaction(transaction, MASTER_PRIVATE_KEY);
+        // // Create a raw transaction object
+        // const transaction = {
+        //     from: MASTER_ADDRESS,
+        //     to: publicKey,
+        //     value: fundingAmount,
+        //     gasLimit: web3.utils.toHex(21000), // Standard gas limit for Ether transfers
+        //     gasPrice: web3.utils.toHex(await web3.eth.getGasPrice()) // Get current gas price
+        // };
+        // // Sign the transaction with the master's private key
+        // const signedTx = await web3.eth.accounts.signTransaction(transaction, MASTER_PRIVATE_KEY);
 
-        // Send the signed transaction
-        const receipt = await web3.eth.sendSignedTransaction(signedTx.rawTransaction);
+        // // Send the signed transaction
+        // const receipt = await web3.eth.sendSignedTransaction(signedTx.rawTransaction);
 
         res.status(200).json({ message: "Successfully registered investor.", investor });
     } catch (error) {
-        console.error('Error while registering investor or funding wallet:', error);
-        res.status(500).send('Error registering investor or funding wallet');
+        console.error('Error while registering investor:', error);
+        res.status(500).send('Error registering investor');
     }
 });
 
@@ -408,28 +408,19 @@ router.post('/investor/verify', verifyToken, async (req, res) => {
  *         description: Error buying tokens.
  */
 
-router.post('/investor/buyToken', async (req, res) => {
+router.post('/investor/buyToken', verifyToken,async (req, res) => {
     try {
-        const { investorEmail, password, tokenAmount, serviceContractAddress } = req.body;
+        const {tokenAmount, serviceContractAddress } = req.body;
 
+        const investorId = req.user.id; // ID is retrieved from the decoded JWT token
+        const investor = await Investor.findById(investorId);
+
+        if (!investor) {
+            return res.status(404).send('Investor not found');
+        }
         if (!serviceContractAddress) {
             return res.status(400).send('Missing service contract address.');
         }
-
-        // Step 1: Get the investor from the database using the provided email
-        const investor = await Investor.findOne({ email: investorEmail });
-        if (!investor) {
-            console.log('Investor not found with email:', investorEmail);
-            return res.status(401).send('Investor not found');
-        }
-
-        // Step 2: Verify password
-        const isPasswordValid = await bcrypt.compare(password, investor.password);
-        if (!isPasswordValid) {
-            console.log('Invalid credentials for investor email:', investorEmail);
-            return res.status(401).send('Invalid credentials');
-        }
-
 
         console.log("investor.ethereumPublicKey: ", investor.ethereumPublicKey);
 
@@ -701,7 +692,6 @@ router.get('/investor/jwt', verifyToken, async (req, res) => {
 router.get('/investor/:id',verifyToken, async (req, res) => {
     try {
         const investorId = req.user.id;
-        console.log('Retrieving investor details for ID:', investorId); // For debugging
         const investor = await Investor.findById(investorId);
         if (!investor) {
             console.log('Investor not found with ID:', investorId); // For debugging
