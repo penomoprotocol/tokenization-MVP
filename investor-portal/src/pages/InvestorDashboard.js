@@ -2,53 +2,48 @@ import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import BalanceChart from '../components/BalanceChart';
 import TopUpWallet from '../components/TopUpWallet';
-
 import './InvestorDashboard.css';
 
 const InvestorDashboard = () => {
-    const [investorData, setInvestorData] = useState(null); // Initialize state to null
-    const [investorTokenHoldings, setInvestorTokenHoldings] = useState(null); // Initialize state to null
+    const [investorData, setInvestorData] = useState(null);
+    const [investorTokenHoldings, setInvestorTokenHoldings] = useState(null);
     const [investorTransactions, setInvestorTransactions] = useState([]);
     const [showTopUp, setShowTopUp] = useState(false);
 
     useEffect(() => {
         const fetchInvestorData = async () => {
-            const userToken = localStorage.getItem('authToken'); // Retrieve JWT token
-
+            const userToken = localStorage.getItem('authToken');
             try {
-                const investorData = await axios.get(`${process.env.REACT_APP_PENOMO_API}/api/investor/jwt`, {
-                    headers: {
-                        Authorization: `Bearer ${userToken}` // Include JWT token in header
-                    }
+                const investorDataRes = await axios.get(`${process.env.REACT_APP_PENOMO_API}/api/investor/jwt`, {
+                    headers: { Authorization: `Bearer ${userToken}` }
                 });
-                setInvestorData(investorData.data); // Update state with investor data
-                const investorTokenHoldings = await axios.get(`${process.env.REACT_APP_PENOMO_API}/api/token/jwt`, {
-                    headers: {
-                        Authorization: `Bearer ${userToken}` // Include JWT token in header
-                    }
+                setInvestorData(investorDataRes.data);
+
+                const investorTokenHoldingsRes = await axios.get(`${process.env.REACT_APP_PENOMO_API}/api/token/jwt`, {
+                    headers: { Authorization: `Bearer ${userToken}` }
                 });
-                setInvestorTokenHoldings(investorTokenHoldings.data); // Update state with investor data
-                console.log("Investor Data: ", investorData);
-                console.log("Investor Token Holdings: ", investorTokenHoldings);
+                setInvestorTokenHoldings(investorTokenHoldingsRes.data);
             } catch (error) {
                 console.error('Error fetching investor data:', error);
-                // Handle error (e.g., show a message to the user)
             }
         };
         fetchInvestorData();
+    }, []);
+
+    useEffect(() => {
         const fetchTransactions = async () => {
-            try {
-                const response = await axios.get(`${process.env.REACT_APP_PENOMO_API}/api/transactions/user/${investorData.ethereumPublicKey}`);
-                setInvestorTransactions(response.data.slice(-5)); // Store the last 5 transactions
-            } catch (error) {
-                console.error('Error fetching transactions:', error);
+            if (investorData?.ethereumPublicKey) {
+                try {
+                    const response = await axios.get(`${process.env.REACT_APP_PENOMO_API}/api/transactions/user/${investorData.ethereumPublicKey}`);
+                    setInvestorTransactions(response.data.slice(-5)); // Store the last 5 transactions
+                } catch (error) {
+                    console.error('Error fetching transactions:', error);
+                }
             }
         };
 
-        if (investorData) {
-            fetchTransactions();
-        }
-    }, [investorData]);
+        fetchTransactions();
+    }, [investorData?.ethereumPublicKey]);
 
     const fullTokenAddressLink = (address) => `https://sepolia.etherscan.io/token/${address}`;
 
@@ -90,8 +85,9 @@ const InvestorDashboard = () => {
 
     // Check if investorData is loaded
     if (!investorData) {
-        return <div className='content-center page-header'>Loading...</div>; // Or any other loading state representation
+        return <div className='content-center page-header'>Loading...</div>;
     }
+
 
     return (
         <div className="page-container">
@@ -173,7 +169,7 @@ const InvestorDashboard = () => {
             <div className="recent-transactions section-container">
                 <h2>Recent Transactions</h2>
                 <ul className="section-list">
-                    {investorTransactions.map((transaction, index) => (
+                    {[...investorTransactions].reverse().map((transaction, index) => (
                         <li className="section-list-item" key={index} onClick={() => window.open(`https://sepolia.etherscan.io/tx/${transaction.hash}`, '_blank')}>
                             <strong>Date:</strong> {transaction.date}<br />
                             <strong>Type:</strong> {transaction.transactionType}<br />

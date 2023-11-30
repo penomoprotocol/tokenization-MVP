@@ -188,23 +188,29 @@ router.get('/transactions/user/:address', async (req, res) => {
         combinedTransactions.sort((a, b) => a.timeStamp - b.timeStamp);
 
         const formattedTransactions = await Promise.all(combinedTransactions.map(async (tx) => {
-            let transactionType, tokenAmount, tokenSymbol = null;
-            
+            let transactionType, tokenAmount, tokenSymbol = null, currency = 'ETH';
+        
             if (tx.methodId === '0x3610724e') {
                 transactionType = 'Buy Token';
                 tokenAmount = tx.input ? parseInt(tx.input.slice(-64), 16) : null;
-
+        
                 // Query MongoDB for the token symbol
                 const tokenData = await Token.findOne({ serviceContractAddress: tx.to });
                 tokenSymbol = tokenData ? tokenData.symbol : null;
             } else if (tx.from.toLowerCase() === ownerWalletAddress.toLowerCase()) {
                 transactionType = 'Withdraw';
+                if (tx.to === '0xd0a0d62413cb0577b2b9a52ca8b05c03bb56cce8') { // USDC address
+                    currency = 'USDC';
+                }
             } else if (tx.to.toLowerCase() === ownerWalletAddress.toLowerCase()) {
                 transactionType = 'Top up';
+                if (tx.from === '0xd0a0d62413cb0577b2b9a52ca8b05c03bb56cce8') { // USDC address
+                    currency = 'USDC';
+                }
             } else {
                 transactionType = 'Unknown';
             }
-
+        
             return {
                 transactionType: transactionType,
                 from: tx.from.toLowerCase() === ownerWalletAddress.toLowerCase() ? 'You' : tx.from,
@@ -212,12 +218,14 @@ router.get('/transactions/user/:address', async (req, res) => {
                 payableAmount: web3.utils.fromWei(tx.value, 'ether'),
                 tokenAmount: transactionType === "Buy Token" ? web3.utils.fromWei(tokenAmount.toString(), 'ether') : tokenAmount,
                 tokenSymbol: tokenSymbol, // Adding token symbol
+                currency: currency, // Adding currency
                 date: new Date(tx.timeStamp * 1000).toLocaleDateString(),
                 hash: tx.hash
             };
         }));
-
+        
         res.status(200).json(formattedTransactions);
+        
     } catch (error) {
         console.error(error);
         res.status(500).send('Error retrieving transactions');
