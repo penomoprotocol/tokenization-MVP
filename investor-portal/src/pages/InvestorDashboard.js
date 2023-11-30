@@ -8,6 +8,7 @@ import './InvestorDashboard.css';
 const InvestorDashboard = () => {
     const [investorData, setInvestorData] = useState(null); // Initialize state to null
     const [investorTokenHoldings, setInvestorTokenHoldings] = useState(null); // Initialize state to null
+    const [investorTransactions, setInvestorTransactions] = useState([]);
     const [showTopUp, setShowTopUp] = useState(false);
 
     useEffect(() => {
@@ -34,9 +35,20 @@ const InvestorDashboard = () => {
                 // Handle error (e.g., show a message to the user)
             }
         };
-
         fetchInvestorData();
-    }, []);
+        const fetchTransactions = async () => {
+            try {
+                const response = await axios.get(`${process.env.REACT_APP_PENOMO_API}/api/transactions/user/${investorData.ethereumPublicKey}`);
+                setInvestorTransactions(response.data.slice(-5)); // Store the last 5 transactions
+            } catch (error) {
+                console.error('Error fetching transactions:', error);
+            }
+        };
+
+        if (investorData) {
+            fetchTransactions();
+        }
+    }, [investorData]); 
 
     const fullTokenAddressLink = (address) => `https://sepolia.etherscan.io/token/${address}`;
 
@@ -161,11 +173,12 @@ const InvestorDashboard = () => {
             <div className="recent-transactions section-container">
                 <h2>Recent Transactions</h2>
                 <ul className="section-list">
-                    {/* {investorData.recentTransactions.map((transaction) => (
-                        <li className="section-list-item" key={transaction.id}>
-                            <strong>{transaction.date}:</strong> {transaction.type} {transaction.token} - <strong>Amount:</strong> {transaction.amount}
+                    {investorTransactions.map((transaction, index) => (
+                        <li className="section-list-item" key={index}>
+                            <strong>{transaction.date}:</strong> {transaction.transactionType} - <strong>Amount:</strong> {transaction.payableAmount} ETH
+                            {transaction.tokenAmount && <span> - Tokens: {transaction.tokenAmount}</span>}
                         </li>
-                    ))} */}
+                    ))}
                 </ul>
             </div>
 
