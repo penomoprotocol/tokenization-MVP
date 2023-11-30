@@ -9,6 +9,7 @@ const InvestorDashboard = () => {
     const [investorTokenHoldings, setInvestorTokenHoldings] = useState(null);
     const [investorTransactions, setInvestorTransactions] = useState([]);
     const [showTopUp, setShowTopUp] = useState(false);
+    const [isLoadingTokenHoldings, setIsLoadingTokenHoldings] = useState(true);
 
     useEffect(() => {
         const fetchInvestorData = async () => {
@@ -23,8 +24,10 @@ const InvestorDashboard = () => {
                     headers: { Authorization: `Bearer ${userToken}` }
                 });
                 setInvestorTokenHoldings(investorTokenHoldingsRes.data);
+                setIsLoadingTokenHoldings(false);
             } catch (error) {
                 console.error('Error fetching investor data:', error);
+                setIsLoadingTokenHoldings(false); // Ensure loading state is set to false even if there's an error
             }
         };
         fetchInvestorData();
@@ -128,7 +131,9 @@ const InvestorDashboard = () => {
 
             <div className="section-container">
                 <h2 className="section-header">RWA Tokens</h2>
-                {investorTokenHoldings && investorTokenHoldings.length > 0 ? (
+                {isLoadingTokenHoldings ? (
+                    <p>Loading...</p> // Display loading message while data is being fetched
+                ) : investorTokenHoldings && investorTokenHoldings.length > 0 ? (
                     investorTokenHoldings.map((token) => (
                         <div className="portfolio-item" key={token.name}>
                             <div style={{ flex: '1 1 16.6%' }} className="label-value">
