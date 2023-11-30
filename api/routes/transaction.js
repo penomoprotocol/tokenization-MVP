@@ -157,7 +157,8 @@ router.get('/transactions/user/:address', async (req, res) => {
             return res.status(400).send('Invalid address');
         }
 
-        const response = await axios.get(`${ETHERSCAN_API_URL}`, {
+        // Fetch regular transactions
+        const regularTxResponse = await axios.get(`${ETHERSCAN_API_URL}`, {
             params: {
                 module: 'account',
                 action: 'txlist',
@@ -168,8 +169,25 @@ router.get('/transactions/user/:address', async (req, res) => {
                 apikey: ETHERSCAN_API_KEY
             }
         });
+        // Fetch token transfer transactions
+        const tokenTxResponse = await axios.get(`${ETHERSCAN_API_URL}`, {
+            params: {
+                module: 'account',
+                action: 'tokentx',
+                address: address,
+                startblock: 0,
+                endblock: 99999999,
+                sort: 'asc',
+                apikey: ETHERSCAN_API_KEY
+            }
+        });
+        // Combine and process both types of transactions
+        const combinedTransactions = regularTxResponse.data.result.concat(tokenTxResponse.data.result);
 
-        const formattedTransactions = await Promise.all(response.data.result.map(async (tx) => {
+        // Sort transactions by date
+        combinedTransactions.sort((a, b) => a.timeStamp - b.timeStamp);
+
+        const formattedTransactions = await Promise.all(combinedTransactions.map(async (tx) => {
             let transactionType, tokenAmount, tokenSymbol = null;
             
             if (tx.methodId === '0x3610724e') {

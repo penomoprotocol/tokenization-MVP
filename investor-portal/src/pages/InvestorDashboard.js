@@ -177,10 +177,11 @@ const InvestorDashboard = () => {
                         <li className="section-list-item" key={index} onClick={() => window.open(`https://sepolia.etherscan.io/tx/${transaction.hash}`, '_blank')}>
                             <strong>Date:</strong> {transaction.date}<br />
                             <strong>Type:</strong> {transaction.transactionType}<br />
+                            {transaction.tokenSymbol && <><strong>Token:</strong> {transaction.tokenSymbol}<br /></>}
+                            {transaction.tokenAmount && <><strong>Token Amount:</strong> {transaction.tokenAmount}<br /></>}
                             <strong>From:</strong> {transaction.from}<br />
                             <strong>To:</strong> {transaction.to}<br />
-                            <strong>Payable Amount:</strong> {transaction.payableAmount} ETH<br />
-                            {transaction.tokenAmount && <><strong>Token Amount:</strong> {transaction.tokenAmount}<br /></>}
+                            <strong>Transfered Amount:</strong> {transaction.payableAmount} ETH<br />
                         </li>
                     ))}
                 </ul>
