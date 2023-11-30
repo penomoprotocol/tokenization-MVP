@@ -181,36 +181,40 @@ router.get('/transactions/user/:address', async (req, res) => {
                 apikey: ETHERSCAN_API_KEY
             }
         });
+        // Create a set of hashes from regular transactions for quick lookup
+        const regularTxHashes = new Set(regularTxResponse.data.result.map(tx => tx.hash));
+
+        // Filter out token transactions that are already included in regular transactions
+        const uniqueTokenTransactions = tokenTxResponse.data.result.filter(tx => !regularTxHashes.has(tx.hash));
+
         // Combine and process both types of transactions
-        const combinedTransactions = regularTxResponse.data.result.concat(tokenTxResponse.data.result);
+        const combinedTransactions = regularTxResponse.data.result.concat(uniqueTokenTransactions);
 
         // Sort transactions by date
         combinedTransactions.sort((a, b) => a.timeStamp - b.timeStamp);
 
         const formattedTransactions = await Promise.all(combinedTransactions.map(async (tx) => {
             let transactionType, tokenAmount, tokenSymbol = null, currency = 'ETH';
-        
+
+            const isUSDC = tx.contractAddress === '0xd0a0d62413cb0577b2b9a52ca8b05c03bb56cce8'; // USDC contract address
+
             if (tx.methodId === '0x3610724e') {
                 transactionType = 'Buy Token';
                 tokenAmount = tx.input ? parseInt(tx.input.slice(-64), 16) : null;
-        
                 // Query MongoDB for the token symbol
                 const tokenData = await Token.findOne({ serviceContractAddress: tx.to });
                 tokenSymbol = tokenData ? tokenData.symbol : null;
+                currency = isUSDC ? 'USDC' : 'ETH';
             } else if (tx.from.toLowerCase() === ownerWalletAddress.toLowerCase()) {
                 transactionType = 'Withdraw';
-                if (tx.to === '0xd0a0d62413cb0577b2b9a52ca8b05c03bb56cce8') { // USDC address
-                    currency = 'USDC';
-                }
+                currency = isUSDC ? 'USDC' : 'ETH';
             } else if (tx.to.toLowerCase() === ownerWalletAddress.toLowerCase()) {
                 transactionType = 'Top up';
-                if (tx.from === '0xd0a0d62413cb0577b2b9a52ca8b05c03bb56cce8') { // USDC address
-                    currency = 'USDC';
-                }
+                currency = isUSDC ? 'USDC' : 'ETH';
             } else {
                 transactionType = 'Unknown';
             }
-        
+
             return {
                 transactionType: transactionType,
                 from: tx.from.toLowerCase() === ownerWalletAddress.toLowerCase() ? 'You' : tx.from,
@@ -223,9 +227,9 @@ router.get('/transactions/user/:address', async (req, res) => {
                 hash: tx.hash
             };
         }));
-        
+
         res.status(200).json(formattedTransactions);
-        
+
     } catch (error) {
         console.error(error);
         res.status(500).send('Error retrieving transactions');

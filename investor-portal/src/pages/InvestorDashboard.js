@@ -177,11 +177,12 @@ const InvestorDashboard = () => {
                             {transaction.tokenAmount && <><strong>Token Amount:</strong> {transaction.tokenAmount}<br /></>}
                             <strong>From:</strong> {transaction.from}<br />
                             <strong>To:</strong> {transaction.to}<br />
-                            <strong>Transfered Amount:</strong> {transaction.payableAmount} ETH<br />
+                            <strong>Transfered Amount:</strong> {transaction.payableAmount} {transaction.currency}<br />
                         </li>
                     ))}
                 </ul>
             </div>
+
 
 
             {
