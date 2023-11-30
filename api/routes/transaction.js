@@ -221,9 +221,9 @@ router.get('/transactions/user/:address', async (req, res) => {
                 to: tx.to.toLowerCase() === ownerWalletAddress.toLowerCase() ? 'You' : tx.to,
                 payableAmount: web3.utils.fromWei(tx.value, 'ether'),
                 tokenAmount: transactionType === "Buy Token" ? web3.utils.fromWei(tokenAmount.toString(), 'ether') : tokenAmount,
-                tokenSymbol: tokenSymbol, // Adding token symbol
-                currency: currency, // Adding currency
-                date: new Date(tx.timeStamp * 1000).toLocaleDateString(),
+                tokenSymbol: tokenSymbol, 
+                currency: currency, 
+                date: new Date(tx.timeStamp * 1000).toLocaleString(), // Using toLocaleString() to include time
                 hash: tx.hash
             };
         }));
