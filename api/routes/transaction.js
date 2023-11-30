@@ -11,6 +11,8 @@ const { web3, networkId, GSCAddress, USDCContractAddress } = require('../config/
 const fs = require('fs');
 const path = require('path');
 
+const verifyToken = require('../middleware/jwtCheck');
+
 require('dotenv').config();
 const SECRET_KEY = process.env.SECRET_KEY;
 const MONGO_URI = process.env.MONGO_URI;
@@ -148,9 +150,11 @@ const Token = require('../models/TokenModel');
  */
 
 
-router.get('/transactions/user/:address', async (req, res) => {
+router.get('/transactions/user/jwt',verifyToken, async (req, res) => {
     try {
-        const address = req.params.address;
+        const investorId = req.user.id; // ID is retrieved from the decoded JWT token
+        const investor = await Investor.findById(investorId);
+        const address = investor.ethereumPublicKey;
         const ownerWalletAddress = address;
 
         if (!web3.utils.isAddress(address)) {

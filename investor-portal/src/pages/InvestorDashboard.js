@@ -32,9 +32,12 @@ const InvestorDashboard = () => {
 
     useEffect(() => {
         const fetchTransactions = async () => {
+            const userToken = localStorage.getItem('authToken');
             if (investorData?.ethereumPublicKey) {
                 try {
-                    const response = await axios.get(`${process.env.REACT_APP_PENOMO_API}/api/transactions/user/${investorData.ethereumPublicKey}`);
+                    const response = await axios.get(`${process.env.REACT_APP_PENOMO_API}/api/transactions/user/jwt`, {
+                        headers: { Authorization: `Bearer ${userToken}` }
+                    });
                     setInvestorTransactions(response.data.slice(-5)); // Store the last 5 transactions
                 } catch (error) {
                     console.error('Error fetching transactions:', error);
