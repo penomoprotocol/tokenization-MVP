@@ -3,10 +3,6 @@ const CryptoJS = require('crypto-js');
 const { ethers } = require('ethers');
 const { web3, networkId, GSCAddress, USDCContractAddress } = require('../config/web3Config');
 
-// For debugging
-console.log(web3.utils);
-console.log(ethers.utils);
-
 const fs = require('fs');
 const path = require('path');
 
