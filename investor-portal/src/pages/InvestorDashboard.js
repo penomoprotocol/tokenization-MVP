@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
-import BalanceChart from '../components/BalanceChart';
+// import BalanceChart from '../components/BalanceChart';
 import TopUpWallet from '../components/TopUpWallet';
 import WithdrawWallet from '../components/WithdrawWallet'; // Import the WithdrawWallet component
 import './InvestorDashboard.css';
@@ -78,23 +78,23 @@ const InvestorDashboard = () => {
 
     }
 
-    const mockHistoricData = {
-        labels: ["Jan", "Feb", "Mar", "Apr", "May", "Jun"],
-        datasets: [
-            {
-                label: "USDC Balance",
-                data: [2000, 2400, 2200, 2800, 3000, 3200],
-                borderColor: "rgb(75, 192, 192)",
-                backgroundColor: "rgba(75, 192, 192, 0.5)",
-            },
-            {
-                label: "ETH Balance",
-                data: [0.5, 0.6, 0.55, 0.65, 0.64, 0.66],
-                borderColor: "rgb(153, 102, 255)",
-                backgroundColor: "rgba(153, 102, 255, 0.5)",
-            }
-        ]
-    };
+    // const mockHistoricData = {
+    //     labels: ["Jan", "Feb", "Mar", "Apr", "May", "Jun"],
+    //     datasets: [
+    //         {
+    //             label: "USDC Balance",
+    //             data: [2000, 2400, 2200, 2800, 3000, 3200],
+    //             borderColor: "rgb(75, 192, 192)",
+    //             backgroundColor: "rgba(75, 192, 192, 0.5)",
+    //         },
+    //         {
+    //             label: "ETH Balance",
+    //             data: [0.5, 0.6, 0.55, 0.65, 0.64, 0.66],
+    //             borderColor: "rgb(153, 102, 255)",
+    //             backgroundColor: "rgba(153, 102, 255, 0.5)",
+    //         }
+    //     ]
+    // };
 
     // Check if investorData is loaded
     if (!investorData) {
@@ -105,12 +105,11 @@ const InvestorDashboard = () => {
     return (
         <div className="page-container">
             <h1 className="page-header">Welcome, {investorData.firstname} {investorData.surname}</h1>
-            <div className="section-container">
+            {/* <div className="section-container">
                 <div className="balance-chart-container">
-                    {/* Here you would render your chart component */}
                     <BalanceChart data={mockHistoricData} />
                 </div>
-            </div>
+            </div> */}
 
             <div className="section-container">
                 <h2 className="section-header">Cryptocurrencies</h2>

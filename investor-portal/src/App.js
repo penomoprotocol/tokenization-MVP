@@ -20,7 +20,7 @@ import ProtectedRoute from './services/ProtectedRoute';
 
 
 // Importing styling
-import './master.css';
+import './master_dark.css';
 import './App.css';
 import './components/Footer.css';
 

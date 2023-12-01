@@ -200,7 +200,7 @@ router.get('/transactions/user/jwt',verifyToken, async (req, res) => {
         const formattedTransactions = await Promise.all(combinedTransactions.map(async (tx) => {
             let transactionType, tokenAmount, tokenSymbol = null, currency = 'ETH';
 
-            const isUSDC = tx.contractAddress === '0xd0a0d62413cb0577b2b9a52ca8b05c03bb56cce8'; // USDC contract address
+            const isUSDC = tx.contractAddress === USDCContractAddress; // USDC contract address
 
             if (tx.methodId === '0x3610724e') {
                 transactionType = 'Buy Token';

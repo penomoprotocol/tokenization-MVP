@@ -50,13 +50,14 @@ const NavBar = () => {
     return (
         <Navbar bg="light" expand="lg">
             <Container>
-                <Navbar.Brand as={Link} to="/">
+                <Navbar.Brand as="a" href="https://penomo.io">
                     <img
                         src={logo}
                         className="navbar-logo"
                         alt="Penomo logo"
                     />
                 </Navbar.Brand>
+
                 <Navbar.Toggle aria-controls="basic-navbar-nav" />
                 <Navbar.Collapse id="basic-navbar-nav">
                     <Nav className="me-auto">
@@ -78,6 +79,10 @@ const NavBar = () => {
                             </>
                         ) : (
                             <>
+                                <Nav className="me-auto">
+                                    <Nav.Link href="https://penomo.io">Home Page</Nav.Link> {/* Replace with actual URL */}
+                                    <Nav.Link href="https://penomo.notion.site/penomo-Docs-0dfbabfbb6804fb5b5e952ddafdc2327?pvs=4">Documentation</Nav.Link> {/* Replace with actual URL */}
+                                </Nav>
                                 <Link onClick={handleLoginModalShow} className="btn-penomo-navbar">Login</Link>
                                 <Link onClick={handleRegisterModalShow} className="btn-secondary-navbar">Register</Link>
                             </>
@@ -87,10 +92,10 @@ const NavBar = () => {
             </Container>
             <LoginModal show={showLoginModal} handleClose={handleLoginModalClose} />
             <RegisterModal show={showRegisterModal} handleClose={handleRegisterModalClose} />
-            <VerifyModal 
-                show={showVerifyModal} 
-                handleClose={handleVerifyModalClose} 
-                investorId={investorId} 
+            <VerifyModal
+                show={showVerifyModal}
+                handleClose={handleVerifyModalClose}
+                investorId={investorId}
                 authToken={authToken}
             />
         </Navbar>
