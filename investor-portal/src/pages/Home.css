@@ -1,3 +1,14 @@
+  /* CSS Reset */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+  } 
+
+html, body {
+    height: 100%;
+    width: 100%;
+  } 
 .home {
     text-align: center;
     margin: 20px;
@@ -23,3 +34,20 @@
     background-color: #6c757d;
   }
   
+
+body {
+  margin: 0;
+  padding: 0;
+  overflow-x: hidden; /* Prevent horizontal scroll */
+}
+
+.home-page-container {
+  min-height: 1vh;
+  background-image: url('../assets/home_fade.png'); /* Replace with your image path */
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  display: flex;
+  flex-direction: column;
+  /* height: 30rem; */
+}

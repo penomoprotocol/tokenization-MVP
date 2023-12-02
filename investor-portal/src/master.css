@@ -62,8 +62,8 @@ body {
 .page-container {
     width: 80%;
     margin: 0 auto;
-    height: 50rem;
-    text-align: left;
+    height: 100%;
+    /* This centers the container on the page */
 }
 
 /* Common header for pages */
@@ -266,6 +266,7 @@ body {
     justify-content: space-between;
     align-items: center;
     margin-bottom: 1rem;
+    margin-right: 2rem;
 }
 
 .form-label {

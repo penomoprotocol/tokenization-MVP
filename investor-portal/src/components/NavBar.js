@@ -11,7 +11,7 @@ import LoginModal from './LoginModal';
 import RegisterModal from './RegisterModal';
 import VerifyModal from './VerifyModal'; // Import the VerifyModal component
 
-import './NavBar_dark.css';
+import './NavBar.css';
 
 const NavBar = () => {
     const { authToken } = useContext(AuthContext);
@@ -48,16 +48,15 @@ const NavBar = () => {
     }, [authToken]);
 
     return (
-        <Navbar bg="light" expand="lg">
+        <Navbar bg="white" expand="lg">
             <Container>
-                <Navbar.Brand as="a" href="https://penomo.io">
+                <Navbar.Brand as={Link} to="/">
                     <img
                         src={logo}
                         className="navbar-logo"
                         alt="Penomo logo"
                     />
                 </Navbar.Brand>
-
                 <Navbar.Toggle aria-controls="basic-navbar-nav" />
                 <Navbar.Collapse id="basic-navbar-nav">
                     <Nav className="me-auto">
