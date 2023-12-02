@@ -1,0 +1,72 @@
+/* Master styles for dark mode application */
+
+/* Navbar Styles for Dark Mode */
+.navbar {
+  min-height: 5rem;
+  padding: 0 1rem;
+  background-color: #242424; /* Dark navbar background */
+  color: #e0e0e0; /* Light text color */
+}
+
+.navbar-brand {
+  display: flex;
+  align-items: center;
+  height: 100%;
+}
+
+.navbar-logo {
+  max-height: 30px;
+  width: auto;
+  margin-right: 10px;
+}
+
+.navbar-brand-text {
+  max-height: 1px; 
+  font-size: smaller;
+  width: auto; 
+  margin-right: 10px;
+}
+
+.btn-penomo-navbar {
+  background-color: #00CC9C; /* Penomo color */
+  color: #000; /* Text color set to black */
+  border: none;
+  padding: 10px 20px;
+  border-radius: 5px;
+  font-weight: bold;
+  cursor: pointer;
+  outline: none;
+  transition: background-color 0.3s;
+  margin: auto;
+  margin-left: 0.5rem;
+  text-decoration: none;
+  display: block;
+}
+
+.btn-penomo-navbar:hover {
+  background-color: #00b38a; /* Darken on hover */
+}
+
+.btn-secondary-navbar {
+  background-color: #9bbab6; /* Penomo secondary color */
+  color: #000; /* Text color set to black */
+  border: none;
+  padding: 10px 20px;
+  border-radius: 5px;
+  font-weight: bold;
+  cursor: pointer;
+  outline: none;
+  transition: background-color 0.3s;
+  margin: auto;
+  margin-left: 0.5rem;
+  text-decoration: none;
+  display: block;
+}
+
+.btn-secondary-navbar:hover {
+  background-color: #88a3a9; /* Darken on hover */
+}
+
+.font-weight-bold {
+  font-weight: 800; /* Adjusted to a standard bold value */
+}

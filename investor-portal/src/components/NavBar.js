@@ -11,7 +11,7 @@ import LoginModal from './LoginModal';
 import RegisterModal from './RegisterModal';
 import VerifyModal from './VerifyModal'; // Import the VerifyModal component
 
-import './NavBar.css';
+import './NavBar_dark.css';
 
 const NavBar = () => {
     const { authToken } = useContext(AuthContext);
