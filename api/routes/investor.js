@@ -573,6 +573,9 @@ router.post('/investor/transfer', verifyToken, async (req, res) => {
             let rawTransaction;
             let gasPrice;
             let receipt;
+
+            console.log("Currency: ", currency);
+
             if (currency === 'ETH') {
                 gasPrice = await web3.eth.getGasPrice(); // Get current gas price
                 rawTransaction = {

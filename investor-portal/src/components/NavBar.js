@@ -80,7 +80,7 @@ const NavBar = () => {
                             <>
                                 <Nav className="me-auto">
                                     <Nav.Link href="https://penomo.io">Home Page</Nav.Link> {/* Replace with actual URL */}
-                                    <Nav.Link href="https://penomo.notion.site/penomo-Docs-0dfbabfbb6804fb5b5e952ddafdc2327?pvs=4">Documentation</Nav.Link> {/* Replace with actual URL */}
+                                    <Nav.Link href="https://penomo.notion.site/penomo-Docs-0dfbabfbb6804fb5b5e952ddafdc2327?pvs=4">Docs</Nav.Link> {/* Replace with actual URL */}
                                 </Nav>
                                 <Link onClick={handleLoginModalShow} className="btn-penomo-navbar">Login</Link>
                                 <Link onClick={handleRegisterModalShow} className="btn-secondary-navbar">Register</Link>
