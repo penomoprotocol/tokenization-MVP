@@ -1,6 +1,6 @@
 //const web3 = require('web3');
 const CryptoJS = require('crypto-js');
-const { web3, networkId, GSCAddress, USDCAddress } = require('../config/web3Config');
+const { web3, networkId, GSCAddress, USDCContractAddress } = require('../config/web3Config');
 
 const crypto = require('crypto');
 
@@ -190,13 +190,15 @@ async function deployServiceContract(GSCAddress) {
     return receipt.contractAddress;
 }
 
-// Deploy Token Contract
-async function deployTokenContract(DIDs, CIDs, revenueGoals, name, symbol, revenueShare, contractTerm, maxTokenSupply, tokenPrice, serviceContractAddress) {
+// Updated deployTokenContract function to include currency and usdcTokenAddress
+async function deployTokenContract(DIDs, CIDs, revenueGoals, name, symbol, revenueShare, contractTerm, maxTokenSupply, tokenPrice, currency, serviceContractAddress) {
+    (DIDs, CIDs, [10000], name, symbol, revenueShare, contractTerm, maxTokenSupply, web3.utils.toWei(tokenPrice.toString(), 'ether'), currency, serviceContractAddress);
     const contractPath = path.join(TCBuild);
     const contractJSON = JSON.parse(fs.readFileSync(contractPath, 'utf8'));
     const TokenContract = new web3.eth.Contract(contractJSON.abi);
 
-    const constructorArgs = {
+    // Construct the ConstructorArgs object
+    const constructorArgs = [{
         penomoWallet: MASTER_ADDRESS,
         globalStateAddress: GSCAddress,
         serviceContractAddress: serviceContractAddress,
@@ -206,15 +208,15 @@ async function deployTokenContract(DIDs, CIDs, revenueGoals, name, symbol, reven
         contractTerm: contractTerm,
         maxTokenSupply: maxTokenSupply,
         tokenPrice: web3.utils.toWei(tokenPrice.toString(), 'ether'),
-        currency: "USDC",
-        usdcAddress: '0xD0A0D62413cB0577B2B9a52CA8b05C03bb56ccE',
-    };
+        currency: currency,
+        usdcAddress: USDCContractAddress 
+    }];
 
+    // Deploy the contract
     const deploymentData = TokenContract.deploy({
         data: contractJSON.bytecode,
-        arguments: [constructorArgs, DIDs, CIDs, revenueGoals]
+        arguments: [constructorArgs, DIDs, CIDs, revenueGoals] // Pass constructorArgs as a single argument
     });
-
     const estimatedGas = await deploymentData.estimateGas({
         from: MASTER_ADDRESS
     });
@@ -328,6 +330,7 @@ async function deployRevenueDistributionContract(serviceContractAddress, tokenCo
  *               - contractTerm
  *               - maxTokenSupply
  *               - tokenPrice
+ *               - currency
  *             properties:
  *               companyId:
  *                 type: string
@@ -363,22 +366,12 @@ async function deployRevenueDistributionContract(serviceContractAddress, tokenCo
  *               tokenPrice:
  *                 type: number
  *                 description: Price of each token.
+ *               currency:
+ *                 type: string
+ *                 description: Currency for token pricing ("ETH" or "USDC").
  *     responses:
  *       200:
  *         description: Successfully tokenized asset and returned contract addresses.
- *         content:
- *           application/json:
- *             schema:
- *               type: object
- *               properties:
- *                 tokenContractAddress:
- *                   type: string
- *                 serviceContractAddress:
- *                   type: string
- *                 liquidityContractAddress:
- *                   type: string
- *                 revenueDistributionContractAddress:
- *                   type: string
  *       400:
  *         description: Missing required parameters.
  *       500:
@@ -386,10 +379,11 @@ async function deployRevenueDistributionContract(serviceContractAddress, tokenCo
  */
 router.post('/token/deploy', async (req, res) => {
     try {
-        // Get data from the request
-        const { companyId, password, DIDs, CIDs, name, symbol, revenueShare, contractTerm, maxTokenSupply, tokenPrice } = req.body;
+        // Extract data from the request
+        const { companyId, password, DIDs, CIDs, name, symbol, revenueShare, contractTerm, maxTokenSupply, tokenPrice, currency } = req.body;
 
-        if (!companyId || !password || !DIDs || !CIDs || !name || !symbol || !revenueShare || !contractTerm || !maxTokenSupply || !tokenPrice) {
+        // Check for missing parameters
+        if (!companyId || !password || !DIDs || !CIDs || !name || !symbol || !revenueShare || !contractTerm || !maxTokenSupply || !tokenPrice || !currency) {
             return res.status(400).send('Missing required parameters.');
         }
 
@@ -414,8 +408,15 @@ router.post('/token/deploy', async (req, res) => {
         // Deploy the ServiceContract and get its address
         const serviceContractAddress = await deployServiceContract(GSCAddress);
 
-        // Deploy the TokenContract using the ServiceContract's address
-        const tokenContractAddress = await deployTokenContract(DIDs, CIDs, [10000], name, symbol, revenueShare, contractTerm, maxTokenSupply, tokenPrice, serviceContractAddress);
+        // Deploy TokenContract with currency check
+        let tokenContractAddress;
+        if (currency === "ETH") {
+            tokenContractAddress = await deployTokenContract(DIDs, CIDs, [10000], name, symbol, revenueShare, contractTerm, maxTokenSupply, web3.utils.toWei(tokenPrice.toString(), 'ether'), currency, serviceContractAddress);
+        } else if (currency === "USDC") {
+            tokenContractAddress = await deployTokenContract(DIDs, CIDs, [10000], name, symbol, revenueShare, contractTerm, maxTokenSupply, web3.utils.toWei(tokenPrice.toString(), 'ether'), currency, serviceContractAddress);
+        } else {
+            return res.status(400).send('Invalid currency type.');
+        }
 
         // Deploy LiquidityContract
         const liquidityContractAddress = await deployLiquidityContract(serviceContractAddress, BBWalletAddress, MASTER_ADDRESS);
@@ -441,16 +442,17 @@ router.post('/token/deploy', async (req, res) => {
         const newTokenEntry = new Token({
             name: name,
             symbol: symbol,
-            maxTokenSupply: maxTokenSupply, // Add this field
-            tokenPrice: tokenPrice, // Add this field
-            revenueShare: revenueShare, // Add this field
-            contractTerm: contractTerm, // Add this field
+            maxTokenSupply: maxTokenSupply, 
+            tokenPrice: tokenPrice, 
+            currency: currency,
+            revenueShare: revenueShare, 
+            contractTerm: contractTerm, 
             serviceContractAddress: serviceContractAddress,
             tokenContractAddress: tokenContractAddress,
             liquidityContractAddress: liquidityContractAddress,
             revenueDistributionContractAddress: revenueDistributionContractAddress,
-            revenueStreamContractAddresses: [], // Add this field if necessary
-            assetDIDs: DIDs, // Assuming DIDs is an array of asset DIDs
+            revenueStreamContractAddresses: [], 
+            assetDIDs: DIDs, 
             companyId: companyId
         });
 

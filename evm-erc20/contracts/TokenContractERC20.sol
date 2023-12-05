@@ -52,7 +52,7 @@ contract TokenContractERC20 is ERC20 {
         serviceContract = args.serviceContractAddress;
         revenueShare = args.revenueShare;
         contractTerm = args.contractTerm;
-        maxTokenSupply = args.maxTokenSupply * 10 ** 18;
+        maxTokenSupply = args.maxTokenSupply;
         tokenPrice = args.tokenPrice;
         acceptedCurrency = args.currency;
         usdcTokenAddress = args.usdcAddress;
