@@ -16,13 +16,12 @@ contract LiquidityContract {
     constructor(
         address _serviceContract,
         address _BBWallet,
-        address _PenomoWallet,
-        address _usdcTokenAddress
+        address _PenomoWallet
     ) {
         serviceContract = _serviceContract;
         BBWallet = _BBWallet;
         PenomoWallet = _PenomoWallet;
-        usdcTokenAddress = _usdcTokenAddress;
+        usdcTokenAddress = 0xD0A0D62413cB0577B2B9a52CA8b05C03bb56ccE8;
     }
 
     modifier onlyServiceContract() {

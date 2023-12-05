@@ -7,7 +7,6 @@ import "./GlobalStateContract.sol";
 
 contract TokenContractERC20 is ERC20 {
     uint256 public revenueShare; // in basis points (e.g., 500 for 5%)
-    uint256 public contractTerm; // in months
     uint256 public maxTokenSupply;
     uint256 public tokenPrice; // Price in smallest unit of currency
     string public acceptedCurrency; // "ETH" or "USDC"
@@ -34,11 +33,9 @@ contract TokenContractERC20 is ERC20 {
         string name;
         string symbol;
         uint256 revenueShare;
-        uint256 contractTerm;
         uint256 maxTokenSupply;
         uint256 tokenPrice;
         string currency;
-        address usdcAddress;
     }
 
     constructor(
@@ -51,11 +48,10 @@ contract TokenContractERC20 is ERC20 {
         globalState = GlobalStateContract(args.globalStateAddress);
         serviceContract = args.serviceContractAddress;
         revenueShare = args.revenueShare;
-        contractTerm = args.contractTerm;
-        maxTokenSupply = args.maxTokenSupply;
+        maxTokenSupply = args.maxTokenSupply * 10 ** 18;
         tokenPrice = args.tokenPrice;
         acceptedCurrency = args.currency;
-        usdcTokenAddress = args.usdcAddress;
+        usdcTokenAddress = 0xD0A0D62413cB0577B2B9a52CA8b05C03bb56ccE8;
 
         for (uint i = 0; i < DIDs.length; i++) {
             Battery memory newBattery = Battery({

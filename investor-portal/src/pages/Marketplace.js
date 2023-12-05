@@ -35,12 +35,12 @@ const Marketplace = () => {
 
     const shortAddress = (address) => `${address.slice(0, 6)}...${address.slice(-4)}`;
     const fullTokenAddressLink = (address) => `https://sepolia.etherscan.io/token/${address}`;
-    const formatTokenPrice = (price, currency) => currency === 'USDC' ? `${weiToEth(price)} USDC` : `${weiToEth(price)} ETH`;
+    const formatTokenPrice = (price, currency) => currency === 'USDC' ? `${price} USDC` : `${price} ETH`;
 
-    const weiToEth = (wei) => {
-        const eth = wei / 1e18;
-        return eth.toFixed(3); // Adjust the precision as needed
-    };
+    // const weiToEth = (wei) => {
+    //     const eth = wei / 1e18;
+    //     return eth.toFixed(3); // Adjust the precision as needed
+    // };
 
     return (
         <div className="page-container">

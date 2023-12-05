@@ -48,7 +48,7 @@ const BuyTokens = ({ token, closeModal, show }) => {
     return null;
   }
 
-  const tokenPriceDisplay = token.acceptedCurrency === 'USDC' ? `${weiToEth(token.tokenPrice)} USDC` : `${weiToEth(token.tokenPrice)} ETH`;
+  const tokenPriceDisplay = token.currency === 'USDC' ? `${token.tokenPrice} USDC` : `${token.tokenPrice} ETH`;
 
   return (
     <div className="popup">

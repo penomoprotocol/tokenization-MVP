@@ -18,13 +18,12 @@ contract RevenueDistributionContract {
     constructor(
         address _serviceContract,
         address _tokenContractERC20,
-        address _liquidityContract,
-        address _usdcTokenAddress
+        address _liquidityContract
     ) {
         serviceContract = _serviceContract;
         tokenContractERC20 = TokenContractERC20(_tokenContractERC20);
         liquidityContract = LiquidityContract(_liquidityContract);
-        usdcTokenAddress = _usdcTokenAddress;
+        usdcTokenAddress = 0xD0A0D62413cB0577B2B9a52CA8b05C03bb56ccE8;
     }
 
     modifier onlyServiceContract() {

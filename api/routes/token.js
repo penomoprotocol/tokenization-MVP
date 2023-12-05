@@ -191,7 +191,7 @@ async function deployServiceContract(GSCAddress) {
 }
 
 // Deploy Token Contract
-async function deployTokenContract(DIDs, CIDs, revenueGoals, name, symbol, revenueShare, contractTerm, maxTokenSupply, tokenPrice, serviceContractAddress) {
+async function deployTokenContract(DIDs, CIDs, revenueGoals, name, symbol, revenueShare, contractTerm, maxTokenSupply, tokenPrice, currency, serviceContractAddress) {
     const contractPath = path.join(TCBuild);
     const contractJSON = JSON.parse(fs.readFileSync(contractPath, 'utf8'));
     const TokenContract = new web3.eth.Contract(contractJSON.abi);
@@ -200,14 +200,12 @@ async function deployTokenContract(DIDs, CIDs, revenueGoals, name, symbol, reven
         penomoWallet: MASTER_ADDRESS,
         globalStateAddress: GSCAddress,
         serviceContractAddress: serviceContractAddress,
-        name: name,
-        symbol: symbol,
         revenueShare: revenueShare,
-        contractTerm: contractTerm,
         maxTokenSupply: maxTokenSupply,
         tokenPrice: web3.utils.toWei(tokenPrice.toString(), 'ether'),
-        currency: "USDC",
-        usdcAddress: '0xD0A0D62413cB0577B2B9a52CA8b05C03bb56ccE',
+        currency: currency,
+        name: name,
+        symbol: symbol,
     };
 
     const deploymentData = TokenContract.deploy({
@@ -328,6 +326,7 @@ async function deployRevenueDistributionContract(serviceContractAddress, tokenCo
  *               - contractTerm
  *               - maxTokenSupply
  *               - tokenPrice
+ *               - currency 
  *             properties:
  *               companyId:
  *                 type: string
@@ -363,6 +362,9 @@ async function deployRevenueDistributionContract(serviceContractAddress, tokenCo
  *               tokenPrice:
  *                 type: number
  *                 description: Price of each token.
+ *               currency:
+ *                 type: string
+ *                 description: Payment currency.
  *     responses:
  *       200:
  *         description: Successfully tokenized asset and returned contract addresses.
@@ -387,7 +389,7 @@ async function deployRevenueDistributionContract(serviceContractAddress, tokenCo
 router.post('/token/deploy', async (req, res) => {
     try {
         // Get data from the request
-        const { companyId, password, DIDs, CIDs, name, symbol, revenueShare, contractTerm, maxTokenSupply, tokenPrice } = req.body;
+        const { companyId, password, DIDs, CIDs, name, symbol, revenueShare, contractTerm, maxTokenSupply, tokenPrice, currency } = req.body;
 
         if (!companyId || !password || !DIDs || !CIDs || !name || !symbol || !revenueShare || !contractTerm || !maxTokenSupply || !tokenPrice) {
             return res.status(400).send('Missing required parameters.');
@@ -415,7 +417,7 @@ router.post('/token/deploy', async (req, res) => {
         const serviceContractAddress = await deployServiceContract(GSCAddress);
 
         // Deploy the TokenContract using the ServiceContract's address
-        const tokenContractAddress = await deployTokenContract(DIDs, CIDs, [10000], name, symbol, revenueShare, contractTerm, maxTokenSupply, tokenPrice, serviceContractAddress);
+        const tokenContractAddress = await deployTokenContract(DIDs, CIDs, [10000], name, symbol, revenueShare, contractTerm, maxTokenSupply, tokenPrice, currency, serviceContractAddress);
 
         // Deploy LiquidityContract
         const liquidityContractAddress = await deployLiquidityContract(serviceContractAddress, BBWalletAddress, MASTER_ADDRESS);
@@ -443,6 +445,7 @@ router.post('/token/deploy', async (req, res) => {
             symbol: symbol,
             maxTokenSupply: maxTokenSupply, // Add this field
             tokenPrice: tokenPrice, // Add this field
+            currency: currency,
             revenueShare: revenueShare, // Add this field
             contractTerm: contractTerm, // Add this field
             serviceContractAddress: serviceContractAddress,
