@@ -57,7 +57,7 @@ const Marketplace = () => {
                     <div key={token._id} className="col-12 col-md-6 col-lg-4 mb-4">
                         <div className="section-container h-100">
                             <div className="card-content">
-                                <h2>{token.name} ({token.symbol})</h2>
+                                <h2>{token.name}</h2>
                                 <div className="token-details">
                                     <div className="token-detail">
                                         <div className="detail-name">Token Contract:</div>
