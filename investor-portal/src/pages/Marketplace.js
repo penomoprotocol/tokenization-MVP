@@ -13,9 +13,8 @@ const Marketplace = () => {
         const fetchTokens = async () => {
             try {
                 const apiUrl = `${process.env.REACT_APP_PENOMO_API}/api/token/all`;
-                console.log("API URL:", apiUrl);
                 const response = await axios.get(apiUrl);
-                setTokens(response.data);
+                setTokens(response.data); // Use the token data directly from the API response
             } catch (error) {
                 console.error('Error fetching tokens:', error);
             }
@@ -25,7 +24,6 @@ const Marketplace = () => {
     }, []);
 
     const handleBuyTokensClick = (token) => {
-        console.log('Opening modal for token:', token);
         setSelectedToken(token);
         setIsModalOpen(true);
     };
@@ -36,17 +34,12 @@ const Marketplace = () => {
     };
 
     const shortAddress = (address) => `${address.slice(0, 6)}...${address.slice(-4)}`;
-
     const fullTokenAddressLink = (address) => `https://sepolia.etherscan.io/token/${address}`;
+    const formatTokenPrice = (price, currency) => currency === 'ETH' ? `${weiToEth(price)} ETH` : `${weiToEth(price)} USDC`;
+
     const weiToEth = (wei) => {
-        const eth = wei / 1e18; // Convert wei to ETH
-        const ethString = eth.toString();
-
-        // Find the position of the first non-zero digit after the decimal
-        const firstNonZero = ethString.indexOf('.') + 1 + ethString.substring(ethString.indexOf('.') + 1).search(/[1-9]/);
-
-        // Use toPrecision with the position of the first non-zero digit + 2 for two decimal places
-        return eth.toPrecision(firstNonZero - 2);
+        const eth = wei / 1e18;
+        return eth.toFixed(2); // Adjust the precision as needed
     };
 
     return (
@@ -82,7 +75,7 @@ const Marketplace = () => {
                                     </div>
                                     <div className="token-detail">
                                         <div className="detail-name">Price:</div>
-                                        <div className="detail-value">{weiToEth(token.tokenPrice)} ETH</div>
+                                        <div className="detail-value">{formatTokenPrice(token.tokenPrice, token.currency)}</div>
                                     </div>
                                     {/* Add more details as needed */}
                                 </div>
@@ -96,7 +89,7 @@ const Marketplace = () => {
             {selectedToken && (
                 <BuyTokens
                     token={selectedToken}
-                    closeModal={() => handleCloseModal()}
+                    closeModal={handleCloseModal}
                     show={isModalOpen}
                 />
             )}
