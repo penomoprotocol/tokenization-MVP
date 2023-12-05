@@ -35,11 +35,11 @@ const Marketplace = () => {
 
     const shortAddress = (address) => `${address.slice(0, 6)}...${address.slice(-4)}`;
     const fullTokenAddressLink = (address) => `https://sepolia.etherscan.io/token/${address}`;
-    const formatTokenPrice = (price, currency) => currency === 'ETH' ? `${weiToEth(price)} ETH` : `${weiToEth(price)} USDC`;
+    const formatTokenPrice = (price, currency) => currency === 'USDC' ? `${weiToEth(price)} USDC` : `${weiToEth(price)} ETH`;
 
     const weiToEth = (wei) => {
         const eth = wei / 1e18;
-        return eth.toFixed(2); // Adjust the precision as needed
+        return eth.toFixed(3); // Adjust the precision as needed
     };
 
     return (
@@ -50,7 +50,7 @@ const Marketplace = () => {
                     <div key={token._id} className="col-12 col-md-6 col-lg-4 mb-4">
                         <div className="section-container h-100">
                             <div className="card-content">
-                                <h2>{token.name} ({token.symbol})</h2>
+                                <h2>{token.name}</h2>
                                 <div className="token-details">
                                     <div className="token-detail">
                                         <div className="detail-name">Token Contract:</div>

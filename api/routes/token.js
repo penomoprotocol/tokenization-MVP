@@ -1,6 +1,6 @@
 //const web3 = require('web3');
 const CryptoJS = require('crypto-js');
-const { web3, networkId, GSCAddress, USDCAddress } = require('../config/web3Config');
+const { web3, networkId, GSCAddress, USDCContractAddress } = require('../config/web3Config');
 
 const crypto = require('crypto');
 
@@ -190,15 +190,15 @@ async function deployServiceContract(GSCAddress) {
     return receipt.contractAddress;
 }
 
-// Deploy Token Contract 
 // Updated deployTokenContract function to include currency and usdcTokenAddress
 async function deployTokenContract(DIDs, CIDs, revenueGoals, name, symbol, revenueShare, contractTerm, maxTokenSupply, tokenPrice, currency, serviceContractAddress) {
+    (DIDs, CIDs, [10000], name, symbol, revenueShare, contractTerm, maxTokenSupply, web3.utils.toWei(tokenPrice.toString(), 'ether'), currency, serviceContractAddress);
     const contractPath = path.join(TCBuild);
     const contractJSON = JSON.parse(fs.readFileSync(contractPath, 'utf8'));
     const TokenContract = new web3.eth.Contract(contractJSON.abi);
 
-    // Prepare constructor arguments
-    const constructorArgs = {
+    // Construct the ConstructorArgs object
+    const constructorArgs = [{
         penomoWallet: MASTER_ADDRESS,
         globalStateAddress: GSCAddress,
         serviceContractAddress: serviceContractAddress,
@@ -206,16 +206,16 @@ async function deployTokenContract(DIDs, CIDs, revenueGoals, name, symbol, reven
         symbol: symbol,
         revenueShare: revenueShare,
         contractTerm: contractTerm,
-        maxTokenSupply: maxTokenSupply * 10 ** 18,
+        maxTokenSupply: maxTokenSupply,
         tokenPrice: web3.utils.toWei(tokenPrice.toString(), 'ether'),
         currency: currency,
-        usdcAddress: USDCAddress 
-    };
+        usdcAddress: USDCContractAddress 
+    }];
 
     // Deploy the contract
     const deploymentData = TokenContract.deploy({
         data: contractJSON.bytecode,
-        arguments: [constructorArgs, DIDs, CIDs, revenueGoals]
+        arguments: [constructorArgs, DIDs, CIDs, revenueGoals] // Pass constructorArgs as a single argument
     });
     const estimatedGas = await deploymentData.estimateGas({
         from: MASTER_ADDRESS

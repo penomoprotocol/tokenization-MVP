@@ -39,7 +39,7 @@ const BuyTokens = ({ token, closeModal, show }) => {
 
   const weiToEth = (wei) => {
     const eth = wei / 1e18;
-    return parseFloat(eth.toFixed(2));
+    return parseFloat(eth.toFixed(3));
   };
 
   const buyButtonClasses = isSubmitting ? "btn-penomo btn-disabled btn-center" : "btn-penomo btn-center";
@@ -48,7 +48,7 @@ const BuyTokens = ({ token, closeModal, show }) => {
     return null;
   }
 
-  const tokenPriceDisplay = token.acceptedCurrency === 'ETH' ? `${weiToEth(token.tokenPrice)} ETH` : `${weiToEth(token.tokenPrice)} USDC`;
+  const tokenPriceDisplay = token.acceptedCurrency === 'USDC' ? `${weiToEth(token.tokenPrice)} USDC` : `${weiToEth(token.tokenPrice)} ETH`;
 
   return (
     <div className="popup">
