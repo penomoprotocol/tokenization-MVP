@@ -78,8 +78,7 @@ async function getCurrentGasPrice() {
 }
 
 
-// Helper function to estimate gas and send a transaction
-async function estimateAndSend(transaction, fromAddress, fromPrivateKey, toAddress, amountInWei) {
+async function estimateAndSend(transaction, fromAddress, fromPrivateKey, toAddress, amountInWei = null) {
     // Fetch the current nonce
     let currentNonce = await web3.eth.getTransactionCount(fromAddress, 'pending');
 
@@ -95,11 +94,15 @@ async function estimateAndSend(transaction, fromAddress, fromPrivateKey, toAddre
         from: fromAddress,
         to: toAddress,
         data: transaction.encodeABI(),
-        value: amountInWei, // Adding the value field for the amount being sent
         gas: roundedGas.toString(),
         gasPrice: currentGasPrice,
         nonce: currentNonce
     };
+
+    // Include the value field only if amountInWei is provided
+    if (amountInWei !== null) {
+        txData.value = amountInWei;
+    }
 
     // Sign the transaction
     const signedTx = await web3.eth.accounts.signTransaction(txData, fromPrivateKey);
@@ -107,6 +110,7 @@ async function estimateAndSend(transaction, fromAddress, fromPrivateKey, toAddre
     // Send the signed transaction
     return web3.eth.sendSignedTransaction(signedTx.rawTransaction);
 }
+
 
 
 // Function to create a new Ethereum wallet and return the private key
@@ -410,7 +414,7 @@ router.post('/investor/verify', verifyToken, async (req, res) => {
 
 router.post('/investor/buyToken', verifyToken, async (req, res) => {
     try {
-        const { tokenAmount, serviceContractAddress } = req.body;
+        const { tokenAmount, serviceContractAddress, currency } = req.body;
         const investorId = req.user.id; // ID retrieved from the decoded JWT token
         const investor = await Investor.findById(investorId);
 
@@ -427,14 +431,17 @@ router.post('/investor/buyToken', verifyToken, async (req, res) => {
 
         const tokenPrice = await tokenContractInstance.methods.tokenPrice().call();
         const acceptedCurrency = await tokenContractInstance.methods.acceptedCurrency().call();
+        console.log("acceptedCurrency: ", acceptedCurrency);
 
         const tokenAmountBigInt = BigInt(tokenAmount);
         const tokenPriceBigInt = BigInt(tokenPrice);
         const requiredAmount = tokenPriceBigInt * tokenAmountBigInt;
 
+        let receipt;
         let transaction;
         if (acceptedCurrency === 'ETH') {
             transaction = ServiceContract.methods.buyTokens(tokenAmountBigInt.toString());
+            receipt = await estimateAndSend(transaction, investor.ethereumPublicKey, decryptPrivateKey(investor.ethereumPrivateKey, SECRET_KEY), serviceContractAddress, requiredAmount);
         } else if (acceptedCurrency === 'USDC') {
             const usdcTokenAddress = await tokenContractInstance.methods.usdcTokenAddress().call();
             const USDCContractInstance = new web3.eth.Contract(USDCABI, usdcTokenAddress);
@@ -444,17 +451,19 @@ router.post('/investor/buyToken', verifyToken, async (req, res) => {
             await estimateAndSend(approveTransaction, investor.ethereumPublicKey, decryptPrivateKey(investor.ethereumPrivateKey, SECRET_KEY), usdcTokenAddress);
             
             // Execute buyTokens function
-            transaction = ServiceContract.methods.buyTokens(tokenAmountBigInt.toString(), 'USDC');
+            transaction = ServiceContract.methods.buyTokens(tokenAmountBigInt.toString());
+
+            receipt = await estimateAndSend(transaction, investor.ethereumPublicKey, decryptPrivateKey(investor.ethereumPrivateKey, SECRET_KEY), serviceContractAddress);
         }
 
-        const receipt = await estimateAndSend(transaction, investor.ethereumPublicKey, decryptPrivateKey(investor.ethereumPrivateKey, SECRET_KEY), serviceContractAddress);
+
 
         // Check if the transaction was successful and log the transaction
         if (receipt.status) {
             const transactionRecord = new Transaction({
                 transactionType: 'Buy Token',
                 tokenAmount: tokenAmount, // The amount of tokens purchased
-                payableAmount: requiredEther.toString(), // TODO: Debug loss of precision. Refine and get gas costs from transaction
+                payableAmount: requiredAmount.toString(), // TODO: Debug loss of precision. Refine and get gas costs from transaction
                 currency: acceptedCurrency,
                 tokenSymbol: tokenSymbol,
                 tokenName: tokenName,

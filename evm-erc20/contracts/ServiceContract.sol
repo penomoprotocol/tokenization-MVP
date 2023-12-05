@@ -47,7 +47,7 @@ contract ServiceContract {
             require(msg.value >= requiredAmount, "Incorrect ETH amount");
         } else if (keccak256(abi.encodePacked(currency)) == keccak256(abi.encodePacked("USDC"))) {
             IERC20 usdc = IERC20(tokenContractERC20.usdcTokenAddress());
-            requiredAmount = amount * tokenContractERC20.tokenPrice();
+            requiredAmount = amount * tokenContractERC20.tokenPrice()/10**18;
             require(usdc.transferFrom(msg.sender, address(this), requiredAmount), "USDC transfer failed");
         } else {
             revert("Currency not accepted");
