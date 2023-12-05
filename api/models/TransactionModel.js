@@ -16,7 +16,7 @@ const transactionSchema = new mongoose.Schema({
     currency: {
         type: String,
         required: true,
-        default: 'ETH', // Default to USDC, but can be set to any currency/token
+        default: 'USDC', // Default to USDC, but can be set to any currency/token
     },
     tokenSymbol: {
         type: String, // Only for Buy/Sell Token

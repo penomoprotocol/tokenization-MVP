@@ -17,6 +17,11 @@ const tokenSchema = new mongoose.Schema({
         type: Number,
         required: true,
     },
+    currency: {
+        type: String,
+        required: true,
+        enum: ['ETH', 'USDC'] // Accepts only 'ETH' or 'USDC'
+    },
     revenueShare:{
         type: Number,
         required: true,
