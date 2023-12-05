@@ -442,16 +442,17 @@ router.post('/token/deploy', async (req, res) => {
         const newTokenEntry = new Token({
             name: name,
             symbol: symbol,
-            maxTokenSupply: maxTokenSupply, // Add this field
-            tokenPrice: tokenPrice, // Add this field
-            revenueShare: revenueShare, // Add this field
-            contractTerm: contractTerm, // Add this field
+            maxTokenSupply: maxTokenSupply, 
+            tokenPrice: tokenPrice, 
+            currency: currency,
+            revenueShare: revenueShare, 
+            contractTerm: contractTerm, 
             serviceContractAddress: serviceContractAddress,
             tokenContractAddress: tokenContractAddress,
             liquidityContractAddress: liquidityContractAddress,
             revenueDistributionContractAddress: revenueDistributionContractAddress,
-            revenueStreamContractAddresses: [], // Add this field if necessary
-            assetDIDs: DIDs, // Assuming DIDs is an array of asset DIDs
+            revenueStreamContractAddresses: [], 
+            assetDIDs: DIDs, 
             companyId: companyId
         });
 
