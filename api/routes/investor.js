@@ -351,7 +351,7 @@ router.post('/investor/verify', verifyToken, async (req, res) => {
 
         // Transaction receipt handling
         if (receipt.status) {
-            return res.status(200).json({ 
+            return res.status(200).json({
                 message: 'Investor successfully verified.',
                 transactionHash: receipt.transactionHash
             });
@@ -408,11 +408,10 @@ router.post('/investor/verify', verifyToken, async (req, res) => {
  *         description: Error buying tokens.
  */
 
-router.post('/investor/buyToken', verifyToken,async (req, res) => {
+router.post('/investor/buyToken', verifyToken, async (req, res) => {
     try {
-        const {tokenAmount, serviceContractAddress } = req.body;
-
-        const investorId = req.user.id; // ID is retrieved from the decoded JWT token
+        const { tokenAmount, serviceContractAddress } = req.body;
+        const investorId = req.user.id; // ID retrieved from the decoded JWT token
         const investor = await Investor.findById(investorId);
 
         if (!investor) {
@@ -422,39 +421,33 @@ router.post('/investor/buyToken', verifyToken,async (req, res) => {
             return res.status(400).send('Missing service contract address.');
         }
 
-        console.log("investor.ethereumPublicKey: ", investor.ethereumPublicKey);
-
-        // Step 3: Decrypt the private key
-        const decryptedPrivateKey = decryptPrivateKey(investor.ethereumPrivateKey, SECRET_KEY);
-        console.log("decryptedPrivateKey: ", decryptedPrivateKey);
-
         const ServiceContract = new web3.eth.Contract(SCABI, serviceContractAddress);
-
         const tokenContractERC20Address = await ServiceContract.methods.tokenContractERC20().call();
         const tokenContractInstance = new web3.eth.Contract(TCABI, tokenContractERC20Address);
 
         const tokenPrice = await tokenContractInstance.methods.tokenPrice().call();
-        const tokenSymbol = await tokenContractInstance.methods.symbol().call();
-        const tokenName = await tokenContractInstance.methods.name().call();
+        const acceptedCurrency = await tokenContractInstance.methods.acceptedCurrency().call();
 
-        // Assuming tokenAmount is the amount of tokens (not in Wei)
         const tokenAmountBigInt = BigInt(tokenAmount);
         const tokenPriceBigInt = BigInt(tokenPrice);
-        const requiredWei = tokenPriceBigInt * tokenAmountBigInt;
-        const requiredEther = (BigInt(tokenPrice) * BigInt(tokenAmount)) / BigInt(10**18);
-        const tokenAmountWeiBigInt = BigInt(web3.utils.toWei(tokenAmountBigInt.toString(), 'ether'));
+        const requiredAmount = tokenPriceBigInt * tokenAmountBigInt;
 
+        let transaction;
+        if (acceptedCurrency === 'ETH') {
+            transaction = ServiceContract.methods.buyTokens(tokenAmountBigInt.toString());
+        } else if (acceptedCurrency === 'USDC') {
+            const usdcTokenAddress = await tokenContractInstance.methods.usdcTokenAddress().call();
+            const USDCContractInstance = new web3.eth.Contract(USDCABI, usdcTokenAddress);
+            
+            // Approve the Service Contract to spend USDC
+            const approveTransaction = USDCContractInstance.methods.approve(serviceContractAddress, requiredAmount.toString());
+            await estimateAndSend(approveTransaction, investor.ethereumPublicKey, decryptPrivateKey(investor.ethereumPrivateKey, SECRET_KEY), usdcTokenAddress);
+            
+            // Execute buyTokens function
+            transaction = ServiceContract.methods.buyTokens(tokenAmountBigInt.toString(), 'USDC');
+        }
 
-        console.log("tokenPrice: ", tokenPrice.toString());
-        console.log("requiredWei: ", requiredWei.toString());
-        console.log("tokenAmount: ", tokenAmountBigInt.toString());
-        console.log("tokenAmountInWei: ", tokenAmountWeiBigInt.toString());
-        console.log("tokenAmountWeiBigInt: ", tokenAmountWeiBigInt);
-
-
-        const transaction = ServiceContract.methods.buyTokens(tokenAmountWeiBigInt.toString());
-        const receipt = await estimateAndSend(transaction, investor.ethereumPublicKey, decryptedPrivateKey, serviceContractAddress, requiredWei.toString());
-
+        const receipt = await estimateAndSend(transaction, investor.ethereumPublicKey, decryptPrivateKey(investor.ethereumPrivateKey, SECRET_KEY), serviceContractAddress);
 
         // Check if the transaction was successful and log the transaction
         if (receipt.status) {
@@ -462,7 +455,7 @@ router.post('/investor/buyToken', verifyToken,async (req, res) => {
                 transactionType: 'Buy Token',
                 tokenAmount: tokenAmount, // The amount of tokens purchased
                 payableAmount: requiredEther.toString(), // TODO: Debug loss of precision. Refine and get gas costs from transaction
-                currency: 'ETH', // Assuming USDC is the currency used for the purchase
+                currency: acceptedCurrency,
                 tokenSymbol: tokenSymbol,
                 tokenName: tokenName,
                 fromAddress: investor.ethereumPublicKey, // The address of the investor (buyer)
@@ -487,7 +480,7 @@ router.post('/investor/buyToken', verifyToken,async (req, res) => {
     } catch (error) {
         console.error('Error purchasing tokens:', error);
         res.status(500).send('Failed to purchase tokens.');
-        
+
         // // Log the failed transaction
         // const failedTransactionRecord = new Transaction({
         //     transactionType: 'token_transaction',
@@ -562,11 +555,11 @@ router.post('/investor/transfer', verifyToken, async (req, res) => {
         try {
             const decryptedPrivateKey = decryptPrivateKey(investor.ethereumPrivateKey, SECRET_KEY);
             console.log("Decrypted Private Key: ", decryptedPrivateKey); // Log to check the format
-        
+
             if (!decryptedPrivateKey.startsWith('0x')) {
                 throw new Error("Private key does not start with '0x'");
             }
-        
+
             const account = web3.eth.accounts.privateKeyToAccount(decryptedPrivateKey);
             web3.eth.accounts.wallet.add(account);
 
@@ -599,31 +592,31 @@ router.post('/investor/transfer', verifyToken, async (req, res) => {
                 };
             }
 
-         else {
-            return res.status(400).send('Invalid currency');
-        }
+            else {
+                return res.status(400).send('Invalid currency');
+            }
 
-        const signedTransaction = await web3.eth.accounts.signTransaction(rawTransaction, account.privateKey);
-        receipt = await web3.eth.sendSignedTransaction(signedTransaction.rawTransaction);
-        if (receipt.status) {
-            const transactionRecord = new Transaction({
-                transactionType: 'Withdraw',
-                fromAddress: investor.ethereumPublicKey,
-                toAddress: walletAddress,
-                payableAmount: amount,
-                currency: currency,
-                transactionHash: receipt.transactionHash,
-                status: 'confirmed'
-            });
-            await transactionRecord.save();
-            res.status(200).json({ message: "Transfer successful", receipt: serializeBigIntInObject(receipt) });
-        } else {
-            res.status(500).send('Transfer failed');
+            const signedTransaction = await web3.eth.accounts.signTransaction(rawTransaction, account.privateKey);
+            receipt = await web3.eth.sendSignedTransaction(signedTransaction.rawTransaction);
+            if (receipt.status) {
+                const transactionRecord = new Transaction({
+                    transactionType: 'Withdraw',
+                    fromAddress: investor.ethereumPublicKey,
+                    toAddress: walletAddress,
+                    payableAmount: amount,
+                    currency: currency,
+                    transactionHash: receipt.transactionHash,
+                    status: 'confirmed'
+                });
+                await transactionRecord.save();
+                res.status(200).json({ message: "Transfer successful", receipt: serializeBigIntInObject(receipt) });
+            } else {
+                res.status(500).send('Transfer failed');
+            }
+        } catch (error) {
+            console.error('Error in transaction processing:', error);
+            return res.status(500).send('Internal Server Error');
         }
-    } catch (error) {
-        console.error('Error in transaction processing:', error);
-        return res.status(500).send('Internal Server Error');
-    }
 
     } catch (error) {
         console.error('Error:', error);
@@ -759,7 +752,7 @@ router.get('/investor/jwt', verifyToken, async (req, res) => {
         // Get ETH balance
         const ethBalanceWei = await web3.eth.getBalance(investor.ethereumPublicKey);
         const ethBalance = web3.utils.fromWei(ethBalanceWei, 'ether');
-        
+
 
         // Get USDC balance
         const usdcBalanceWei = await USDContract.methods.balanceOf(investor.ethereumPublicKey).call();
@@ -815,7 +808,7 @@ router.get('/investor/jwt', verifyToken, async (req, res) => {
  *         description: Error retrieving investor.
  */
 // Retrieve investor details by ID
-router.get('/investor/:id',verifyToken, async (req, res) => {
+router.get('/investor/:id', verifyToken, async (req, res) => {
     try {
         const investorId = req.user.id;
         const investor = await Investor.findById(investorId);
