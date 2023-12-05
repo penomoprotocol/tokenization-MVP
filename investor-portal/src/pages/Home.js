@@ -1,5 +1,4 @@
 import React from 'react';
-import logo from '../assets/penomo_logo.svg'; // Make sure the path is correct
 import homeImg from '../assets/home_fade.png'; // Make sure the path is correct
 
 const Home = () => {
