@@ -14,8 +14,10 @@ contract ServiceContract {
     RevenueDistributionContract public revenueDistributionContract;
     GlobalStateContract public globalState;
 
-    event TokensPurchased(address indexed investor, uint256 amount);
+    event TokensPurchased(address indexed investor, uint256 amount, string currency);
     event ReceivedFundsFromRevenueStream(address indexed from, uint256 amount);
+    event Debug(string message, uint256 value);
+
 
     constructor(address _globalStateAddress) {
         owner = msg.sender;
@@ -42,19 +44,23 @@ contract ServiceContract {
     function buyTokens(uint256 amount) public payable {
         uint256 requiredAmount;
         string memory currency = tokenContractERC20.acceptedCurrency();
+        emit Debug("Currency fetched", 0); // Debugging event
+
         if (keccak256(abi.encodePacked(currency)) == keccak256(abi.encodePacked("ETH"))) {
             requiredAmount = amount * tokenContractERC20.tokenPrice();
             require(msg.value >= requiredAmount, "Incorrect ETH amount");
+            emit Debug("ETH transfer initiated", requiredAmount); // Debugging event
         } else if (keccak256(abi.encodePacked(currency)) == keccak256(abi.encodePacked("USDC"))) {
             IERC20 usdc = IERC20(tokenContractERC20.usdcTokenAddress());
-            requiredAmount = amount * tokenContractERC20.tokenPrice()/10**18;
+            requiredAmount = amount * tokenContractERC20.tokenPrice() / 10**18;
             require(usdc.transferFrom(msg.sender, address(this), requiredAmount), "USDC transfer failed");
+            emit Debug("USDC transfer initiated", requiredAmount); // Debugging event
         } else {
             revert("Currency not accepted");
         }
 
         tokenContractERC20.transferFrom(address(this), msg.sender, amount);
-        emit TokensPurchased(msg.sender, amount);
+        emit TokensPurchased(msg.sender, amount, currency);
     }
 
     function receiveFundsFromRevenueStream() external payable {

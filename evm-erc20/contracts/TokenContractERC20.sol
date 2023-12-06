@@ -24,7 +24,9 @@ contract TokenContractERC20 is ERC20 {
     address[] public tokenHolders;
 
     // Events
-    event Debug(uint256 allowance);
+    event TokenTransferInitiated(address indexed from, address indexed to, uint256 amount);
+    event Debug(string message, uint256 value);
+
 
     struct ConstructorArgs {
         address penomoWallet;
@@ -77,12 +79,14 @@ contract TokenContractERC20 is ERC20 {
     }
 
     function transfer(address recipient, uint256 amount) public override returns (bool) {
+        emit TokenTransferInitiated(msg.sender, recipient, amount); // Debugging event
         _beforeTokenTransfer(recipient);
         super.transfer(recipient, amount);
         return true;
     }
 
     function transferFrom(address sender, address recipient, uint256 amount) public override returns (bool) {
+        emit TokenTransferInitiated(sender, recipient, amount); // Debugging event
         _beforeTokenTransfer(recipient);
         super.transferFrom(sender, recipient, amount);
         return true;
