@@ -131,6 +131,14 @@ contract ServiceContract {
 
     function receiveRevenueUsdc(uint256 usdcValue) external {
         IERC20 usdc = IERC20(tokenContractERC20.usdcTokenAddress());
+
+        require(
+            usdc.transferFrom(msg.sender, address(this), usdcValue),
+            "USDC transfer failed"
+        );
+        
+        emit Debug("USDC transfer initiated", usdcValue); // Debugging event
+
         uint256 amountAfterFee = (usdcValue *
             (10000 - globalState.penomoFee())) / 10000;
         uint256 amountForRDC = (amountAfterFee *

@@ -84,7 +84,7 @@ contract RevenueStreamContract {
         currentKWh = 0;
 
         // Transfer the total amount to the ServiceContract
-        ServiceContract(serviceContract).receiveFundsFromRevenueStream{value: totalAmount}();
+        ServiceContract(serviceContract).receiveRevenueEth{value: totalAmount}();
 
         emit RentalStopped(totalAmount);
     }
