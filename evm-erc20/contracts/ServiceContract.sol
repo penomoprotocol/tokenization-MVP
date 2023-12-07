@@ -19,7 +19,8 @@ contract ServiceContract {
         uint256 amount,
         string currency
     );
-    event ReceivedFundsFromRevenueStream(address indexed from, uint256 amount);
+    event ReceivedRevenueUsdc(address indexed from, uint256 amount);
+    event ReceivedRevenueEth(address indexed from, uint256 amount);
     event Debug(string message, uint256 value);
     event ApprovalSet(address indexed liquidityContract, uint256 amount);
 
@@ -56,7 +57,7 @@ contract ServiceContract {
         ) {
             requiredAmount =
                 (amount * tokenContractERC20.tokenPrice()) /
-                10 ** 18;
+                10**18;
             //require(msg.value >= requiredAmount, "Incorrect ETH amount");
             emit Debug("Required Amount: ", requiredAmount); // Debugging event
             emit Debug("Received Amount: ", msg.value);
@@ -76,7 +77,7 @@ contract ServiceContract {
             IERC20 usdc = IERC20(tokenContractERC20.usdcTokenAddress());
             requiredAmount =
                 (amount * tokenContractERC20.tokenPrice()) /
-                10 ** 18;
+                10**18;
             require(
                 usdc.transferFrom(msg.sender, address(this), requiredAmount),
                 "USDC transfer failed"
@@ -98,8 +99,9 @@ contract ServiceContract {
             require(success, "Approve failed");
 
             // Send the funds to the LiquidityContract via the receiveFunds function
-            LiquidityContract(liquidityContract).receiveUsdcFunds(liquidityAmount);
-            
+            LiquidityContract(liquidityContract).receiveUsdcFunds(
+                liquidityAmount
+            );
         } else {
             revert("Currency not accepted");
         }
@@ -114,7 +116,7 @@ contract ServiceContract {
         emit TokensPurchased(msg.sender, amount, currency);
     }
 
-    function receiveFundsFromRevenueStream() external payable {
+    function receiveRevenueEth() external payable {
         uint256 amountAfterFee = (msg.value *
             (10000 - globalState.penomoFee())) / 10000;
         uint256 amountForRDC = (amountAfterFee *
@@ -124,7 +126,27 @@ contract ServiceContract {
         revenueDistributionContract.receiveFunds{value: amountForRDC}();
         liquidityContract.receiveFunds{value: amountForLC}();
 
-        emit ReceivedFundsFromRevenueStream(msg.sender, msg.value);
+        emit ReceivedRevenueEth(msg.sender, msg.value);
+    }
+
+    function receiveRevenueUsdc(uint256 usdcValue) external {
+        IERC20 usdc = IERC20(tokenContractERC20.usdcTokenAddress());
+        uint256 amountAfterFee = (usdcValue *
+            (10000 - globalState.penomoFee())) / 10000;
+        uint256 amountForRDC = (amountAfterFee *
+            tokenContractERC20.revenueShare()) / 10000;
+        uint256 amountForLC = amountAfterFee - amountForRDC;
+
+        // Set allowance for RDC
+        usdc.approve(address(revenueDistributionContract), amountForRDC);
+
+        // Set allowance for LiquidityContract
+        usdc.approve(address(liquidityContract), amountForLC);
+
+        revenueDistributionContract.receiveUsdcFunds(amountForRDC);
+        liquidityContract.receiveUsdcFunds(amountForLC);
+
+        emit ReceivedRevenueUsdc(msg.sender, usdcValue);
     }
 
     function withdraw() public onlyOwner {
@@ -138,7 +160,12 @@ contract ServiceContract {
     function getContractAddresses()
         external
         view
-        returns (address, address, address, address)
+        returns (
+            address,
+            address,
+            address,
+            address
+        )
     {
         return (
             address(tokenContractERC20),
