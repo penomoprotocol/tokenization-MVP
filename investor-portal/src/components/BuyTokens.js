@@ -37,10 +37,31 @@ const BuyTokens = ({ token, closeModal, show }) => {
     closeModal();
   };
 
-  const weiToEth = (wei) => {
-    const eth = wei / 1e18;
-    return parseFloat(eth.toFixed(3));
-  };
+  function roundToDecimals(str, x) {
+    let num = parseFloat(str);
+    if (isNaN(num)) {
+        return 'Invalid input'; // Handle the error as needed
+    }
+    // Check if the number is less than 1 and not an integer
+    if (num < 1 && num % 1 !== 0) {
+        let num_mul = num;
+        let decimalPlaces = 0;
+        while (num_mul < 1) {
+            num_mul = num_mul*10
+            decimalPlaces = decimalPlaces+1
+        }
+        // Ensure at least two significant digits after zeros
+        const totalDigits = decimalPlaces + 1;
+        return num.toFixed(Math.max(totalDigits, x));
+    } else {
+        return num.toFixed(x); // Round to x decimal places
+    }
+}
+
+  // const weiToEth = (wei) => {
+  //   const eth = wei / 1e18;
+  //   return parseFloat(eth.toFixed(3));
+  // };
 
   const buyButtonClasses = isSubmitting ? "btn-penomo btn-disabled btn-center" : "btn-penomo btn-center";
 
@@ -48,7 +69,7 @@ const BuyTokens = ({ token, closeModal, show }) => {
     return null;
   }
 
-  const tokenPriceDisplay = token.currency === 'USDC' ? `${token.tokenPrice} USDC` : `${token.tokenPrice} ETH`;
+  const tokenPriceDisplay = token.currency === 'USDC' ? `${roundToDecimals(token.tokenPrice,2)} USDC` : `${roundToDecimals(token.tokenPrice,2)} ETH`;
 
   return (
     <div className="popup">

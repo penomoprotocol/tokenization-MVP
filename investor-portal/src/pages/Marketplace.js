@@ -42,6 +42,29 @@ const Marketplace = () => {
     //     return eth.toFixed(3); // Adjust the precision as needed
     // };
 
+
+    function roundToDecimals(str, x) {
+        let num = parseFloat(str);
+        if (isNaN(num)) {
+            return 'Invalid input'; // Handle the error as needed
+        }
+        // Check if the number is less than 1 and not an integer
+        if (num < 1 && num % 1 !== 0) {
+            let num_mul = num;
+            let decimalPlaces = 0;
+            while (num_mul < 1) {
+                num_mul = num_mul*10
+                decimalPlaces = decimalPlaces+1
+            }
+            // Ensure at least two significant digits after zeros
+            const totalDigits = decimalPlaces + 1;
+            return num.toFixed(Math.max(totalDigits, x));
+        } else {
+            return num.toFixed(x); // Round to x decimal places
+        }
+    }
+    
+
     return (
         <div className="page-container">
             <h1 className="page-header">Platform</h1>
@@ -63,7 +86,7 @@ const Marketplace = () => {
                                     </div>
                                     <div className="token-detail">
                                         <div className="detail-name">Revenue Share:</div>
-                                        <div className="detail-value">{token.revenueShare / 100}%</div>
+                                        <div className="detail-value">{token.revenueShare *100}%</div>
                                     </div>
                                     <div className="token-detail">
                                         <div className="detail-name">Contract Term:</div>
@@ -75,7 +98,7 @@ const Marketplace = () => {
                                     </div>
                                     <div className="token-detail">
                                         <div className="detail-name">Price:</div>
-                                        <div className="detail-value">{formatTokenPrice(token.tokenPrice, token.currency)}</div>
+                                        <div className="detail-value">{formatTokenPrice(roundToDecimals(token.tokenPrice, 2), token.currency)}</div>
                                     </div>
                                     {/* Add more details as needed */}
                                 </div>

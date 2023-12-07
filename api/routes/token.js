@@ -200,7 +200,7 @@ async function deployTokenContract(DIDs, CIDs, revenueGoals, name, symbol, reven
         penomoWallet: MASTER_ADDRESS,
         globalStateAddress: GSCAddress,
         serviceContractAddress: serviceContractAddress,
-        revenueShare: revenueShare,
+        revenueShare: revenueShare * 10000,
         maxTokenSupply: web3.utils.toWei(maxTokenSupply.toString(), 'ether'),
         tokenPrice: web3.utils.toWei(tokenPrice.toString(), 'ether'),
         currency: currency,
@@ -607,6 +607,7 @@ router.get('/token/jwt', verifyToken, async (req, res) => {
                     tokenContractAddress: token.tokenContractAddress,
                     contractTerm: token.contractTerm,
                     tokenPrice: token.tokenPrice,
+                    currency: token.currency,
                     maxTokenSupply: token.maxTokenSupply,
                     balance: balanceInEth // balance already converted to Ether
                 });

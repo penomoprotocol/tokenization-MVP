@@ -60,23 +60,32 @@ const InvestorDashboard = () => {
     };
     const fullTokenAddressLink = (address) => `https://sepolia.etherscan.io/token/${address}`;
 
-    const weiToEth = (wei) => {
-        return (wei / 1e18).toString();
-    };
+    // const weiToEth = (wei) => {
+    //     return (wei / 1e18).toString();
+    // };
 
-    function roundToDecimals(str, x) {
-        let num = parseFloat(str);
-        if (isNaN(num)) {
-            return 'Invalid input'; // or handle the error as needed
-        }
-        // Check if the number is a whole number
-        if (num % 1 === 0) {
-            return num.toFixed(2); // For whole numbers, keep two decimal places
-        } else {
-            return parseFloat(num.toFixed(x));
-        }
-
+function roundToDecimals(str, x) {
+    let num = parseFloat(str);
+    if (isNaN(num)) {
+        return 'Invalid input'; // Handle the error as needed
     }
+    // Check if the number is less than 1 and not an integer
+    if (num < 1 && num % 1 !== 0) {
+        let num_mul = num;
+        let decimalPlaces = 0;
+        while (num_mul < 1) {
+            num_mul = num_mul*10
+            decimalPlaces = decimalPlaces+1
+        }
+        // Ensure at least two significant digits after zeros
+        const totalDigits = decimalPlaces + 1;
+        return num.toFixed(Math.max(totalDigits, x));
+    } else {
+        return num.toFixed(x); // Round to x decimal places
+    }
+}
+
+    const formatTokenPrice = (price, currency) => currency === 'USDC' ? `${price} USDC` : `${price} ETH`;
 
     // const mockHistoricData = {
     //     labels: ["Jan", "Feb", "Mar", "Apr", "May", "Jun"],
@@ -117,7 +126,7 @@ const InvestorDashboard = () => {
                     <div className="wallet-balances-container">
                         <div className="wallet-balance">
                             <strong className="balance-title">ETH</strong>
-                            <span className="balance-amount">{roundToDecimals(investorData.ethBalance, 4)}</span>
+                            <span className="balance-amount">{roundToDecimals(investorData.ethBalance, 2)}</span>
                             <div className="btn-container">
                                 <button className="btn-penomo" onClick={() => setShowTopUp(true)}>Top Up</button>
                                 <button className="btn-penomo-secondary" onClick={() => toggleWithdraw('ETH')}>Withdraw</button>
@@ -159,7 +168,7 @@ const InvestorDashboard = () => {
                             </div>
                             <div style={{ flex: '1 1 16.6%' }} className="label-value">
                                 <strong className="label">Current Price</strong>
-                                <span className="value">ETH {weiToEth(token.tokenPrice)}</span>
+                                <span className="value">{formatTokenPrice(token.tokenPrice, token.currency)}</span>
                             </div>
                             <div style={{ flex: '1 1 16.6%' }} className="label-value">
                                 <strong className="label">Rem. Contract Term</strong>
@@ -191,7 +200,7 @@ const InvestorDashboard = () => {
                             {transaction.tokenAmount && <><strong>Token Amount:</strong> {transaction.tokenAmount}<br /></>}
                             <strong>From:</strong> {transaction.from}<br />
                             <strong>To:</strong> {transaction.to}<br />
-                            <strong>Transfered Amount:</strong> {transaction.payableAmount} {transaction.currency}<br />
+                            <strong>Transfered Amount:</strong> {roundToDecimals(transaction.payableAmount, 2)} {transaction.currency}<br />
                         </li>
                     ))}
                 </ul>

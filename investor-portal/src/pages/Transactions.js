@@ -25,6 +25,27 @@ const Transactions = () => {
     fetchTransactions();
   }, []);
 
+  function roundToDecimals(str, x) {
+    let num = parseFloat(str);
+    if (isNaN(num)) {
+        return 'Invalid input'; // Handle the error as needed
+    }
+    // Check if the number is less than 1 and not an integer
+    if (num < 1 && num % 1 !== 0) {
+        let num_mul = num;
+        let decimalPlaces = 0;
+        while (num_mul < 1) {
+            num_mul = num_mul*10
+            decimalPlaces = decimalPlaces+1
+        }
+        // Ensure at least two significant digits after zeros
+        const totalDigits = decimalPlaces + 1;
+        return num.toFixed(Math.max(totalDigits, x));
+    } else {
+        return num.toFixed(x); // Round to x decimal places
+    }
+}
+
   return (
     <div className="page-container">
       <h1 className="page-header">Transaction History</h1>
@@ -41,7 +62,7 @@ const Transactions = () => {
                         {transaction.tokenAmount && <><strong>Token Amount:</strong> {transaction.tokenAmount}<br /></>}
                         <strong>From:</strong> {transaction.from}<br />
                         <strong>To:</strong> {transaction.to}<br />
-                        <strong>Transfered Amount:</strong> {transaction.payableAmount} {transaction.currency}<br />
+                        <strong>Transfered Amount:</strong> {roundToDecimals(transaction.payableAmount, 2)} {transaction.currency}<br />
                     </li>
                 ))}
             </ul>

@@ -150,7 +150,7 @@ const Token = require('../models/TokenModel');
  */
 
 
-router.get('/transactions/user/jwt',verifyToken, async (req, res) => {
+router.get('/transactions/user/jwt', verifyToken, async (req, res) => {
     try {
         const investorId = req.user.id; // ID is retrieved from the decoded JWT token
         const investor = await Investor.findById(investorId);
@@ -188,19 +188,26 @@ router.get('/transactions/user/jwt',verifyToken, async (req, res) => {
         // Create a set of hashes from regular transactions for quick lookup
         const regularTxHashes = new Set(regularTxResponse.data.result.map(tx => tx.hash));
 
+        // Create a set of hashes from regular transactions for quick lookup
+        const tokenTxHashes = new Set(tokenTxResponse.data.result.map(tx => tx.hash));
+
         // Filter out token transactions that are already included in regular transactions
         const uniqueTokenTransactions = tokenTxResponse.data.result.filter(tx => !regularTxHashes.has(tx.hash));
+        //const uniqueTokenTransactions = regularTxResponse.data.result.filter(tx => !tokenTxHashes.has(tx.hash));
 
         // Combine and process both types of transactions
         const combinedTransactions = regularTxResponse.data.result.concat(uniqueTokenTransactions);
+        //const combinedTransactions = tokenTxResponse.data.result.concat(uniqueTokenTransactions);
 
         // Sort transactions by date
         combinedTransactions.sort((a, b) => a.timeStamp - b.timeStamp);
 
         const formattedTransactions = await Promise.all(combinedTransactions.map(async (tx) => {
-            let transactionType, tokenAmount, tokenSymbol = null, currency = 'ETH';
+            let transactionType, tokenAmount, tokenSymbol = null, currency = 'USDC';
 
-            const isUSDC = tx.contractAddress === USDCContractAddress; // USDC contract address
+            const isUSDC = tx.contractAddress.toLowerCase() === USDCContractAddress.toLowerCase(); // USDC contract address
+            console.log("isUSDC: ", isUSDC);
+            console.log("tx.contractAddress: ", tx.contractAddress);
 
             if (tx.methodId === '0x3610724e') {
                 transactionType = 'Buy Token';
@@ -225,8 +232,8 @@ router.get('/transactions/user/jwt',verifyToken, async (req, res) => {
                 to: tx.to.toLowerCase() === ownerWalletAddress.toLowerCase() ? 'You' : tx.to,
                 payableAmount: web3.utils.fromWei(tx.value, 'ether'),
                 tokenAmount: transactionType === "Buy Token" ? web3.utils.fromWei(tokenAmount.toString(), 'ether') : tokenAmount,
-                tokenSymbol: tokenSymbol, 
-                currency: currency, 
+                tokenSymbol: tokenSymbol,
+                currency: currency,
                 date: new Date(tx.timeStamp * 1000).toLocaleString(), // Using toLocaleString() to include time
                 hash: tx.hash
             };
