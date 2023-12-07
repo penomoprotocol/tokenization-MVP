@@ -98,7 +98,7 @@ contract ServiceContract {
             require(success, "Approve failed");
 
             // Send the funds to the LiquidityContract via the receiveFunds function
-            //LiquidityContract(liquidityContract).receiveUsdcFunds(liquidityAmount);
+            LiquidityContract(liquidityContract).receiveUsdcFunds(liquidityAmount);
             
         } else {
             revert("Currency not accepted");
