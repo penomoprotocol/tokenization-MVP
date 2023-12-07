@@ -430,17 +430,20 @@ router.post('/investor/buyToken', verifyToken, async (req, res) => {
         const tokenContractInstance = new web3.eth.Contract(TCABI, tokenContractERC20Address);
 
         const tokenPrice = await tokenContractInstance.methods.tokenPrice().call();
+        const tokenSymbol = await tokenContractInstance.methods.symbol().call();
+        const tokenName = await tokenContractInstance.methods.name().call();
         const acceptedCurrency = await tokenContractInstance.methods.acceptedCurrency().call();
         console.log("acceptedCurrency: ", acceptedCurrency);
 
         const tokenAmountBigInt = BigInt(tokenAmount);
+        const tokenAmountWei = web3.utils.toWei(tokenAmountBigInt.toString(), 'ether')
         const tokenPriceBigInt = BigInt(tokenPrice);
         const requiredAmount = tokenPriceBigInt * tokenAmountBigInt;
 
         let receipt;
         let transaction;
         if (acceptedCurrency === 'ETH') {
-            transaction = ServiceContract.methods.buyTokens(tokenAmountBigInt.toString());
+            transaction = ServiceContract.methods.buyTokens(tokenAmountWei.toString());
             receipt = await estimateAndSend(transaction, investor.ethereumPublicKey, decryptPrivateKey(investor.ethereumPrivateKey, SECRET_KEY), serviceContractAddress, requiredAmount);
         } else if (acceptedCurrency === 'USDC') {
             const usdcTokenAddress = await tokenContractInstance.methods.usdcTokenAddress().call();
@@ -451,7 +454,7 @@ router.post('/investor/buyToken', verifyToken, async (req, res) => {
             await estimateAndSend(approveTransaction, investor.ethereumPublicKey, decryptPrivateKey(investor.ethereumPrivateKey, SECRET_KEY), usdcTokenAddress);
             
             // Execute buyTokens function
-            transaction = ServiceContract.methods.buyTokens(tokenAmountBigInt.toString());
+            transaction = ServiceContract.methods.buyTokens(tokenAmountWei.toString());
 
             receipt = await estimateAndSend(transaction, investor.ethereumPublicKey, decryptPrivateKey(investor.ethereumPrivateKey, SECRET_KEY), serviceContractAddress);
         }

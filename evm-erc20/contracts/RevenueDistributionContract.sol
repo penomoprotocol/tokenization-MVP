@@ -27,7 +27,7 @@ contract RevenueDistributionContract {
     }
 
     modifier onlyServiceContract() {
-        require(msg.sender == serviceContract, "Only the ServiceContract can send funds");
+        require(msg.sender == serviceContract, "In RDC: Only the ServiceContract can send funds");
         _;
     }
 

@@ -201,7 +201,7 @@ async function deployTokenContract(DIDs, CIDs, revenueGoals, name, symbol, reven
         globalStateAddress: GSCAddress,
         serviceContractAddress: serviceContractAddress,
         revenueShare: revenueShare,
-        maxTokenSupply: maxTokenSupply,
+        maxTokenSupply: web3.utils.toWei(maxTokenSupply.toString(), 'ether'),
         tokenPrice: web3.utils.toWei(tokenPrice.toString(), 'ether'),
         currency: currency,
         name: name,
