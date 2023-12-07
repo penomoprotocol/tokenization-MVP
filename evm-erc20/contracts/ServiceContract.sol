@@ -14,10 +14,14 @@ contract ServiceContract {
     RevenueDistributionContract public revenueDistributionContract;
     GlobalStateContract public globalState;
 
-    event TokensPurchased(address indexed investor, uint256 amount, string currency);
+    event TokensPurchased(
+        address indexed investor,
+        uint256 amount,
+        string currency
+    );
     event ReceivedFundsFromRevenueStream(address indexed from, uint256 amount);
     event Debug(string message, uint256 value);
-
+    event ApprovalSet(address indexed liquidityContract, uint256 amount);
 
     constructor(address _globalStateAddress) {
         owner = msg.sender;
@@ -46,30 +50,79 @@ contract ServiceContract {
         string memory currency = tokenContractERC20.acceptedCurrency();
         emit Debug("Currency fetched", 0); // Debugging event
 
-        if (keccak256(abi.encodePacked(currency)) == keccak256(abi.encodePacked("ETH"))) {
-            requiredAmount = amount * tokenContractERC20.tokenPrice();
-            require(msg.value >= requiredAmount, "Incorrect ETH amount");
-            emit Debug("ETH transfer initiated", requiredAmount); // Debugging event
-        } else if (keccak256(abi.encodePacked(currency)) == keccak256(abi.encodePacked("USDC"))) {
+        if (
+            keccak256(abi.encodePacked(currency)) ==
+            keccak256(abi.encodePacked("ETH"))
+        ) {
+            requiredAmount =
+                (amount * tokenContractERC20.tokenPrice()) /
+                10 ** 18;
+            //require(msg.value >= requiredAmount, "Incorrect ETH amount");
+            emit Debug("Required Amount: ", requiredAmount); // Debugging event
+            emit Debug("Received Amount: ", msg.value);
+
+            // Calculate penomo's fee from the GlobalStateContract and the amount to send to the LiquidityContract
+            uint256 feeAmount = (msg.value * globalState.penomoFee()) / 10000;
+            uint256 liquidityAmount = msg.value - feeAmount;
+
+            // Send the funds to the LiquidityContract via the receiveFunds function
+            LiquidityContract(liquidityContract).receiveFunds{
+                value: liquidityAmount
+            }();
+        } else if (
+            keccak256(abi.encodePacked(currency)) ==
+            keccak256(abi.encodePacked("USDC"))
+        ) {
             IERC20 usdc = IERC20(tokenContractERC20.usdcTokenAddress());
-            requiredAmount = amount * tokenContractERC20.tokenPrice() / 10**18;
-            require(usdc.transferFrom(msg.sender, address(this), requiredAmount), "USDC transfer failed");
+            requiredAmount =
+                (amount * tokenContractERC20.tokenPrice()) /
+                10 ** 18;
+            require(
+                usdc.transferFrom(msg.sender, address(this), requiredAmount),
+                "USDC transfer failed"
+            );
             emit Debug("USDC transfer initiated", requiredAmount); // Debugging event
+
+            // Calculate penomo's fee from the GlobalStateContract and the amount to send to the LiquidityContract
+            uint256 feeAmount = (requiredAmount * globalState.penomoFee()) /
+                10000;
+
+            uint256 liquidityAmount = requiredAmount - feeAmount;
+
+            // Set allowance for LiquidityContract
+            bool success = usdc.approve(
+                address(liquidityContract),
+                liquidityAmount
+            );
+            emit ApprovalSet(address(liquidityContract), liquidityAmount);
+            require(success, "Approve failed");
+
+            // Send the funds to the LiquidityContract via the receiveFunds function
+            //LiquidityContract(liquidityContract).receiveUsdcFunds(liquidityAmount);
+            
         } else {
             revert("Currency not accepted");
         }
 
-        tokenContractERC20.transferFrom(address(this), msg.sender, amount);
+        // Transfer the tokens to the investor
+        tokenContractERC20.transferFrom(
+            address(tokenContractERC20),
+            msg.sender,
+            amount
+        );
+
         emit TokensPurchased(msg.sender, amount, currency);
     }
 
     function receiveFundsFromRevenueStream() external payable {
-        uint256 amountAfterFee = (msg.value * (10000 - globalState.penomoFee())) / 10000;
-        uint256 amountForRDC = (amountAfterFee * tokenContractERC20.revenueShare()) / 10000;
+        uint256 amountAfterFee = (msg.value *
+            (10000 - globalState.penomoFee())) / 10000;
+        uint256 amountForRDC = (amountAfterFee *
+            tokenContractERC20.revenueShare()) / 10000;
         uint256 amountForLC = amountAfterFee - amountForRDC;
 
-        revenueDistributionContract.receiveFunds{ value: amountForRDC }();
-        liquidityContract.receiveFunds{ value: amountForLC }();
+        revenueDistributionContract.receiveFunds{value: amountForRDC}();
+        liquidityContract.receiveFunds{value: amountForLC}();
 
         emit ReceivedFundsFromRevenueStream(msg.sender, msg.value);
     }
@@ -82,7 +135,11 @@ contract ServiceContract {
         return address(this).balance;
     }
 
-    function getContractAddresses() external view returns (address, address, address, address) {
+    function getContractAddresses()
+        external
+        view
+        returns (address, address, address, address)
+    {
         return (
             address(tokenContractERC20),
             address(liquidityContract),

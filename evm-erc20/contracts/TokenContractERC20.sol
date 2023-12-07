@@ -50,7 +50,7 @@ contract TokenContractERC20 is ERC20 {
         globalState = GlobalStateContract(args.globalStateAddress);
         serviceContract = args.serviceContractAddress;
         revenueShare = args.revenueShare;
-        maxTokenSupply = args.maxTokenSupply * 10 ** 18;
+        maxTokenSupply = args.maxTokenSupply;
         tokenPrice = args.tokenPrice;
         acceptedCurrency = args.currency;
         usdcTokenAddress = 0xD0A0D62413cB0577B2B9a52CA8b05C03bb56ccE8;
@@ -64,9 +64,13 @@ contract TokenContractERC20 is ERC20 {
             batteries.push(newBattery);
         }
 
+        // Mint the maximum supply of tokens to the contract's address upon construction
         _mint(address(this), maxTokenSupply);
+
+        // Set the allowance for the ServiceContract
         _approve(address(this), args.serviceContractAddress, maxTokenSupply);
-        emit Debug(allowance(address(this), args.serviceContractAddress));
+
+        emit Debug("Allowance for service contract: ", allowance(address(this), args.serviceContractAddress));
     }
 
     modifier onlyPenomoWallet() {
@@ -78,26 +82,51 @@ contract TokenContractERC20 is ERC20 {
         _transfer(from, to, amount);
     }
 
-    function transfer(address recipient, uint256 amount) public override returns (bool) {
-        emit TokenTransferInitiated(msg.sender, recipient, amount); // Debugging event
+    // Override the transfer function
+    function transfer(
+        address recipient,
+        uint256 amount
+    ) public override returns (bool) {
+        // Call the _beforeTokenTransfer hook
         _beforeTokenTransfer(recipient);
+
+        // Call the original transfer function from the parent ERC20 contract
         super.transfer(recipient, amount);
+
         return true;
     }
 
-    function transferFrom(address sender, address recipient, uint256 amount) public override returns (bool) {
-        emit TokenTransferInitiated(sender, recipient, amount); // Debugging event
+   // Override the transferFrom function
+    function transferFrom(
+        address sender,
+        address recipient,
+        uint256 amount
+    ) public override returns (bool) {
+        // Call the _beforeTokenTransfer hook
         _beforeTokenTransfer(recipient);
+
+        // Call the original transferFrom function from the parent ERC20 contract
         super.transferFrom(sender, recipient, amount);
+
         return true;
     }
 
-    function _beforeTokenTransfer(address to) internal {
-        require(globalState.verifiedInvestors(to), "Recipient is not whitelisted as registered investor.");
+    function _beforeTokenTransfer(
+        address to
+    ) internal //uint256 amount
+    {
+        require(
+            globalState.verifiedInvestors(to),
+            "Recipient is not whitelisted as registered investor."
+        );
+
+        // If the recipient is not already a token holder, add them to the list
         if (!isTokenHolder(to) && to != address(0)) {
+            // address(0) check is to ensure the zero address is not added
             tokenHolders.push(to);
         }
     }
+
 
     function isTokenHolder(address _address) public view returns (bool) {
         for (uint256 i = 0; i < tokenHolders.length; i++) {
