@@ -200,22 +200,22 @@ router.post('/investor/register', async (req, res) => {
         await investor.save();
         console.log("Added investor instance: ", investor);
 
-        // // Fund the new wallet with 1000000000000000 wei
-        // const fundingAmount = '1000000000000000'; 
+        // Fund the new wallet with 1000000000000000 wei
+        const fundingAmount = '1000000000000000'; 
 
-        // // Create a raw transaction object
-        // const transaction = {
-        //     from: MASTER_ADDRESS,
-        //     to: publicKey,
-        //     value: fundingAmount,
-        //     gasLimit: web3.utils.toHex(21000), // Standard gas limit for Ether transfers
-        //     gasPrice: web3.utils.toHex(await web3.eth.getGasPrice()) // Get current gas price
-        // };
-        // // Sign the transaction with the master's private key
-        // const signedTx = await web3.eth.accounts.signTransaction(transaction, MASTER_PRIVATE_KEY);
+        // Create a raw transaction object
+        const transaction = {
+            from: MASTER_ADDRESS,
+            to: publicKey,
+            value: fundingAmount,
+            gasLimit: web3.utils.toHex(21000), // Standard gas limit for Ether transfers
+            gasPrice: web3.utils.toHex(await web3.eth.getGasPrice()) // Get current gas price
+        };
+        // Sign the transaction with the master's private key
+        const signedTx = await web3.eth.accounts.signTransaction(transaction, MASTER_PRIVATE_KEY);
 
-        // // Send the signed transaction
-        // const receipt = await web3.eth.sendSignedTransaction(signedTx.rawTransaction);
+        // Send the signed transaction
+        const receipt = await web3.eth.sendSignedTransaction(signedTx.rawTransaction);
 
         res.status(200).json({ message: "Successfully registered investor.", investor });
     } catch (error) {
@@ -439,6 +439,7 @@ router.post('/investor/buyToken', verifyToken, async (req, res) => {
         const tokenAmountWei = web3.utils.toWei(tokenAmountBigInt.toString(), 'ether')
         const tokenPriceBigInt = BigInt(tokenPrice);
         const requiredAmount = tokenPriceBigInt * tokenAmountBigInt;
+        const requiredAmountReal = requiredAmount / BigInt(10**18);
 
         let receipt;
         let transaction;
@@ -466,7 +467,7 @@ router.post('/investor/buyToken', verifyToken, async (req, res) => {
             const transactionRecord = new Transaction({
                 transactionType: 'Buy Token',
                 tokenAmount: tokenAmount, // The amount of tokens purchased
-                payableAmount: requiredAmount.toString(), // TODO: Debug loss of precision. Refine and get gas costs from transaction
+                payableAmount: requiredAmountReal.toString(), // TODO: Debug loss of precision. Refine and get gas costs from transaction
                 currency: acceptedCurrency,
                 tokenSymbol: tokenSymbol,
                 tokenName: tokenName,

@@ -27,6 +27,7 @@ const Company = require('../models/CompanyModel');
 const Contract = require('../models/TokenModel');
 const Investor = require('../models/InvestorModel');
 const Token = require('../models/TokenModel');
+const Transaction = require('../models/TransactionModel');
 
 
 // /**
@@ -188,56 +189,91 @@ router.get('/transactions/user/jwt', verifyToken, async (req, res) => {
         // Create a set of hashes from regular transactions for quick lookup
         const regularTxHashes = new Set(regularTxResponse.data.result.map(tx => tx.hash));
 
-        // Create a set of hashes from regular transactions for quick lookup
-        const tokenTxHashes = new Set(tokenTxResponse.data.result.map(tx => tx.hash));
-
         // Filter out token transactions that are already included in regular transactions
         const uniqueTokenTransactions = tokenTxResponse.data.result.filter(tx => !regularTxHashes.has(tx.hash));
-        //const uniqueTokenTransactions = regularTxResponse.data.result.filter(tx => !tokenTxHashes.has(tx.hash));
 
         // Combine and process both types of transactions
         const combinedTransactions = regularTxResponse.data.result.concat(uniqueTokenTransactions);
-        //const combinedTransactions = tokenTxResponse.data.result.concat(uniqueTokenTransactions);
 
         // Sort transactions by date
         combinedTransactions.sort((a, b) => a.timeStamp - b.timeStamp);
 
-        const formattedTransactions = await Promise.all(combinedTransactions.map(async (tx) => {
-            let transactionType, tokenAmount, tokenSymbol = null, currency = 'USDC';
+        // Fetch all tokens from the database
+        const allTokens = await Token.find();
+
+        const formattedTransactions = (await Promise.all(combinedTransactions.map(async (tx) => {
+            let transactionType, tokenAmount, tokenSymbol = null, currency = 'ETH';
 
             const isUSDC = tx.contractAddress.toLowerCase() === USDCContractAddress.toLowerCase(); // USDC contract address
-            console.log("isUSDC: ", isUSDC);
-            console.log("tx.contractAddress: ", tx.contractAddress);
 
             if (tx.methodId === '0x3610724e') {
-                transactionType = 'Buy Token';
-                tokenAmount = tx.input ? parseInt(tx.input.slice(-64), 16) : null;
-                // Query MongoDB for the token symbol
-                const tokenData = await Token.findOne({ serviceContractAddress: tx.to });
-                tokenSymbol = tokenData ? tokenData.symbol : null;
+                console.log("BuyToken tx: ", tx);
+                console.log("tx.hash: ", tx.hash);
+                const transactionData = await Transaction.findOne({ transactionHash: tx.hash });
+                if (transactionData !== null) {
+                    console.log("transactionData: ", transactionData);
+                    const tokenData = await Token.findOne({ serviceContractAddress: tx.to });
+                    transactionType = 'Buy Token';
+                    tokenAmount = transactionData.tokenAmount;
+                    payableAmount = transactionData.payableAmount;
+                    // tokenAmount = tx.input ? parseInt(tx.input.slice(-64), 16) : null;
+                    tokenSymbol = tokenData ? tokenData.symbol : null;
+                    currency = transactionData.currency;
+                } else { transactionType = 'Deleted'; }
+
+            } else if (tx.methodId === '0x095ea7b3') {
+                transactionType = 'Approve';
                 currency = isUSDC ? 'USDC' : 'ETH';
             } else if (tx.from.toLowerCase() === ownerWalletAddress.toLowerCase()) {
+                const transactionData = await Transaction.findOne({ transactionHash: tx.hash });
                 transactionType = 'Withdraw';
-                currency = isUSDC ? 'USDC' : 'ETH';
+                if (transactionData !== null) {
+                    payableAmount = transactionData.payableAmount;
+                    currency = transactionData.currency;
+                } else {
+                    payableAmount = web3.utils.fromWei(tx.value, 'ether');
+                    currency = isUSDC ? 'USDC' : 'ETH';
+                }
+
             } else if (tx.to.toLowerCase() === ownerWalletAddress.toLowerCase()) {
-                transactionType = 'Top up';
-                currency = isUSDC ? 'USDC' : 'ETH';
+                const tokenData = await Token.findOne({ revenueDistributionContractAddress: tx.from });
+                const isRevenueDistribution = allTokens.some(token =>
+                    token.revenueDistributionContractAddress.toLowerCase() === tx.from.toLowerCase()
+                );
+                if (isRevenueDistribution) {
+                    transactionType = 'Revenue Distribution';
+                    payableAmount = web3.utils.fromWei(tx.value, 'ether');
+                    currency = isUSDC ? 'USDC' : 'ETH';
+                    tokenSymbol = tokenData ? tokenData.symbol : null;
+                } else {
+                    transactionType = 'Top up';
+                    payableAmount = web3.utils.fromWei(tx.value, 'ether');
+                    currency = isUSDC ? 'USDC' : 'ETH';
+                }
             } else {
                 transactionType = 'Unknown';
+            }
+
+            // Skip "Approve" type  and deleted transactions
+            if (transactionType === 'Approve') {
+                return null;
+            } else if (transactionType === 'Deleted') {
+                return null;
             }
 
             return {
                 transactionType: transactionType,
                 from: tx.from.toLowerCase() === ownerWalletAddress.toLowerCase() ? 'You' : tx.from,
                 to: tx.to.toLowerCase() === ownerWalletAddress.toLowerCase() ? 'You' : tx.to,
-                payableAmount: web3.utils.fromWei(tx.value, 'ether'),
-                tokenAmount: transactionType === "Buy Token" ? web3.utils.fromWei(tokenAmount.toString(), 'ether') : tokenAmount,
+                //payableAmount: web3.utils.fromWei(tx.value, 'ether'),
+                payableAmount: payableAmount,
+                tokenAmount: tokenAmount,
                 tokenSymbol: tokenSymbol,
                 currency: currency,
                 date: new Date(tx.timeStamp * 1000).toLocaleString(), // Using toLocaleString() to include time
                 hash: tx.hash
             };
-        }));
+        }))).filter(tx => tx !== null); // Filter out null values (skipped transactions)
 
         res.status(200).json(formattedTransactions);
 

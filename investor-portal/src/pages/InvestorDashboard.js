@@ -45,6 +45,9 @@ const InvestorDashboard = () => {
                         headers: { Authorization: `Bearer ${userToken}` }
                     });
                     setInvestorTransactions(response.data.slice(-5)); // Store the last 5 transactions
+                    // TODO: Calculate revenues from tokens and insert to setter function
+                    // DEBUG
+                    console.log(response);
                 } catch (error) {
                     console.error('Error fetching transactions:', error);
                 }
@@ -174,10 +177,10 @@ function roundToDecimals(str, x) {
                                 <strong className="label">Rem. Contract Term</strong>
                                 <span className="value">{token.contractTerm} months</span>
                             </div>
-                            <div style={{ flex: '1 1 16.6%' }} className="label-value">
+                            {/* <div style={{ flex: '1 1 16.6%' }} className="label-value">
                                 <strong className="label">Total Revenue</strong>
                                 <span className="value">USDC {"0.00"}</span>
-                            </div>
+                            </div> */}
                             {/* <div className="btn-container" style={{ flex: '1 1 16.6%' }}>
                                 <button className="btn-penomo">Sell</button>
                             </div> */}
