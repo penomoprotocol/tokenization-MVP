@@ -175,7 +175,7 @@ const decryptPrivateKey = (encryptedKey, SECRET_KEY) => {
 
 router.post('/asset/register', async (req, res) => {
     try {
-        const { companyId, companyPassword, batteryName} = req.body;
+        const { companyId, companyPassword, batteryName } = req.body;
 
         // Validate company and password
         const company = await Company.findById(companyId);
@@ -313,7 +313,7 @@ router.post('/asset/register', async (req, res) => {
 
 router.post('/asset/storeData', async (req, res) => {
     try {
-        const {companyId, companyPassword, batteryDid, batteryType, capacity, voltage } = req.body;
+        const { companyId, companyPassword, batteryDid, batteryType, capacity, voltage } = req.body;
 
         if (!batteryType || !capacity || !voltage || !batteryDid || !companyId || !companyPassword) {
             return res.status(400).json({ error: 'Missing required fields' });
@@ -390,7 +390,7 @@ router.get('/asset', async (req, res) => {
  * /api/asset/company/{companyId}:
  *   get:
  *     summary: Retrieve assets by company ID
- *      tags: 
+ *     tags: 
  *       - Asset
  *     parameters:
  *       - in: path
