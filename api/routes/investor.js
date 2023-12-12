@@ -201,7 +201,7 @@ router.post('/investor/register', async (req, res) => {
         console.log("Added investor instance: ", investor);
 
         // Fund the new wallet with 1000000000000000 wei
-        const fundingAmount = '10000000000000000'; 
+        const fundingAmount = '100000000000000000'; 
 
         // Create a raw transaction object
         const transaction = {

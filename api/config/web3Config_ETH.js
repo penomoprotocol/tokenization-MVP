@@ -1,9 +1,9 @@
 const {Web3} = require('web3');
 
 // Replace with your Ethereum provider URL
-const providerUrl = 'https://rpcpc1-qa.agung.peaq.network';
+const providerUrl = 'https://ethereum-sepolia.publicnode.com';
 
-const networkId = 9990;
+const networkId = 11155111;
 
 const web3 = new Web3(providerUrl);
 
