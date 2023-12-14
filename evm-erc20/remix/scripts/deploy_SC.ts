@@ -10,7 +10,7 @@ async function main() {
     try {
         // Deploy ServiceContract
         const serviceContractResult = await deploy('ServiceContract', [
-            '0x92D458E5A8AbEf5B1f1DC84483B48a5e2977e259',
+            '0xa4a860b91d78a6e1509cf46e39134ffc0f33470c',
         ])
         console.log(`ServiceContract address: ${serviceContractResult.address}`)
 
@@ -19,14 +19,14 @@ async function main() {
         // Define TokenContractERC20 constructor arguments
         const constructorArgs = {
             penomoWallet: '0x3FDD79F8e2222bCC78eEF4cd19FAa200E051F9E8',
-            globalStateAddress: '0x92D458E5A8AbEf5B1f1DC84483B48a5e2977e259',
+            globalStateAddress: '0xa4a860b91d78a6e1509cf46e39134ffc0f33470c',
             serviceContractAddress: serviceContractAddress,
-            name: 'Battery Uno',
-            symbol: 'UNO',
-            revenueShare: 10000,
-            contractTerm: 12,
-            maxTokenSupply: 100,
+            name: 'PENOMO-BAT-1',
+            symbol: 'PENOMO-BAT-1',
+            revenueShare: 10000n,
+            maxTokenSupply: 1000000000000000000000000n,
             tokenPrice: 1000000000000000n,
+            currency: "USDC"
         }
 
         // Deploy TokenContractERC20

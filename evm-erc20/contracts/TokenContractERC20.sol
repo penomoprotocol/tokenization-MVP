@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-pragma solidity ^0.8.20;
+pragma solidity ^0.8.18;
 
 import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
@@ -53,7 +53,7 @@ contract TokenContractERC20 is ERC20 {
         maxTokenSupply = args.maxTokenSupply;
         tokenPrice = args.tokenPrice;
         acceptedCurrency = args.currency;
-        usdcTokenAddress = 0xD0A0D62413cB0577B2B9a52CA8b05C03bb56ccE8;
+        usdcTokenAddress = 0xB82dd712bD19e29347Ee01f6678296b5f3c8Cf03;
 
         for (uint i = 0; i < DIDs.length; i++) {
             Battery memory newBattery = Battery({

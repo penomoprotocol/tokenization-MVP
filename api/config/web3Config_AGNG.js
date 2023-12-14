@@ -8,10 +8,10 @@ const networkId = 9990;
 const web3 = new Web3(providerUrl);
 
 // Global State Contract Address
-const GSCAddress = '0xeEBac63d9393ba35B2031E2081A7FB10A5197773';
+const GSCAddress = '0xa4a860b91d78a6e1509cf46e39134ffc0f33470c';
 
 // Mock USDC Contract Address
-const USDCContractAddress = '0xD0A0D62413cB0577B2B9a52CA8b05C03bb56ccE8';
+const USDCContractAddress = '0xb82dd712bd19e29347ee01f6678296b5f3c8cf03';
 
 module.exports = {
   web3,

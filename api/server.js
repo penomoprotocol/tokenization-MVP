@@ -43,7 +43,7 @@ const openapiSpecification = swaggerJsdoc(options);
 // Imports
 const express = require('express');
 const CryptoJS = require('crypto-js');
-const { web3, networkId, GSCAddress } = require('./config/web3Config');
+const { web3, networkId, GSCAddress } = require('./config/web3Config_AGNG');
 const fs = require('fs');
 const path = require('path');
 const passport = require('passport');

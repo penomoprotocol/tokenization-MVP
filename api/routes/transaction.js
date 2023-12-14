@@ -6,7 +6,7 @@ const app = express();
 
 const CryptoJS = require('crypto-js');
 const { ethers } = require('ethers');
-const { web3, networkId, GSCAddress, USDCContractAddress } = require('../config/web3Config_new');
+const { web3, networkId, GSCAddress, USDCContractAddress } = require('../config/web3Config_AGNG');
 
 const fs = require('fs');
 const path = require('path');
@@ -18,8 +18,8 @@ const SECRET_KEY = process.env.SECRET_KEY;
 const MONGO_URI = process.env.MONGO_URI;
 const MASTER_ADDRESS = process.env.MASTER_ADDRESS;
 const MASTER_PRIVATE_KEY = process.env.MASTER_PRIVATE_KEY;
-const ETHERSCAN_API_URL = process.env.ETHERSCAN_API_URL
-const ETHERSCAN_API_KEY = process.env.ETHERSCAN_API_KEY
+const BLOCKEXPLORER_API_URL = process.env.BLOCKEXPLORER_API_URL
+const BLOCKEXPLORER_API_KEY = process.env.BLOCKEXPLORER_API_KEY
 
 // Import Mongoose models:
 const Asset = require('../models/AssetModel');
@@ -162,120 +162,39 @@ router.get('/transactions/user/jwt', verifyToken, async (req, res) => {
             return res.status(400).send('Invalid address');
         }
 
-        // Fetch regular transactions
-        const regularTxResponse = await axios.get(`${ETHERSCAN_API_URL}`, {
-            params: {
-                module: 'account',
-                action: 'txlist',
-                address: address,
-                startblock: 0,
-                endblock: 99999999,
-                sort: 'asc',
-                apikey: ETHERSCAN_API_KEY
+        // Fetch transactions using Subscan API
+        const response = await axios.post(`${BLOCKEXPLORER_API_URL}/api/scan/transfers`, {
+            row: 100, // Number of records to return
+            page: 0, // Page number
+            address: address
+        }, {
+            headers: {
+                'Content-Type': 'application/json',
+                'X-API-Key': BLOCKEXPLORER_API_KEY
             }
         });
-        // Fetch token transfer transactions
-        const tokenTxResponse = await axios.get(`${ETHERSCAN_API_URL}`, {
-            params: {
-                module: 'account',
-                action: 'tokentx',
-                address: address,
-                startblock: 0,
-                endblock: 99999999,
-                sort: 'asc',
-                apikey: ETHERSCAN_API_KEY
-            }
-        });
-        // Create a set of hashes from regular transactions for quick lookup
-        const regularTxHashes = new Set(regularTxResponse.data.result.map(tx => tx.hash));
 
-        // Filter out token transactions that are already included in regular transactions
-        const uniqueTokenTransactions = tokenTxResponse.data.result.filter(tx => !regularTxHashes.has(tx.hash));
+        if (!response.data || !response.data.data || !response.data.data.transfers) {
+            return res.status(500).send('Error retrieving transactions');
+        }
 
-        // Combine and process both types of transactions
-        const combinedTransactions = regularTxResponse.data.result.concat(uniqueTokenTransactions);
+        const transactions = response.data.data.transfers;
 
-        // Sort transactions by date
-        combinedTransactions.sort((a, b) => a.timeStamp - b.timeStamp);
-
-        // Fetch all tokens from the database
-        const allTokens = await Token.find();
-
-        const formattedTransactions = (await Promise.all(combinedTransactions.map(async (tx) => {
-            let transactionType, tokenAmount, tokenSymbol = null, currency = 'ETH';
-
-            const isUSDC = tx.contractAddress.toLowerCase() === USDCContractAddress.toLowerCase(); // USDC contract address
-
-            if (tx.methodId === '0x3610724e') {
-                console.log("BuyToken tx: ", tx);
-                console.log("tx.hash: ", tx.hash);
-                const transactionData = await Transaction.findOne({ transactionHash: tx.hash });
-                if (transactionData !== null) {
-                    console.log("transactionData: ", transactionData);
-                    const tokenData = await Token.findOne({ serviceContractAddress: tx.to });
-                    transactionType = 'Buy Token';
-                    tokenAmount = transactionData.tokenAmount;
-                    payableAmount = transactionData.payableAmount;
-                    // tokenAmount = tx.input ? parseInt(tx.input.slice(-64), 16) : null;
-                    tokenSymbol = tokenData ? tokenData.symbol : null;
-                    currency = transactionData.currency;
-                } else { transactionType = 'Deleted'; }
-
-            } else if (tx.methodId === '0x095ea7b3') {
-                transactionType = 'Approve';
-                currency = isUSDC ? 'USDC' : 'ETH';
-            } else if (tx.from.toLowerCase() === ownerWalletAddress.toLowerCase()) {
-                const transactionData = await Transaction.findOne({ transactionHash: tx.hash });
-                transactionType = 'Withdraw';
-                if (transactionData !== null) {
-                    payableAmount = transactionData.payableAmount;
-                    currency = transactionData.currency;
-                } else {
-                    payableAmount = web3.utils.fromWei(tx.value, 'ether');
-                    currency = isUSDC ? 'USDC' : 'ETH';
-                }
-
-            } else if (tx.to.toLowerCase() === ownerWalletAddress.toLowerCase()) {
-                const tokenData = await Token.findOne({ revenueDistributionContractAddress: tx.from });
-                const isRevenueDistribution = allTokens.some(token =>
-                    token.revenueDistributionContractAddress.toLowerCase() === tx.from.toLowerCase()
-                );
-                if (isRevenueDistribution) {
-                    transactionType = 'Revenue Distribution';
-                    payableAmount = web3.utils.fromWei(tx.value, 'ether');
-                    currency = isUSDC ? 'USDC' : 'ETH';
-                    tokenSymbol = tokenData ? tokenData.symbol : null;
-                } else {
-                    transactionType = 'Top up';
-                    payableAmount = web3.utils.fromWei(tx.value, 'ether');
-                    currency = isUSDC ? 'USDC' : 'ETH';
-                }
-            } else {
-                transactionType = 'Unknown';
-            }
-
-            // Skip "Approve" type  and deleted transactions
-            if (transactionType === 'Approve') {
-                return null;
-            } else if (transactionType === 'Deleted') {
-                return null;
-            }
-
+        // Process transactions
+        const processedTransactions = transactions.map(tx => {
+            // Process each transaction
+            // Note: You'll need to map the fields from the Subscan API response to your desired format
             return {
-                transactionType: transactionType,
-                from: tx.from.toLowerCase() === ownerWalletAddress.toLowerCase() ? 'You' : tx.from,
-                to: tx.to.toLowerCase() === ownerWalletAddress.toLowerCase() ? 'You' : tx.to,
-                //payableAmount: web3.utils.fromWei(tx.value, 'ether'),
-                payableAmount: payableAmount,
-                tokenAmount: tokenAmount,
-                tokenSymbol: tokenSymbol,
-                currency: currency,
-                date: new Date(tx.timeStamp * 1000).toLocaleString(), // Using toLocaleString() to include time
+                from: tx.from,
+                to: tx.to,
+                amount: tx.amount, // Amount may need conversion depending on how Subscan returns it
+                timestamp: tx.block_timestamp,
                 hash: tx.hash
+                // ... other fields you need
             };
-        }))).filter(tx => tx !== null); // Filter out null values (skipped transactions)
+        });
 
-        res.status(200).json(formattedTransactions);
+        res.status(200).json(processedTransactions);
 
     } catch (error) {
         console.error(error);
@@ -283,6 +202,6 @@ router.get('/transactions/user/jwt', verifyToken, async (req, res) => {
     }
 });
 
-
+module.exports = router;
 
 module.exports = router;

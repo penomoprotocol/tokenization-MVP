@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-pragma solidity ^0.8.20;
+pragma solidity ^0.8.18;
 
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "./TokenContractERC20.sol";
@@ -23,7 +23,7 @@ contract RevenueDistributionContract {
         serviceContract = _serviceContract;
         tokenContractERC20 = TokenContractERC20(_tokenContractERC20);
         liquidityContract = LiquidityContract(_liquidityContract);
-        usdcTokenAddress = 0xD0A0D62413cB0577B2B9a52CA8b05C03bb56ccE8;
+        usdcTokenAddress = 0xB82dd712bD19e29347Ee01f6678296b5f3c8Cf03;
     }
 
     modifier onlyServiceContract() {

@@ -1,6 +1,6 @@
 //const web3 = require('web3');
 const CryptoJS = require('crypto-js');
-const { web3, networkId, GSCAddress } = require('../config/web3Config_new');
+const { web3, networkId, GSCAddress } = require('../config/web3Config_AGNG');
 
 const fs = require('fs');
 const path = require('path');

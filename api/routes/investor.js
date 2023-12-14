@@ -1,7 +1,7 @@
 //const web3 = require('web3');
 const CryptoJS = require('crypto-js');
 const { ethers } = require('ethers');
-const { web3, networkId, GSCAddress, USDCContractAddress } = require('../config/web3Config_new');
+const { web3, networkId, GSCAddress, USDCContractAddress } = require('../config/web3Config_AGNG');
 
 const fs = require('fs');
 const path = require('path');
@@ -201,7 +201,7 @@ router.post('/investor/register', async (req, res) => {
         console.log("Added investor instance: ", investor);
 
         // Fund the new wallet with 1000000000000000 wei
-        const fundingAmount = '100000000000000000'; 
+        const fundingAmount = '10000000000000000'; 
 
         // Create a raw transaction object
         const transaction = {
