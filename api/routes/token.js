@@ -1,6 +1,6 @@
 //const web3 = require('web3');
 const CryptoJS = require('crypto-js');
-const { web3, networkId, GSCAddress, USDCAddress } = require('../config/web3Config');
+const { web3, networkId, GSCAddress, USDCAddress } = require('../config/web3Config_new');
 
 const crypto = require('crypto');
 
