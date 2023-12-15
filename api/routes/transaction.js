@@ -151,56 +151,44 @@ const Transaction = require('../models/TransactionModel');
  */
 
 
-router.get('/transactions/user/jwt', verifyToken, async (req, res) => {
+router.get('/transactions/user/:address', async (req, res) => {
     try {
-        const investorId = req.user.id; // ID is retrieved from the decoded JWT token
-        const investor = await Investor.findById(investorId);
-        const address = investor.ethereumPublicKey;
-        const ownerWalletAddress = address;
+        const { address } = req.params;
 
         if (!web3.utils.isAddress(address)) {
             return res.status(400).send('Invalid address');
         }
 
-        // Fetch transactions using Subscan API
-        const response = await axios.post(`${BLOCKEXPLORER_API_URL}/api/scan/transfers`, {
-            row: 100, // Number of records to return
-            page: 0, // Page number
-            address: address
-        }, {
-            headers: {
-                'Content-Type': 'application/json',
-                'X-API-Key': BLOCKEXPLORER_API_KEY
-            }
-        });
+        const data = JSON.stringify({ address });
 
-        if (!response.data || !response.data.data || !response.data.data.transfers) {
-            return res.status(500).send('Error retrieving transactions');
-        }
+        // const config = {
+        //     method: 'post',
+        //     url: `${BLOCKEXPLORER_API_URL}/api/scan/account/tokens`,
+        //     headers: { 
+        //         'User-Agent': 'Apidog/1.0.0 (https://apidog.com)', 
+        //         'Content-Type': 'application/json',
+        //         'X-API-Key': BLOCKEXPLORER_API_KEY 
+        //     },
+        //     data: data
+        // };
 
-        const transactions = response.data.data.transfers;
+        
 
-        // Process transactions
-        const processedTransactions = transactions.map(tx => {
-            // Process each transaction
-            // Note: You'll need to map the fields from the Subscan API response to your desired format
-            return {
-                from: tx.from,
-                to: tx.to,
-                amount: tx.amount, // Amount may need conversion depending on how Subscan returns it
-                timestamp: tx.block_timestamp,
-                hash: tx.hash
-                // ... other fields you need
-            };
-        });
-
-        res.status(200).json(processedTransactions);
+        const response = await axios(config);
+        console.log(JSON.stringify(response.data));
+        res.status(200).json(response.data);
 
     } catch (error) {
         console.error(error);
-        res.status(500).send('Error retrieving transactions');
+        res.status(500).send('Error retrieving token data');
     }
 });
+
+module.exports = router;
+
+module.exports = router;
+
+module.exports = router;
 
 module.exports = router;
 
