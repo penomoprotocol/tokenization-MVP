@@ -52,6 +52,8 @@ const SECRET_KEY = process.env.SECRET_KEY;
 const MONGO_URI = process.env.MONGO_URI;
 const MASTER_ADDRESS = process.env.MASTER_ADDRESS;
 const MASTER_PRIVATE_KEY = process.env.MASTER_PRIVATE_KEY;
+const BLOCKEXPLORER_API_URL = process.env.BLOCKEXPLORER_API_URL
+const BLOCKEXPLORER_API_KEY = process.env.BLOCKEXPLORER_API_KEY
 
 
 const swaggerJsdoc = require('swagger-jsdoc');
@@ -59,6 +61,7 @@ const swaggerUi = require('swagger-ui-express');
 
 const express = require('express');
 const router = express.Router();
+const axios = require('axios');
 
 // Import Mongoose models:
 const Asset = require('../models/AssetModel');
@@ -762,24 +765,44 @@ router.get('/investor/jwt', verifyToken, async (req, res) => {
             return res.status(404).send('Investor not found');
         }
 
-        // Get ETH balance
-        const ethBalanceWei = await web3.eth.getBalance(investor.ethereumPublicKey);
-        const ethBalance = web3.utils.fromWei(ethBalanceWei, 'ether');
+        let walletAddress = investor.ethereumPublicKey;
 
-
-        // Get USDC balance
-        const usdcBalanceWei = await USDContract.methods.balanceOf(investor.ethereumPublicKey).call();
-        const usdcBalance = web3.utils.fromWei(usdcBalanceWei, 'ether');
-
-
-        // Add the balances to the investor object that will be returned
-        const investorDataWithBalances = {
-            ...investor.toObject(), // Convert the mongoose document to a plain object
-            ethBalance,
-            usdcBalance
+        const data = JSON.stringify({"address": walletAddress});
+        const config = {
+            method: 'post',
+            url: `${BLOCKEXPLORER_API_URL}/api/scan/account/tokens`,
+            headers: { 
+                'User-Agent': 'Apidog/1.0.0 (https://apidog.com)', 
+                'Content-Type': 'application/json',
+                'X-API-Key': BLOCKEXPLORER_API_KEY 
+            },
+            data: data
         };
 
-        res.json(investorDataWithBalances);
+        const balances = await axios(config);
+
+        console.log(balances);
+
+        // // Get ETH balance
+        // const ethBalanceWei = await web3.eth.getBalance(investor.ethereumPublicKey);
+        // const ethBalance = web3.utils.fromWei(ethBalanceWei, 'ether');
+
+
+        // // Get USDC balance
+        // const usdcBalanceWei = await USDContract.methods.balanceOf(investor.ethereumPublicKey).call();
+        // const usdcBalance = web3.utils.fromWei(usdcBalanceWei, 'ether');
+
+
+        // // Add the balances to the investor object that will be returned
+        // const investorDataWithBalances = {
+        //     ...investor.toObject(), // Convert the mongoose document to a plain object
+        //     ethBalance,
+        //     usdcBalance
+        // };
+
+        // res.json(investorDataWithBalances);
+
+        res.json(balances);
         console.log("investorDataWithBalances: ", investorDataWithBalances);
     } catch (error) {
         console.error('Error retrieving investor details and balances:', error);
