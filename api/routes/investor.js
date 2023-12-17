@@ -803,7 +803,7 @@ router.get('/investor/jwt', verifyToken, async (req, res) => {
         // res.json(investorDataWithBalances);
 
         res.json(balances);
-        console.log("investorDataWithBalances: ", investorDataWithBalances);
+        //console.log("investorDataWithBalances: ", investorDataWithBalances);
     } catch (error) {
         console.error('Error retrieving investor details and balances:', error);
         res.status(500).send('Error retrieving investor');
