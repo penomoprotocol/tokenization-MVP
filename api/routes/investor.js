@@ -786,23 +786,24 @@ router.get('/investor/jwt', verifyToken, async (req, res) => {
         // // Get ETH balance
         // const ethBalanceWei = await web3.eth.getBalance(investor.ethereumPublicKey);
         // const ethBalance = web3.utils.fromWei(ethBalanceWei, 'ether');
+        const ethBalance = 10;
 
 
         // // Get USDC balance
         // const usdcBalanceWei = await USDContract.methods.balanceOf(investor.ethereumPublicKey).call();
         // const usdcBalance = web3.utils.fromWei(usdcBalanceWei, 'ether');
-
+        const usdcBalance = 100;
 
         // // Add the balances to the investor object that will be returned
-        // const investorDataWithBalances = {
-        //     ...investor.toObject(), // Convert the mongoose document to a plain object
-        //     ethBalance,
-        //     usdcBalance
-        // };
+        const investorDataWithBalances = {
+            ...investor.toObject(), // Convert the mongoose document to a plain object
+            ethBalance,
+            usdcBalance
+        };
 
-        // res.json(investorDataWithBalances);
+        res.json(investorDataWithBalances);
 
-        res.json(balances);
+        // res.json(balances);
         //console.log("investorDataWithBalances: ", investorDataWithBalances);
     } catch (error) {
         console.error('Error retrieving investor details and balances:', error);

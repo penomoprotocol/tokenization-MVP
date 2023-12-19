@@ -154,37 +154,37 @@ const Transaction = require('../models/TransactionModel');
 router.get('/transactions/user/:address', async (req, res) => {
     try {
         const { address } = req.params;
-    
+
         if (!web3.utils.isAddress(address)) {
             return res.status(400).send('Invalid address');
         }
-    
+
         var data = JSON.stringify({ "address": address, "row": 100 });
-    
+
         const config_tx = {
             method: 'post',
             url: `${BLOCKEXPLORER_API_URL}/api/scan/evm/v2/transactions`,
-            headers: { 
-                'User-Agent': 'Apidog/1.0.0 (https://apidog.com)', 
+            headers: {
+                'User-Agent': 'Apidog/1.0.0 (https://apidog.com)',
                 'Content-Type': 'application/json',
-                'X-API-Key': BLOCKEXPLORER_API_KEY 
+                'X-API-Key': BLOCKEXPLORER_API_KEY
             },
             data: data
         };
         const regularTxResponse = await axios(config_tx);
-    
+
         const config_token_transfers = {
             method: 'post',
             url: `${BLOCKEXPLORER_API_URL}/api/scan/evm/token/transfer`,
-            headers: { 
-                'User-Agent': 'Apidog/1.0.0 (https://apidog.com)', 
+            headers: {
+                'User-Agent': 'Apidog/1.0.0 (https://apidog.com)',
                 'Content-Type': 'application/json',
-                'X-API-Key': BLOCKEXPLORER_API_KEY 
+                'X-API-Key': BLOCKEXPLORER_API_KEY
             },
             data: data
         };
         const tokenTxResponse = await axios(config_token_transfers);
-    
+
         // Adjusted to access the correct nested list structure
         const regularTxList = regularTxResponse.data.data.list;
         const tokenTxList = tokenTxResponse.data.data.list;
@@ -192,60 +192,60 @@ router.get('/transactions/user/:address', async (req, res) => {
         // Print tx data for debugging
         console.log("regularTxList: ", regularTxList);
         console.log("tokenTxList: ", tokenTxList);
-    
+
         // Create a set of hashes from regular transactions for quick lookup
         const regularTxHashes = new Set(regularTxList.map(tx => tx.hash));
-    
+
         // Filter out token transactions that are already included in regular transactions
         const uniqueTokenTransactions = tokenTxList.filter(tx => !regularTxHashes.has(tx.hash));
-    
+
         // Combine and process both types of transactions
         const combinedTransactions = regularTxList.concat(uniqueTokenTransactions);
-    
+
         // Sort transactions by date
         combinedTransactions.sort((a, b) => a.block_timestamp - b.block_timestamp);
- 
-         const formattedTransactions = await Promise.all(combinedTransactions.map(async (tx) => {
-             let transactionType, tokenAmount, tokenSymbol = null, currency = 'AGUNG';
- 
-             const isUSDC = tx.contractAddress === USDCContractAddress; // USDC contract address
- 
-             if (tx.methodId === '0x3610724e') {
-                 transactionType = 'Buy Token';
-                 tokenAmount = tx.input ? parseInt(tx.input.slice(-64), 16) : null;
-                 // Query MongoDB for the token symbol
-                 const tokenData = await Token.findOne({ serviceContractAddress: tx.to });
-                 tokenSymbol = tokenData ? tokenData.symbol : null;
-                 currency = isUSDC ? 'USDC' : 'AGUNG';
-             } else if (tx.from.toLowerCase() === address.toLowerCase()) {
-                 transactionType = 'Withdraw';
-                 currency = isUSDC ? 'USDC' : 'AGUNG';
-             } else if (tx.to.toLowerCase() === address.toLowerCase()) {
-                 transactionType = 'Top up';
-                 currency = isUSDC ? 'USDC' : 'AGUNG';
-             } else {
-                 transactionType = 'Unknown';
-             }
- 
-             return {
-                 transactionType: transactionType,
-                 from: tx.from.toLowerCase() === address.toLowerCase() ? 'You' : tx.from,
-                 to: tx.to.toLowerCase() === address.toLowerCase() ? 'You' : tx.to,
-                 payableAmount: web3.utils.fromWei(tx.value, 'ether'),
-                 tokenAmount: transactionType === "Buy Token" ? web3.utils.fromWei(tokenAmount.toString(), 'ether') : tokenAmount,
-                 tokenSymbol: tokenSymbol, 
-                 currency: currency, 
-                 date:  new Date(tx.block_timestamp * 1000).toLocaleString(), // Using toLocaleString() to include time
-                 hash: tx.hash
-             };
-         }));
- 
-         res.status(200).json(formattedTransactions);
- 
-     } catch (error) {
-         console.error(error);
-         res.status(500).send('Error retrieving transactions');
-     }
- });
+
+        const formattedTransactions = await Promise.all(combinedTransactions.map(async (tx) => {
+            let transactionType, tokenAmount, tokenSymbol = null, currency = 'AGUNG';
+
+            const isUSDC = tx.contractAddress === USDCContractAddress; // USDC contract address
+
+            if (tx.methodId === '0x3610724e') {
+                transactionType = 'Buy Token';
+                tokenAmount = tx.input ? parseInt(tx.input.slice(-64), 16) : null;
+                // Query MongoDB for the token symbol
+                const tokenData = await Token.findOne({ serviceContractAddress: tx.to });
+                tokenSymbol = tokenData ? tokenData.symbol : null;
+                currency = isUSDC ? 'USDC' : 'AGUNG';
+            } else if (tx.from.toLowerCase() === address.toLowerCase()) {
+                transactionType = 'Withdraw';
+                currency = isUSDC ? 'USDC' : 'AGUNG';
+            } else if (tx.to.toLowerCase() === address.toLowerCase()) {
+                transactionType = 'Top up';
+                currency = isUSDC ? 'USDC' : 'AGUNG';
+            } else {
+                transactionType = 'Unknown';
+            }
+
+            return {
+                transactionType: transactionType,
+                from: tx.from.toLowerCase() === address.toLowerCase() ? 'You' : tx.from,
+                to: tx.to.toLowerCase() === address.toLowerCase() ? 'You' : tx.to,
+                payableAmount: web3.utils.fromWei(tx.value, 'ether'),
+                tokenAmount: transactionType === "Buy Token" ? web3.utils.fromWei(tokenAmount.toString(), 'ether') : tokenAmount,
+                tokenSymbol: tokenSymbol,
+                currency: currency,
+                date: new Date(tx.block_timestamp * 1000).toLocaleString(), // Using toLocaleString() to include time
+                hash: tx.hash
+            };
+        })).then(transactions => transactions.filter(tx => tx.transactionType !== 'Unknown')); // Filter out 'Unknown' transactions
+
+        res.status(200).json(formattedTransactions);
+
+    } catch (error) {
+        console.error(error);
+        res.status(500).send('Error retrieving transactions');
+    }
+});
 
 module.exports = router;
