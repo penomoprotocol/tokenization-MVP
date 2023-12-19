@@ -188,6 +188,10 @@ router.get('/transactions/user/:address', async (req, res) => {
         // Adjusted to access the correct nested list structure
         const regularTxList = regularTxResponse.data.data.list;
         const tokenTxList = tokenTxResponse.data.data.list;
+
+        // Print tx data for debugging
+        console.log("regularTxList: ", regularTxList);
+        console.log("tokenTxList: ", tokenTxList);
     
         // Create a set of hashes from regular transactions for quick lookup
         const regularTxHashes = new Set(regularTxList.map(tx => tx.hash));
@@ -202,7 +206,7 @@ router.get('/transactions/user/:address', async (req, res) => {
         combinedTransactions.sort((a, b) => a.block_timestamp - b.block_timestamp);
  
          const formattedTransactions = await Promise.all(combinedTransactions.map(async (tx) => {
-             let transactionType, tokenAmount, tokenSymbol = null, currency = 'PENOMO';
+             let transactionType, tokenAmount, tokenSymbol = null, currency = 'AGUNG';
  
              const isUSDC = tx.contractAddress === USDCContractAddress; // USDC contract address
  
@@ -212,13 +216,13 @@ router.get('/transactions/user/:address', async (req, res) => {
                  // Query MongoDB for the token symbol
                  const tokenData = await Token.findOne({ serviceContractAddress: tx.to });
                  tokenSymbol = tokenData ? tokenData.symbol : null;
-                 currency = isUSDC ? 'USDC' : 'PENOMO';
+                 currency = isUSDC ? 'USDC' : 'AGUNG';
              } else if (tx.from.toLowerCase() === address.toLowerCase()) {
                  transactionType = 'Withdraw';
-                 currency = isUSDC ? 'USDC' : 'PENOMO';
+                 currency = isUSDC ? 'USDC' : 'AGUNG';
              } else if (tx.to.toLowerCase() === address.toLowerCase()) {
                  transactionType = 'Top up';
-                 currency = isUSDC ? 'USDC' : 'PENOMO';
+                 currency = isUSDC ? 'USDC' : 'AGUNG';
              } else {
                  transactionType = 'Unknown';
              }
@@ -231,7 +235,7 @@ router.get('/transactions/user/:address', async (req, res) => {
                  tokenAmount: transactionType === "Buy Token" ? web3.utils.fromWei(tokenAmount.toString(), 'ether') : tokenAmount,
                  tokenSymbol: tokenSymbol, 
                  currency: currency, 
-                 date: new Date(tx.timeStamp * 1000).toLocaleString(), // Using toLocaleString() to include time
+                 date:  new Date(tx.block_timestamp * 1000).toLocaleString(), // Using toLocaleString() to include time
                  hash: tx.hash
              };
          }));
