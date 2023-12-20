@@ -770,7 +770,7 @@ router.get('/investor/jwt', verifyToken, async (req, res) => {
         const data = JSON.stringify({"address": walletAddress});
         const config = {
             method: 'post',
-            url: `${BLOCKEXPLORER_API_URL}/api/scan/evm/tokens`,
+            url: `${BLOCKEXPLORER_API_URL}/api/scan/account/tokens`,
             headers: { 
                 'User-Agent': 'Apidog/1.0.0 (https://apidog.com)', 
                 'Content-Type': 'application/json',
@@ -783,21 +783,28 @@ router.get('/investor/jwt', verifyToken, async (req, res) => {
 
         console.log(JSON.stringify(balances.data, null, 2));
 
-        // // Get ETH balance
-        // const ethBalanceWei = await web3.eth.getBalance(investor.ethereumPublicKey);
-        // const ethBalance = web3.utils.fromWei(ethBalanceWei, 'ether');
-        const ethBalance = 10;
+        const nativeBalances = balances.data.data.native;
+        const erc20Balances = balances.data.data.ERC20;
+        
+        const agungBalanceWei = nativeBalances.find(token => token.symbol === 'AGUNG')?.balance || '0';
+        const usdcBalanceWei = erc20Balances.find(token => token.contract === USDCContractAddress)?.balance || '0';
+
+        const agungBalance = web3.utils.fromWei(agungBalanceWei, 'ether');
+        const usdcBalance = web3.utils.fromWei(usdcBalanceWei, 'ether');
+
+        // // Get AGUNG balance
+        // const agungBalanceWei = await web3.eth.getBalance(investor.ethereumPublicKey);
+        // const agungBalance = web3.utils.fromWei(ethBalanceWei, 'ether');
 
 
         // // Get USDC balance
         // const usdcBalanceWei = await USDContract.methods.balanceOf(investor.ethereumPublicKey).call();
         // const usdcBalance = web3.utils.fromWei(usdcBalanceWei, 'ether');
-        const usdcBalance = 100;
 
         // // Add the balances to the investor object that will be returned
         const investorDataWithBalances = {
             ...investor.toObject(), // Convert the mongoose document to a plain object
-            ethBalance,
+            agungBalance,
             usdcBalance
         };
 
