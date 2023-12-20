@@ -128,8 +128,8 @@ function roundToDecimals(str, x) {
                 <div className="balances-container">
                     <div className="wallet-balances-container">
                         <div className="wallet-balance">
-                            <strong className="balance-title">ETH</strong>
-                            <span className="balance-amount">{roundToDecimals(investorData.ethBalance, 2)}</span>
+                            <strong className="balance-title">AGUNG</strong>
+                            <span className="balance-amount">{roundToDecimals(investorData.agungBalance, 2)}</span>
                             <div className="btn-container">
                                 <button className="btn-penomo" onClick={() => setShowTopUp(true)}>Top Up</button>
                                 <button className="btn-penomo-secondary" onClick={() => toggleWithdraw('ETH')}>Withdraw</button>

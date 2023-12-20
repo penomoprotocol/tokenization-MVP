@@ -792,15 +792,6 @@ router.get('/investor/jwt', verifyToken, async (req, res) => {
         const agungBalance = web3.utils.fromWei(agungBalanceWei, 'ether');
         const usdcBalance = web3.utils.fromWei(usdcBalanceWei, 'ether');
 
-        // // Get AGUNG balance
-        // const agungBalanceWei = await web3.eth.getBalance(investor.ethereumPublicKey);
-        // const agungBalance = web3.utils.fromWei(ethBalanceWei, 'ether');
-
-
-        // // Get USDC balance
-        // const usdcBalanceWei = await USDContract.methods.balanceOf(investor.ethereumPublicKey).call();
-        // const usdcBalance = web3.utils.fromWei(usdcBalanceWei, 'ether');
-
         // // Add the balances to the investor object that will be returned
         const investorDataWithBalances = {
             ...investor.toObject(), // Convert the mongoose document to a plain object
@@ -810,8 +801,6 @@ router.get('/investor/jwt', verifyToken, async (req, res) => {
 
         res.json(investorDataWithBalances);
 
-        // res.json(balances);
-        //console.log("investorDataWithBalances: ", investorDataWithBalances);
     } catch (error) {
         console.error('Error retrieving investor details and balances:', error);
         res.status(500).send('Error retrieving investor');
