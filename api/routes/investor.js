@@ -770,7 +770,7 @@ router.get('/investor/jwt', verifyToken, async (req, res) => {
         const data = JSON.stringify({"address": walletAddress});
         const config = {
             method: 'post',
-            url: `${BLOCKEXPLORER_API_URL}/api/scan/account/tokens`,
+            url: `${BLOCKEXPLORER_API_URL}/api/scan/evm/tokens`,
             headers: { 
                 'User-Agent': 'Apidog/1.0.0 (https://apidog.com)', 
                 'Content-Type': 'application/json',
@@ -781,7 +781,7 @@ router.get('/investor/jwt', verifyToken, async (req, res) => {
 
         const balances = await axios(config);
 
-        console.log(balances);
+        console.log(JSON.stringify(balances.data, null, 2));
 
         // // Get ETH balance
         // const ethBalanceWei = await web3.eth.getBalance(investor.ethereumPublicKey);

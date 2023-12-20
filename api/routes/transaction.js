@@ -190,8 +190,8 @@ router.get('/transactions/user/:address', async (req, res) => {
         const tokenTxList = tokenTxResponse.data.data.list;
 
         // Print tx data for debugging
-        console.log("regularTxList: ", regularTxList);
-        console.log("tokenTxList: ", tokenTxList);
+        // console.log("regularTxList: ", regularTxList);
+        // console.log("tokenTxList: ", tokenTxList);
 
         // Create a set of hashes from regular transactions for quick lookup
         const regularTxHashes = new Set(regularTxList.map(tx => tx.hash));
