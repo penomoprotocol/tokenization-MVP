@@ -781,7 +781,8 @@ router.get('/investor/jwt', verifyToken, async (req, res) => {
 
         const balances = await axios(config);
 
-        console.log(JSON.stringify(balances.data, null, 2));
+        // FOR DEBUGGING
+        // console.log(JSON.stringify(balances.data, null, 2));
 
         const nativeBalances = balances.data.data.native;
         const erc20Balances = balances.data.data.ERC20;

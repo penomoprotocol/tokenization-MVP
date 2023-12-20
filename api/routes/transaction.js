@@ -189,18 +189,22 @@ router.get('/transactions/user/:address', async (req, res) => {
         const regularTxList = regularTxResponse.data.data.list;
         const tokenTxList = tokenTxResponse.data.data.list;
 
-        // Print tx data for debugging
-        // console.log("regularTxList: ", regularTxList);
-        // console.log("tokenTxList: ", tokenTxList);
+        // FOR DEBUGGING
+        console.log("regularTxList: ", regularTxList);
+        console.log("tokenTxList: ", tokenTxList);
+
+        // Ensure both lists are arrays
+        const safeRegularTxList = regularTxList || [];
+        const safeTokenTxList = tokenTxList || [];
 
         // Create a set of hashes from regular transactions for quick lookup
-        const regularTxHashes = new Set(regularTxList.map(tx => tx.hash));
+        const regularTxHashes = new Set(safeRegularTxList.map(tx => tx.hash));
 
         // Filter out token transactions that are already included in regular transactions
-        const uniqueTokenTransactions = tokenTxList.filter(tx => !regularTxHashes.has(tx.hash));
+        const uniqueTokenTransactions = safeTokenTxList.filter(tx => !regularTxHashes.has(tx.hash));
 
         // Combine and process both types of transactions
-        const combinedTransactions = regularTxList.concat(uniqueTokenTransactions);
+        const combinedTransactions = safeRegularTxList.concat(uniqueTokenTransactions);
 
         // Sort transactions by date
         combinedTransactions.sort((a, b) => a.block_timestamp - b.block_timestamp);
@@ -239,6 +243,9 @@ router.get('/transactions/user/:address', async (req, res) => {
                 hash: tx.hash
             };
         })).then(transactions => transactions.filter(tx => tx.transactionType !== 'Unknown')); // Filter out 'Unknown' transactions
+
+        // FOR DEBUGGING
+        console.log("formattedTransactions: ", formattedTransactions);
 
         res.status(200).json(formattedTransactions);
 

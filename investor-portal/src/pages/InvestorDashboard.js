@@ -41,9 +41,9 @@ const InvestorDashboard = () => {
             const userToken = localStorage.getItem('authToken');
             if (investorData?.ethereumPublicKey) {
                 try {
-                    const response = await axios.get(`${process.env.REACT_APP_PENOMO_API}/api/transactions/user/jwt`, {
-                        headers: { Authorization: `Bearer ${userToken}` }
-                    });
+                    const address = investorData.ethereumPublicKey; // Assuming this is your address variable
+                    const response = await axios.get(`${process.env.REACT_APP_PENOMO_API}/transactions/user/${address}`);
+                    
                     setInvestorTransactions(response.data.slice(-5)); // Store the last 5 transactions
                     // TODO: Calculate revenues from tokens and insert to setter function
                     // DEBUG
