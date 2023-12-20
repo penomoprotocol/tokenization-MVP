@@ -38,11 +38,11 @@ const InvestorDashboard = () => {
 
     useEffect(() => {
         const fetchTransactions = async () => {
-            const userToken = localStorage.getItem('authToken');
             if (investorData?.ethereumPublicKey) {
                 try {
                     const address = investorData.ethereumPublicKey; // Assuming this is your address variable
-                    const response = await axios.get(`${process.env.REACT_APP_PENOMO_API}/transactions/user/${address}`);
+                    console.log("address:", address);    
+                    const response = await axios.get(`${process.env.REACT_APP_PENOMO_API}/api/transactions/user/${address}`);
                     
                     setInvestorTransactions(response.data.slice(-5)); // Store the last 5 transactions
                     // TODO: Calculate revenues from tokens and insert to setter function
@@ -61,7 +61,7 @@ const InvestorDashboard = () => {
         setSelectedCurrency(currency); // Set the selected currency
         setShowWithdraw(!showWithdraw);
     };
-    const fullTokenAddressLink = (address) => `https://sepolia.etherscan.io/token/${address}`;
+    const fullTokenAddressLink = (address) => `https://agung-testnet.subscan.io/token/${address}`;
 
     // const weiToEth = (wei) => {
     //     return (wei / 1e18).toString();
@@ -195,8 +195,8 @@ function roundToDecimals(str, x) {
             <div className="recent-transactions section-container">
                 <h2>Recent Transactions</h2>
                 <ul className="section-list">
-                    {[...investorTransactions].reverse().map((transaction, index) => (
-                        <li className="section-list-item" key={index} onClick={() => window.open(`https://sepolia.etherscan.io/tx/${transaction.hash}`, '_blank')}>
+                    {[...investorTransactions].map((transaction, index) => (
+                        <li className="section-list-item" key={index} onClick={() => window.open(`https://agung-testnet.subscan.io/tx/${transaction.hash}`, '_blank')}>
                             <strong>Date:</strong> {transaction.date}<br />
                             <strong>Type:</strong> {transaction.transactionType}<br />
                             {transaction.tokenSymbol && <><strong>Token:</strong> {transaction.tokenSymbol}<br /></>}

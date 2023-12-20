@@ -6,14 +6,28 @@ import './Transactions.css'; // Ensure you have the CSS file
 const Transactions = () => {
   const [transactions, setTransactions] = useState([]);
   const [isLoading, setIsLoading] = useState(true); // New loading state
+  const [investorData, setInvestorData] = useState(null);
+
+  useEffect(() => {
+    const fetchInvestorData = async () => {
+        const userToken = localStorage.getItem('authToken');
+        try {
+            const investorDataRes = await axios.get(`${process.env.REACT_APP_PENOMO_API}/api/investor/jwt`, {
+                headers: { Authorization: `Bearer ${userToken}` }
+            });
+            setInvestorData(investorDataRes.data);
+        } catch (error) {
+            console.error('Error fetching investor data:', error);
+        }
+    };
+    fetchInvestorData();
+}, []);
 
   useEffect(() => {
     const fetchTransactions = async () => {
-      const userToken = localStorage.getItem('authToken');
       try {
-        const response = await axios.get(`${process.env.REACT_APP_PENOMO_API}/api/transactions/user/jwt`, {
-          headers: { Authorization: `Bearer ${userToken}` }
-        });
+        const address = investorData.ethereumPublicKey; 
+        const response = await axios.get(`${process.env.REACT_APP_PENOMO_API}/api/transactions/user/${address}`);
         setTransactions(response.data); 
       } catch (error) {
         console.error('Error fetching transactions:', error);
@@ -21,9 +35,8 @@ const Transactions = () => {
         setIsLoading(false); // Set loading to false after fetching data
       }
     };
-
     fetchTransactions();
-  }, []);
+  });
 
   function roundToDecimals(str, x) {
     let num = parseFloat(str);
@@ -54,8 +67,8 @@ const Transactions = () => {
           <p>Loading...</p> // Display Loading message
         ) : transactions.length > 0 ? (
                 <ul className="section-list">
-                {[...transactions].reverse().map((transaction, index) => (
-                    <li className="section-list-item" key={index} onClick={() => window.open(`https://sepolia.etherscan.io/tx/${transaction.hash}`, '_blank')}>
+                {[...transactions].map((transaction, index) => (
+                    <li className="section-list-item" key={index} onClick={() => window.open(`https://agung-testnet.subscan.io/tx/${transaction.hash}`, '_blank')}>
                         <strong>Date:</strong> {transaction.date}<br />
                         <strong>Type:</strong> {transaction.transactionType}<br />
                         {transaction.tokenSymbol && <><strong>Token:</strong> {transaction.tokenSymbol}<br /></>}

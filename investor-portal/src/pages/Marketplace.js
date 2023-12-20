@@ -34,7 +34,7 @@ const Marketplace = () => {
     };
 
     const shortAddress = (address) => `${address.slice(0, 6)}...${address.slice(-4)}`;
-    const fullTokenAddressLink = (address) => `https://sepolia.etherscan.io/token/${address}`;
+    const fullTokenAddressLink = (address) => `https://agung-testnet.subscan.io/token/${address}`;
     const formatTokenPrice = (price, currency) => currency === 'USDC' ? `${price} USDC` : `${price} ETH`;
 
     // const weiToEth = (wei) => {

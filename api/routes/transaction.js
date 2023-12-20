@@ -193,8 +193,10 @@ router.get('/transactions/user/:address', async (req, res) => {
         console.log("regularTxList: ", regularTxList);
         console.log("tokenTxList: ", tokenTxList);
 
+        // TODO: DEBUG RegularTxList
         // Ensure both lists are arrays
-        const safeRegularTxList = regularTxList || [];
+        //const safeRegularTxList = regularTxList || [];
+        const safeRegularTxList = [];
         const safeTokenTxList = tokenTxList || [];
 
         // Create a set of hashes from regular transactions for quick lookup
@@ -206,15 +208,16 @@ router.get('/transactions/user/:address', async (req, res) => {
         // Combine and process both types of transactions
         const combinedTransactions = safeRegularTxList.concat(uniqueTokenTransactions);
 
-        // Sort transactions by date
-        combinedTransactions.sort((a, b) => a.block_timestamp - b.block_timestamp);
+        // Sort transactions by date in descending order (most recent first)
+        combinedTransactions.sort((a, b) => b.block_timestamp - a.block_timestamp);
 
         const formattedTransactions = await Promise.all(combinedTransactions.map(async (tx) => {
             let transactionType, tokenAmount, tokenSymbol = null, currency = 'AGUNG';
 
-            const isUSDC = tx.contractAddress === USDCContractAddress; // USDC contract address
+            const isUSDC = tx.contract === USDCContractAddress; // USDC contract address
+            date = isUSDC ? new Date(tx.create_at * 1000).toLocaleString() : new Date(tx.block_timestamp * 1000).toLocaleString();
 
-            if (tx.methodId === '0x3610724e') {
+            if (tx.method === '0x3610724e') {
                 transactionType = 'Buy Token';
                 tokenAmount = tx.input ? parseInt(tx.input.slice(-64), 16) : null;
                 // Query MongoDB for the token symbol
@@ -239,13 +242,13 @@ router.get('/transactions/user/:address', async (req, res) => {
                 tokenAmount: transactionType === "Buy Token" ? web3.utils.fromWei(tokenAmount.toString(), 'ether') : tokenAmount,
                 tokenSymbol: tokenSymbol,
                 currency: currency,
-                date: new Date(tx.block_timestamp * 1000).toLocaleString(), // Using toLocaleString() to include time
+                date: date,
                 hash: tx.hash
             };
         })).then(transactions => transactions.filter(tx => tx.transactionType !== 'Unknown')); // Filter out 'Unknown' transactions
 
         // FOR DEBUGGING
-        console.log("formattedTransactions: ", formattedTransactions);
+        // console.log("formattedTransactions: ", formattedTransactions);
 
         res.status(200).json(formattedTransactions);
 
