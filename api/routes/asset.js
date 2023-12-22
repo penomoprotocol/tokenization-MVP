@@ -220,14 +220,11 @@ router.post('/asset/register', async (req, res) => {
         // Create DID using peaq SDK
         let did;
         try {
-            didObject = await createPeaqDID(batteryName, SEED);
-            console.log(`Created peaq DID: ${didObject}`);
+            did = await createPeaqDID(batteryName, SEED);
+            console.log(`Created peaq DID: ${did}`);
         } catch (error) {
             console.error(`Error creating peaq DID: ${error}`);
         }
-
-        // Extract the actual DID string from the didObject
-        did = didObject.id; 
 
         // Create a new Ethereum wallet for the asset
         const wallet = createWallet();
@@ -240,7 +237,7 @@ router.post('/asset/register', async (req, res) => {
         // Create a new asset with the wallet details
         const newAsset = new Asset({
             name: batteryName,
-            DID: didString,
+            DID: did,
             publicKey: publicKey,
             privateKey: encryptedPrivateKey,
             companyId: companyId
