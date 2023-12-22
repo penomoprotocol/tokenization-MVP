@@ -143,12 +143,25 @@ const createPeaqDID = async (name, seed) => {
         name,
     });
 
+    const hexHash = '0x' + Array.from(hash)
+    .map(byte => byte.toString(16).padStart(2, '0'))
+    .join('');
+
+    console.log("DID created. See tx: ", hexHash);
+
+    // Extract DID document
+    const did = await sdkInstance.did.read({ name, });
+
     await sdkInstance.disconnect();
 
-    return hash;
+    return did;
 };
 
-
+const readDID = async (sdk, name) => {
+    const did = await sdk.did.read(name, SEED);
+    console.log(did);
+    return did;
+};
 
 /**
  * @swagger
@@ -210,14 +223,12 @@ router.post('/asset/register', async (req, res) => {
         }
 
         // Create DID using peaq SDK
-        let hash;
+        let did;
         try {
-            hash = await createPeaqDID(batteryName, SEED);
-            console.log(`Created peaq DID: ${hash}`);
+            did = await createPeaqDID(batteryName, SEED);
         } catch (error) {
             console.error(`Error creating peaq DID: ${error}`);
         }
-
 
         // Create a new Ethereum wallet for the asset
         const wallet = createWallet();
@@ -230,9 +241,9 @@ router.post('/asset/register', async (req, res) => {
         // Create a new asset with the wallet details
         const newAsset = new Asset({
             name: batteryName,
-            DID: hash,
-            publicKey: publicKey, 
-            privateKey: encryptedPrivateKey, 
+            DID: did,
+            publicKey: publicKey,
+            privateKey: encryptedPrivateKey,
             companyId: companyId
         });
 

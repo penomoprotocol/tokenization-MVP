@@ -44,7 +44,7 @@ const InvestorDashboard = () => {
                     console.log("address:", address);    
                     const response = await axios.get(`${process.env.REACT_APP_PENOMO_API}/api/transactions/user/${address}`);
                     
-                    setInvestorTransactions(response.data.slice(-5)); // Store the last 5 transactions
+                    setInvestorTransactions(response.data.slice(0, 5)); // Store the first 5 transactions
                     // TODO: Calculate revenues from tokens and insert to setter function
                     // DEBUG
                     console.log(response);
@@ -197,7 +197,7 @@ function roundToDecimals(str, x) {
                 <ul className="section-list">
                     {[...investorTransactions].map((transaction, index) => (
                         <li className="section-list-item" key={index} onClick={() => window.open(`https://agung-testnet.subscan.io/tx/${transaction.hash}`, '_blank')}>
-                            <strong>Date:</strong> {transaction.date}<br />
+                            {/* <strong>Date:</strong> {transaction.date}<br /> */}
                             <strong>Type:</strong> {transaction.transactionType}<br />
                             {transaction.tokenSymbol && <><strong>Token:</strong> {transaction.tokenSymbol}<br /></>}
                             {transaction.tokenAmount && <><strong>Token Amount:</strong> {transaction.tokenAmount}<br /></>}

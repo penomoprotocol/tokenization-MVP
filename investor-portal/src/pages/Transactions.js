@@ -80,7 +80,7 @@ const Transactions = () => {
                 ))}
             </ul>
         ) : (
-          <p>No transactions found.</p>
+          <p>Loading...</p>
         )}
       </div>
     </div>
