@@ -51,22 +51,6 @@ const SEED = process.env.SEED;
 const { mnemonicGenerate } = require('@polkadot/util-crypto');
 const { Sdk } = require('@peaq-network/sdk');
 
-// // Generate a mnemonic seed
-// const generateMnemonicSeed = () => mnemonicGenerate();
-// const seed = generateMnemonicSeed();
-// console.log("seed: ", seed);
-
-// // Async function to initialize the SDK and return the instance
-// async function initializePeaqSdk() {
-//     const sdkInstance = await Sdk.createInstance({
-//         baseUrl: 'wss://wsspc1-qa.agung.peaq.network',
-//         seed,
-//     });
-
-//     return sdkInstance;
-// }
-// const sdkInstance = initializePeaqSdk().catch(console.error);
-
 
 
 
@@ -135,7 +119,6 @@ async function estimateAndSend(transaction, fromAddress, fromPrivateKey, toAddre
 // Function to create a new Ethereum wallet and return the private key
 const createWallet = () => {
     const wallet = web3.eth.accounts.create();
-    console.log("privateKey: ", wallet.privateKey);
     return wallet;
 };
 
@@ -149,6 +132,22 @@ const decryptPrivateKey = (encryptedKey, SECRET_KEY) => {
     const decrypted = CryptoJS.AES.decrypt(encryptedKey, SECRET_KEY).toString(CryptoJS.enc.Utf8);
     return decrypted;
 };
+
+const createPeaqDID = async (name, seed) => {
+    const sdkInstance = await Sdk.createInstance({
+        baseUrl: "wss://wsspc1-qa.agung.peaq.network",
+        seed
+    });
+
+    const { hash } = await sdkInstance.did.create({
+        name,
+    });
+
+    await sdkInstance.disconnect();
+
+    return hash;
+};
+
 
 
 /**
@@ -210,66 +209,19 @@ router.post('/asset/register', async (req, res) => {
             return res.status(401).send('Invalid credentials');
         }
 
-        // ACTUAL LOGIC WITH PEAQ SDK:
-        // // Generate a mnemonic seed. In a production environment, ensure this is done securely.
-        // const generateMnemonicSeed = () => mnemonicGenerate();
-
-        // // Normally, you would secure the seed phrase and not generate a new one each time
-        // const seed = generateMnemonicSeed();
-
-        // // Ensure the seed has a balance before creating the DID
-        // // This would typically be done off-line or in a secure environment, not within an API call
-        // const sdkInstance = await Sdk.createInstance({
-        //     baseUrl: 'wss://wsspc1-qa.agung.peaq.network',
-        //     seed,
-        // });
-
-        //   const { didHash } = await sdkInstance.did.create({
-        //     name,
-        //     controller: controllerDid, // Set the controller to the company's DID
-        //   });
-
-        //   await sdkInstance.disconnect();
-
-
-        // const { did } = await sdkInstance.did.create({
-        //     name: batteryName, // name of the asset
-        //     controller: companyDID, // the DID of the company controlling this asset
-        // });
-
-        const createPeaqDID = async (name, seed) => {
-            const sdkInstance = await Sdk.createInstance({
-                baseUrl: "wss://wsspc1-qa.agung.peaq.network",
-                seed
-            });
-
-            const { did } = await sdkInstance.did.create({
-                name,
-            });
-
-            await sdkInstance.disconnect();
-
-            return did;
-        };
-
-        createPeaqDID(batteryName, SEED)
-            .then((did) => {
-                console.log(`Created peaq DID: ${did}`);
-            })
-            .catch((error) => {
-                console.error(`Error creating peaq DID: ${error}`);
-            });
-
-        // // Generate a mock DID 
-        // const timestamp = new Date().getTime();
-        // const randomPart = crypto.randomBytes(8).toString('hex');
-        // const did = `did:peaq:${timestamp}-${randomPart}`;
+        // Create DID using peaq SDK
+        let hash;
+        try {
+            hash = await createPeaqDID(batteryName, SEED);
+            console.log(`Created peaq DID: ${hash}`);
+        } catch (error) {
+            console.error(`Error creating peaq DID: ${error}`);
+        }
 
 
         // Create a new Ethereum wallet for the asset
         const wallet = createWallet();
         const privateKey = wallet.privateKey;
-        console.log("Original privateKey: ", privateKey);
         const publicKey = wallet.address; // Get the public key (wallet address)
 
         // Encrypt the private key with the company's secret key
@@ -278,11 +230,10 @@ router.post('/asset/register', async (req, res) => {
         // Create a new asset with the wallet details
         const newAsset = new Asset({
             name: batteryName,
-            DID: did,
-            publicKey: publicKey, // Store the public key (wallet address)
-            privateKey: encryptedPrivateKey, // Store the encrypted private key
+            DID: hash,
+            publicKey: publicKey, 
+            privateKey: encryptedPrivateKey, 
             companyId: companyId
-            // CID and revenueStreamContracts can be added later when available
         });
 
         // Save the asset to the database
