@@ -143,6 +143,8 @@ const createPeaqDID = async (name, seed) => {
         name,
     });
 
+    console.log("Created DID, tx: ", hash);
+
     // Extract DID document
     const did = await sdkInstance.did.read({ name, });
     console.log(did);
