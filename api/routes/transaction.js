@@ -216,14 +216,15 @@ router.get('/transactions/user/:address', async (req, res) => {
 
             const isUSDC = tx.contract === USDCContractAddress; // USDC contract address
             date = isUSDC ? new Date(tx.create_at * 1000).toLocaleString() : new Date(tx.block_timestamp * 1000).toLocaleString();
-
-            if (tx.method === '0x3610724e') {
+            
+            const toServiceContract = await Token.findOne({ serviceContractAddress: tx.to });
+            const fromTokenContract = await Token.findOne({ tokenContractAddress: tx.from });
+        
+            if (tx.methodId === '0x3610724e' || toServiceContract || fromTokenContract) {
                 transactionType = 'Buy Token';
-                tokenAmount = tx.input ? parseInt(tx.input.slice(-64), 16) : null;
-                // Query MongoDB for the token symbol
-                const tokenData = await Token.findOne({ serviceContractAddress: tx.to });
-                tokenSymbol = tokenData ? tokenData.symbol : null;
-                currency = isUSDC ? 'USDC' : 'AGUNG';
+                // tokenAmount = tx.value ? parseInt(tx.value.slice(-64), 16) : null;
+                tokenSymbol = (toServiceContract || fromTokenContract) ? (toServiceContract || fromTokenContract).symbol : null;
+                currency = isUSDC ? 'USDC' : fromTokenContract.symbol;
             } else if (tx.from.toLowerCase() === address.toLowerCase()) {
                 transactionType = 'Withdraw';
                 currency = isUSDC ? 'USDC' : 'AGUNG';
@@ -239,7 +240,7 @@ router.get('/transactions/user/:address', async (req, res) => {
                 from: tx.from.toLowerCase() === address.toLowerCase() ? 'You' : tx.from,
                 to: tx.to.toLowerCase() === address.toLowerCase() ? 'You' : tx.to,
                 payableAmount: web3.utils.fromWei(tx.value, 'ether'),
-                tokenAmount: transactionType === "Buy Token" ? web3.utils.fromWei(tokenAmount.toString(), 'ether') : tokenAmount,
+                tokenAmount: tokenAmount,
                 tokenSymbol: tokenSymbol,
                 currency: currency,
                 date: date,
