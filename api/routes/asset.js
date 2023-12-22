@@ -143,11 +143,14 @@ const createPeaqDID = async (name, seed) => {
         name,
     });
 
-    console.log("Created DID, tx: ", hash);
+    const hexHash = '0x' + Array.from(hash)
+    .map(byte => byte.toString(16).padStart(2, '0'))
+    .join('');
+
+    console.log("DID created. See tx: ", hexHash);
 
     // Extract DID document
     const did = await sdkInstance.did.read({ name, });
-    console.log(did);
 
     await sdkInstance.disconnect();
 
@@ -223,7 +226,6 @@ router.post('/asset/register', async (req, res) => {
         let did;
         try {
             did = await createPeaqDID(batteryName, SEED);
-            console.log(`Created peaq DID: ${did}`);
         } catch (error) {
             console.error(`Error creating peaq DID: ${error}`);
         }
