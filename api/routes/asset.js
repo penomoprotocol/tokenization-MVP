@@ -39,14 +39,36 @@ const verifyToken = require('../middleware/jwtCheck');
 // const ipfsClient = require('ipfs-http-client');
 // const ipfs = ipfsClient({ host: 'localhost', port: '5001', protocol: 'http' }); // adjust if you're connecting to a different IPFS node
 
-const { Sdk } = require('@peaq-network/sdk');
-const { mnemonicGenerate } = require('@polkadot/util-crypto');
-
 require('dotenv').config();
 const SECRET_KEY = process.env.SECRET_KEY;
 const MONGO_URI = process.env.MONGO_URI;
 const MASTER_ADDRESS = process.env.MASTER_ADDRESS;
 const MASTER_PRIVATE_KEY = process.env.MASTER_PRIVATE_KEY;
+const SEED = process.env.SEED;
+
+
+// Initialize peaq sdk
+const { mnemonicGenerate } = require('@polkadot/util-crypto');
+const { Sdk } = require('@peaq-network/sdk');
+
+// // Generate a mnemonic seed
+// const generateMnemonicSeed = () => mnemonicGenerate();
+// const seed = generateMnemonicSeed();
+// console.log("seed: ", seed);
+
+// // Async function to initialize the SDK and return the instance
+// async function initializePeaqSdk() {
+//     const sdkInstance = await Sdk.createInstance({
+//         baseUrl: 'wss://wsspc1-qa.agung.peaq.network',
+//         seed,
+//     });
+
+//     return sdkInstance;
+// }
+// const sdkInstance = initializePeaqSdk().catch(console.error);
+
+
+
 
 // Connect to MongoDB
 mongoose.connect(MONGO_URI, { useNewUrlParser: true, useUnifiedTopology: true })
@@ -209,10 +231,39 @@ router.post('/asset/register', async (req, res) => {
 
         //   await sdkInstance.disconnect();
 
-        // Generate a mock DID 
-        const timestamp = new Date().getTime();
-        const randomPart = crypto.randomBytes(8).toString('hex');
-        const did = `did:peaq:${timestamp}-${randomPart}`;
+
+        // const { did } = await sdkInstance.did.create({
+        //     name: batteryName, // name of the asset
+        //     controller: companyDID, // the DID of the company controlling this asset
+        // });
+
+        const createPeaqDID = async (name, seed) => {
+            const sdkInstance = await Sdk.createInstance({
+                baseUrl: "wss://wsspc1-qa.agung.peaq.network",
+                seed
+            });
+
+            const { did } = await sdkInstance.did.create({
+                name,
+            });
+
+            await sdkInstance.disconnect();
+
+            return did;
+        };
+
+        createPeaqDID(batteryName, SEED)
+            .then((did) => {
+                console.log(`Created peaq DID: ${did}`);
+            })
+            .catch((error) => {
+                console.error(`Error creating peaq DID: ${error}`);
+            });
+
+        // // Generate a mock DID 
+        // const timestamp = new Date().getTime();
+        // const randomPart = crypto.randomBytes(8).toString('hex');
+        // const did = `did:peaq:${timestamp}-${randomPart}`;
 
 
         // Create a new Ethereum wallet for the asset
