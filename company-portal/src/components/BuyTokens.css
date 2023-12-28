@@ -1,0 +1,14 @@
+/* Include this file if specific styling is required for BuyTokens component */
+
+.token-purchase-form {
+  display: flex;
+  flex-direction: column;
+}
+
+.price-display {
+  margin-bottom: 3rem;
+}
+
+
+
+

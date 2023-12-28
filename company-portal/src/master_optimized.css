@@ -1,0 +1,202 @@
+/* Master styles that can be used across the entire application */
+
+:root {
+    /* CSS variables for consistent theming and easy maintenance */
+    --primary-color: #00b39f; /* Primary brand color for buttons and links */
+    --secondary-color: #333; /* Secondary color for text and less prominent elements */
+    --background-color: #f8f9fa; /* Light background color for sections */
+    --text-color: #000; /* Default text color */
+    --text-color-secondary: #333; /* Secondary text color for less emphasis */
+    --border-color: #ced4da; /* Border color for inputs and other elements */
+    --hover-color: #00897b; /* Color for hover states on interactive elements */
+    --error-color: #ff3860; /* Color for error messages and icons */
+    --padding-standard: 1rem; /* Standard padding for spacing within elements */
+    --margin-standard: 1rem; /* Standard margin for spacing between elements */
+    --border-radius: 8px; /* Standard border radius for rounded corners */
+    --box-shadow-standard: 0 4px 6px rgba(0, 0, 0, 0.1); /* Standard box shadow for depth */
+  }
+  
+  /* Global settings for the entire document */
+  html,
+  body {
+    margin: 0; /* Remove default margin */
+    padding: 0; /* Remove default padding */
+    font-family: 'Arial', sans-serif; /* Set default font */
+  }
+  
+  /* Utility classes for flexbox centering */
+  .flex-center {
+    display: flex; /* Use flexbox for layout */
+    justify-content: center; /* Center children horizontally */
+    align-items: center; /* Center children vertically */
+  }
+  
+  .flex-column {
+    flex-direction: column; /* Stack children vertically */
+  }
+  
+  .flex-row {
+    flex-direction: row; /* Align children horizontally */
+  }
+  
+  .flex-wrap {
+    flex-wrap: wrap; /* Allow children to wrap to new line on small screens */
+  }
+  
+  /* Text alignment utility */
+  .text-center {
+    text-align: center; /* Center text horizontally */
+  }
+  
+  /* Containers */
+  .page-container {
+    max-width: 90%; /* Set maximum width of the container */
+    padding: var(--padding-standard); /* Apply standard padding */
+    margin: var(--margin-standard) auto; /* Center the container with auto margins */
+  }
+  
+  /* Headers */
+  .page-header,
+  .section-header {
+    color: var(--secondary-color); /* Apply secondary color for text */
+    margin-top: var(--margin-standard); /* Apply standard top margin */
+    margin-bottom: var(--margin-standard); /* Apply standard bottom margin */
+    text-align: center; /* Center text */
+  }
+  
+  /* Section container */
+  .section-container {
+    background-color: var(--background-color); /* Apply background color */
+    border-radius: var(--border-radius); /* Apply rounded corners */
+    padding: var(--padding-standard); /* Apply padding */
+    margin: var(--margin-standard) 0; /* Apply vertical margins */
+    box-shadow: var(--box-shadow-standard); /* Apply box shadow for depth */
+  }
+  
+  /* List styles */
+  .section-list {
+    list-style: none; /* Remove default list styling */
+    padding: 0; /* Remove default padding */
+  }
+  
+  .section-list-item {
+    background-color: #fff; /* Set background color to white */
+    border: 1px solid var(--border-color); /* Apply border with defined color */
+    padding: var(--padding-standard); /* Apply padding */
+    margin-bottom: var(--margin-standard); /* Apply bottom margin */
+    border-radius: var(--border-radius); /* Apply rounded corners */
+    transition: background-color 0.3s ease; /* Animate background color on hover */
+  }
+  
+  .section-list-item:hover {
+    background-color: #eef6ff; /* Change background color on hover */
+  }
+  
+  /* Buttons */
+  .btn,
+  .btn-penomo {
+    background-color: var(--primary-color); /* Apply primary color */
+    color: var(--text-color); /* Apply text color */
+    border: none; /* Remove default borders */
+    padding: var(--padding-standard); /* Apply padding */
+    border-radius: var(--border-radius); /* Apply rounded corners */
+    font-weight: bold; /* Make text bold */
+    cursor: pointer; /* Change cursor to pointer */
+    outline: none; /* Remove outline on focus for some browsers */
+    transition: background-color 0.3s; /* Animate background color on hover */
+    margin: auto;
+  }
+  
+  .btn:hover,
+  .btn-penomo:hover {
+    background-color: var(--hover-color); /* Change background color on hover */
+  }
+  
+  .btn-disabled,
+  .btn-penomo.btn-disabled {
+    background-color: grey; /* Apply grey background for disabled state */
+    cursor: not-allowed; /* Change cursor to not-allowed icon */
+  }
+  
+  /* Focus styles for accessibility */
+  .btn:focus,
+  .btn-penomo:focus {
+    outline: 2px solid var(--secondary-color); /* Apply an outline on focus */
+    outline-offset: 2px; /* Offset the outline from the element's border */
+  }
+  
+  /* Popup styles */
+  .popup {
+    position: fixed; /* Fix position to the viewport */
+    top: 0; /* Align to top */
+    left: 0; /* Align to left */
+    width: 100%; /* Full width of the viewport */
+    height: 100%; /* Full height of the viewport */
+    background-color: rgba(0, 0, 0, 0.5); /* Semi-transparent background */
+    z-index: 1000; /* Place above other elements */
+  }
+  
+  .popup-content {
+    background-color: #fff; /* Set background color to white */
+    padding: var(--padding-standard); /* Apply padding */
+    border-radius: 10px; /* Apply rounded corners */
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2); /* Apply shadow for depth */
+    width: 80%; /* Set width to 80% of parent */
+    max-width: 500px; /* Set maximum width */
+    box-sizing: border-box; /* Include padding and border in the element's total width and height */
+  }
+  
+  /* Close button */
+  .close {
+    position: absolute; /* Absolute position relative to parent */
+    top: 1rem; /* Position from top */
+    right: 1rem; /* Position from right */
+    cursor: pointer; /* Change cursor to pointer */
+    font-size: 1.5rem; /* Set font size */
+    color: var(--secondary-color); /* Apply text color */
+  }
+  
+  .close:hover {
+    color: var(--hover-color); /* Change color on hover */
+  }
+  
+  /* Form styling */
+  .form-group {
+    display: flex; /* Use flexbox for layout */
+    justify-content: space-between; /* Space between label and input */
+    align-items: center; /* Align items vertically */
+    margin-bottom: var(--margin-standard); /* Apply bottom margin */
+  }
+  
+  .form-label {
+    flex-basis: 30%; /* Set label to take up 30% of the flex container */
+  }
+  
+  .form-control {
+    flex-basis: 70%; /* Set input to take up 70% of the flex container */
+    padding: 0.5rem; /* Apply padding */
+    border: 1px solid var(--border-color); /* Apply border */
+    border-radius: 0.25rem; /* Apply slight rounding to corners */
+  }
+  
+  /* Responsive styles */
+  @media (max-width: 768px) {
+    .page-container {
+      max-width: 100%; /* Allow container to fill the screen on small devices */
+      padding: var(--padding-standard); /* Apply padding */
+    }
+  
+    .form-label {
+      flex-basis: 40%; /* Increase label width on small screens */
+    }
+  
+    .form-control {
+      flex-basis: 60%; /* Decrease input width on small screens */
+    }
+  
+    .popup-content {
+      width: 90%; /* Increase width of popup content on small screens */
+      padding: var(--padding-standard); /* Apply padding */
+    }
+  }
+  

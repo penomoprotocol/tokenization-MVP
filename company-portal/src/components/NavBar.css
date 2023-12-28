@@ -1,0 +1,79 @@
+.navbar {
+    min-height: 5rem; /* Adjust to the height you want */
+    padding: 0 1rem; /* Adjust horizontal padding if needed, remove vertical padding */
+  }
+  
+  .navbar-brand {
+    display: flex;
+    align-items: center; /* Centers the logo vertically */
+    height: 100%;
+  }
+  
+  .navbar-logo {
+    max-height: 30px; /* 90% of the navbar's height */
+    width: auto; /* Maintain aspect ratio */
+    margin-right: 10px;
+  }
+  
+  .navbar-brand-text {
+    max-height: 1px; 
+    font-size: smaller;
+    width: auto; 
+    margin-right: 10px;
+  }
+
+  .btn-penomo-navbar {
+    background-color: #00CC9C;
+    /* Penomo color */
+    color: #000;
+    /* Text color set to black */
+    border: none;
+    /* Removes any default border */
+    padding: 10px 20px;
+    /* Padding for size */
+    border-radius: 5px;
+    /* Rounded corners */
+    font-weight: bold;
+    /* Bold font */
+    cursor: pointer;
+    /* Cursor indicates clickable button */
+    outline: none;
+    /* Removes outline on focus for some browsers */
+    transition: background-color 0.3s;
+    /* Smooth transition for hover effect */
+    /* margin-top: 0.5rem; */
+    margin: auto;
+    margin-left: 0.5rem;
+    text-decoration: none; /* Removes underline from links if it's an <a> element */
+    display: block; /* Makes the link behave like a block element */
+}
+
+.btn-secondary-navbar {
+    background-color: #9bbab6;
+    /* Penomo color */
+    color: #000;
+    /* Text color set to black */
+    border: none;
+    /* Removes any default border */
+    padding: 10px 20px;
+    /* Padding for size */
+    border-radius: 5px;
+    /* Rounded corners */
+    font-weight: bold;
+    /* Bold font */
+    cursor: pointer;
+    /* Cursor indicates clickable button */
+    outline: none;
+    /* Removes outline on focus for some browsers */
+    transition: background-color 0.3s;
+    /* Smooth transition for hover effect */
+    /*margin-top: 0.5rem; */
+    margin: auto;
+    margin-left: 0.5rem;
+    text-decoration: none; /* Removes underline from links if it's an <a> element */
+    display: block; /* Makes the link behave like a block element */
+}
+
+.font-weight-bold {
+  font-weight: 8000;
+}

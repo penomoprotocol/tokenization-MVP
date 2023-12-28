@@ -1,0 +1,26 @@
+/* Footer container */
+.footer-container {
+    display: flex;
+    flex-direction: column;
+    min-height: 5rem; /* Full height of the viewport */
+  }
+  
+  /* Content wrapper */
+  /* .content-wrap {
+    flex: 1; /* Allows content to expand and push footer down 
+  } */
+  
+  /* Footer styling */
+  .footer {
+    background-color: #333;
+    border-top: 1px solid #e7e7e7;
+    text-align: center;
+    padding: 1rem 0;
+    /* position: relative; */
+    width: 100%;
+    color: white;
+    margin-top: 4rem;
+    /* font-size: 0.8rem; */
+    /* line-height: 1.2; */
+  }
+  

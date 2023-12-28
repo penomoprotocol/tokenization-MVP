@@ -1,0 +1,302 @@
+/* Master styles that can be used across the entire application */
+
+/* Global settings */
+html,
+body {
+    margin: 0;
+    padding: 0;
+    font-family: 'Ubuntu', sans-serif;
+    background-color: #121212; /* Dark background */
+    color: #e0e0e0; /* Light text color for contrast */
+}
+
+/* Center Content */
+.center {
+    justify-content: center;
+    align-items: center;
+}
+
+.content-center {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+/* This class can be used to center content horizontally within its parent */
+.horizontal-center {
+    display: flex;
+    justify-content: center;
+}
+
+/* This class can be used to center content vertically within its parent */
+.vertical-center {
+    display: flex;
+    align-items: center;
+}
+
+/* This class can be used to center content both vertically and horizontally within its parent */
+.full-center {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+/* This class can be used to center text within its container */
+.text-center {
+    text-align: center;
+}
+
+/* This class can be used for buttons or other clickable elements to indicate action */
+.btn-center {
+    display: block;
+    /* Change to block to allow margin auto to work */
+    margin-left: auto;
+    margin-right: auto;
+}
+
+.margin-bottom-2rem {
+    margin-bottom: 2rem;
+}
+
+/* Containers */
+
+.page-container {
+    width: 80%;
+    margin: 0 auto;
+    height: 50rem;
+    text-align: left;
+    background-color: #1e1e1e; /* Slightly lighter than body background */
+}
+
+/* Common header for pages */
+.page-header {
+    color: #ffffff; /* Light color for text */
+    margin-top: 2rem;
+    margin-bottom: 4rem;
+    text-align: center;
+}
+
+/* Container for each major section */
+.section-container {
+    background-color: #2a2a2a; /* Dark background for sections */
+    border-radius: 8px;
+    padding: 2rem;
+    margin-block: 1rem;
+    margin-bottom: 4rem;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.5); /* Adjust shadow for dark mode */
+}
+
+/* Common header for sections */
+.section-header {
+    color: #ffffff; /* Light color for text */
+    margin-top: 0.3rem;
+    margin-bottom: 1rem;
+    text-align: left;
+}
+
+/* Styled list for sections */
+.section-list {
+    list-style: none;
+    padding: 0;
+}
+
+/* Styled list item */
+.section-list-item {
+    background-color: #242424; /* Dark background for list items */
+    border: 1px solid #383838; /* Darker border color */
+    padding: 1rem;
+    margin-bottom: 1rem;
+    border-radius: 5px;
+    transition: background-color 0.3s ease;
+}
+
+.section-list-item:hover {
+    background-color: #313131; /* Slightly lighter on hover */
+}
+
+/* Common button styling */
+.btn {
+    background-color: #0056b3; /* Keep primary button colors */
+    color: white;
+    text-decoration: none;
+    padding: 10px 15px;
+    margin: 0 0px;
+    border-radius: 5px;
+    display: inline-block;
+    transition: background-color 0.3s ease;
+}
+
+.btn:hover {
+    background-color: #003d82; /* Darken on hover */
+}
+
+
+/* Content wrapper */
+.content-wrap {
+    flex: 1;
+    /* Allows content to expand and push footer down */
+}
+
+/* Penomo Button */
+.btn-penomo {
+    background-color: #00CC9C; /* Keep Penomo color */
+    color: #000;
+    /* Text color set to black */
+    border: none;
+    /* Removes any default border */
+    padding: 10px 15px;
+    /* Padding for size */
+    border-radius: 5px;
+    /* Rounded corners */
+    font-weight: bold;
+    /* Bold font */
+    cursor: pointer;
+    /* Cursor indicates clickable button */
+    outline: none;
+    /* Removes outline on focus for some browsers */
+    transition: background-color 0.3s;
+    /* Smooth transition for hover effect */
+    display: block; /* Add this line */
+    margin: auto;
+}
+
+.btn-penomo-secondary {
+    background-color: #9bbab6; /* Keep Penomo secondary color */
+    color: #000;
+    /* Text color set to black */
+    border: none;
+    /* Removes any default border */
+    padding: 10px 15px;
+    /* Padding for size */
+    border-radius: 5px;
+    /* Rounded corners */
+    font-weight: bold;
+    /* Bold font */
+    cursor: pointer;
+    /* Cursor indicates clickable button */
+    outline: none;
+    /* Removes outline on focus for some browsers */
+    transition: background-color 0.3s;
+    /* Smooth transition for hover effect */
+    display: block; /* Add this line */
+    margin: auto;
+}
+
+.btn-penomo:hover {
+    background-color: #00b38a; /* Darken on hover */
+    /* Darker shade of Penomo color for hover state */
+}
+
+.btn-penomo.btn-disabled {
+    background-color: grey;
+    /* Change the background color for the disabled state */
+    cursor: default;
+    /* Disable the pointer cursor */
+}
+
+/* Popup styles */
+.popup-header {
+    position: relative;
+    /* This ensures that absolute positioning is relative to this container */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 2rem;
+}
+
+/* Make sure the title does not overlap with the close button */
+.popup-header h2 {
+    padding-right: 40px;
+    /* Adjust as needed */
+}
+
+.popup {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.75); /* Semi-transparent background */
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000; /* Ensure it's on top */
+    padding: 1rem; /* Add padding to ensure margin from the window borders */
+    box-sizing: border-box; /* Include padding in the width and height calculations */
+}
+
+.popup-content {
+    background-color: #1e1e1e; 
+    padding: 2rem;
+    border-radius: 10px;
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+    width: calc(100% - 2rem); /* Adjust width to account for padding */
+    max-width: 500px;
+    display: flex; /* Use flexbox to align children */
+    flex-direction: column; /* Stack children vertically */
+    justify-content: center; /* Center children vertically */
+    align-items: center; /* Center children horizontally */
+    box-sizing: border-box; /* Include padding in the width and height calculations */
+}
+
+/* Close button */
+.close {
+    position: absolute;
+    /* Absolute position for the close button */
+    top: 1px;
+    /* Adjust as needed to move up towards the top corner */
+    right: 1px;
+    /* Adjust as needed to move towards the right corner */
+    cursor: pointer;
+    font-size: 1.5rem;
+    /* Adjust the size as needed */
+    line-height: 1;
+    color: #ffffff;
+    /* Adjust the color as needed */
+}
+
+
+.close:hover {
+    color: #333;
+}
+
+/* Form styling */
+.form-group {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1rem;
+}
+
+.form-label {
+    flex-basis: 30%;
+    text-align: left;
+}
+
+.form-control {
+    flex-basis: 70%;
+    padding: 0.5rem;
+    background-color: #242424; /* Dark background for form controls */
+    color: #e0e0e0; /* Light text color */
+    border: 1px solid #383838; /* Darker border color */
+    border-radius: 0.25rem;
+    margin-bottom: 1rem;
+}
+
+
+
+/* Additional styles for responsiveness and aesthetics */
+@media (max-width: 768px) {
+    .popup-content {
+        width: 90%;
+        padding: 1rem;
+    }
+
+    .form-label {
+        flex-basis: 40%;
+    }
+
+    .form-control {
+        flex-basis: 60%;
+    }
+}

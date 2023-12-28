@@ -1,0 +1,66 @@
+/* Marketplace.css */
+
+/* Card container styling */
+.section-container {
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    height: 100%;
+  }
+  
+  /* Card content styling */
+  .card-content {
+    word-wrap: break-word; /* Ensures long text doesn't overflow */
+    flex: 1; /* Pushes the button to the bottom */
+  }
+  
+  .card-content h2 {
+    text-align: center;
+    margin-bottom: 1rem;
+  }
+  
+  /* Token details layout */
+  .token-details {
+    display: flex;
+    flex-direction: column;
+}
+
+.token-detail {
+    display: flex; /* Use flexbox to layout children */
+    justify-content: space-between; /* Place space between the children */
+    align-items: center; /* Align items vertically */
+    margin-bottom: 0.5rem; /* Optional: space between token details */
+  }
+  
+  .detail-name,
+  .detail-value {
+    /* Display these as inline-block so they don't take full width */
+    display: inline-block;
+  }
+  
+
+
+  /* Link styling */
+  .card-content a {
+    color: #007bff; /* Style for links */
+    text-decoration: none;
+  }
+  
+  .card-content a:hover {
+    text-decoration: underline;
+  }
+  
+  /* Button styling */
+  .btn-penomo {
+    align-self: center;
+    margin-top: 20px;
+  }
+  
+  /* Responsive adjustments */
+  @media (max-width: 768px) {
+    .card-content {
+      font-size: smaller; /* Reduce font size on smaller screens */
+    }
+  }
+  
