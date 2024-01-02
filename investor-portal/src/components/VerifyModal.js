@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { Modal, Form, Button } from 'react-bootstrap';
 import axios from 'axios';
 
-const VerifyModal = ({ show, handleClose, investorId, authToken }) => {
+const VerifyModal = ({ show, handleClose, companyId, authToken }) => {
     const [firstName, setFirstName] = useState('');
     const [surname, setSurname] = useState('');
     const [dob, setDob] = useState(''); // Date of birth
@@ -34,7 +34,7 @@ const VerifyModal = ({ show, handleClose, investorId, authToken }) => {
         try {
             // Construct verification data object
             const verificationData = {
-                investorId,
+                companyId,
                 firstName,
                 surname,
                 dob,
@@ -43,9 +43,9 @@ const VerifyModal = ({ show, handleClose, investorId, authToken }) => {
                 expiryDate,
             };
             console.log("Auth Token:", authToken);
-            console.log("Investor ID:", investorId);
+            console.log("Investor ID:", companyId);
             // Call verification API endpoint
-            const response = await axios.post(`${process.env.REACT_APP_PENOMO_API}/api/investor/verify`, verificationData, {
+            const response = await axios.post(`${process.env.REACT_APP_PENOMO_API}/api/company/verify`, verificationData, {
                 headers: { Authorization: `Bearer ${authToken}` }
             });
 

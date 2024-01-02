@@ -1,4 +1,4 @@
-const TopUpWallet = ({ investorAddress, closeModal, show }) => {
+const TopUpWallet = ({ companyAddress, closeModal, show }) => {
 
   // Close modal and clear message
   const handleClose = () => {
@@ -18,7 +18,7 @@ const TopUpWallet = ({ investorAddress, closeModal, show }) => {
         <div>
           <p>Send funds to the following address to top up your wallet:</p>
         </div>
-        <div className='margin-bottom-2rem'><strong>{investorAddress}</strong></div>
+        <div className='margin-bottom-2rem'><strong>{companyAddress}</strong></div>
         <button className="btn-penomo btn-center " onClick={handleClose}>OK</button>
       </div>
     </div>
