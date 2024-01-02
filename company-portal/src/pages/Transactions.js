@@ -6,27 +6,27 @@ import './Transactions.css'; // Ensure you have the CSS file
 const Transactions = () => {
   const [transactions, setTransactions] = useState([]);
   const [isLoading, setIsLoading] = useState(true); // New loading state
-  const [investorData, setInvestorData] = useState(null);
+  const [companyData, setCompanyData] = useState(null);
 
   useEffect(() => {
-    const fetchInvestorData = async () => {
+    const fetchCompanyData = async () => {
         const userToken = localStorage.getItem('authToken');
         try {
-            const investorDataRes = await axios.get(`${process.env.REACT_APP_PENOMO_API}/api/investor/jwt`, {
+            const companyDataRes = await axios.get(`${process.env.REACT_APP_PENOMO_API}/api/company/jwt`, {
                 headers: { Authorization: `Bearer ${userToken}` }
             });
-            setInvestorData(investorDataRes.data);
+            setCompanyData(companyDataRes.data);
         } catch (error) {
-            console.error('Error fetching investor data:', error);
+            console.error('Error fetching company data:', error);
         }
     };
-    fetchInvestorData();
+    fetchCompanyData();
 }, []);
 
   useEffect(() => {
     const fetchTransactions = async () => {
       try {
-        const address = investorData.ethereumPublicKey; 
+        const address = companyData.ethereumPublicKey; 
         const response = await axios.get(`${process.env.REACT_APP_PENOMO_API}/api/transactions/user/${address}`);
         setTransactions(response.data); 
       } catch (error) {

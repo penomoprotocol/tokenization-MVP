@@ -3,48 +3,48 @@ import axios from 'axios';
 // import BalanceChart from '../components/BalanceChart';
 import TopUpWallet from '../components/TopUpWallet';
 import WithdrawWallet from '../components/WithdrawWallet'; // Import the WithdrawWallet component
-import './InvestorDashboard.css';
+import './CompanyDashboard.css';
 
-const InvestorDashboard = () => {
-    const [investorData, setInvestorData] = useState(null);
-    const [investorTokenHoldings, setInvestorTokenHoldings] = useState(null);
-    const [investorTransactions, setInvestorTransactions] = useState([]);
+const CompanyDashboard = () => {
+    const [companyData, setCompanyData] = useState(null);
+    const [companyTokenHoldings, setCompanyTokenHoldings] = useState(null);
+    const [companyTransactions, setCompanyTransactions] = useState([]);
     const [showTopUp, setShowTopUp] = useState(false);
     const [isLoadingTokenHoldings, setIsLoadingTokenHoldings] = useState(true);
     const [showWithdraw, setShowWithdraw] = useState(false); // State for WithdrawWallet modal
     const [selectedCurrency, setSelectedCurrency] = useState('ETH');
 
     useEffect(() => {
-        const fetchInvestorData = async () => {
+        const fetchCompanyData = async () => {
             const userToken = localStorage.getItem('authToken');
             try {
-                const investorDataRes = await axios.get(`${process.env.REACT_APP_PENOMO_API}/api/investor/jwt`, {
+                const companyDataRes = await axios.get(`${process.env.REACT_APP_PENOMO_API}/api/company/jwt`, {
                     headers: { Authorization: `Bearer ${userToken}` }
                 });
-                setInvestorData(investorDataRes.data);
+                setCompanyData(companyDataRes.data);
 
-                const investorTokenHoldingsRes = await axios.get(`${process.env.REACT_APP_PENOMO_API}/api/token/jwt`, {
+                const companyTokenHoldingsRes = await axios.get(`${process.env.REACT_APP_PENOMO_API}/api/token/jwt`, {
                     headers: { Authorization: `Bearer ${userToken}` }
                 });
-                setInvestorTokenHoldings(investorTokenHoldingsRes.data);
+                setCompanyTokenHoldings(companyTokenHoldingsRes.data);
                 setIsLoadingTokenHoldings(false);
             } catch (error) {
-                console.error('Error fetching investor data:', error);
+                console.error('Error fetching company data:', error);
                 setIsLoadingTokenHoldings(false); // Ensure loading state is set to false even if there's an error
             }
         };
-        fetchInvestorData();
+        fetchCompanyData();
     }, []);
 
     useEffect(() => {
         const fetchTransactions = async () => {
-            if (investorData?.ethereumPublicKey) {
+            if (companyData?.ethereumPublicKey) {
                 try {
-                    const address = investorData.ethereumPublicKey; // Assuming this is your address variable
+                    const address = companyData.ethereumPublicKey; // Assuming this is your address variable
                     console.log("address:", address);    
                     const response = await axios.get(`${process.env.REACT_APP_PENOMO_API}/api/transactions/user/${address}`);
                     
-                    setInvestorTransactions(response.data.slice(0, 5)); // Store the first 5 transactions
+                    setCompanyTransactions(response.data.slice(0, 5)); // Store the first 5 transactions
                     // TODO: Calculate revenues from tokens and insert to setter function
                     // DEBUG
                     console.log(response);
@@ -55,7 +55,7 @@ const InvestorDashboard = () => {
         };
 
         fetchTransactions();
-    }, [investorData?.ethereumPublicKey]);
+    }, [companyData?.ethereumPublicKey]);
 
     const toggleWithdraw = (currency) => {
         setSelectedCurrency(currency); // Set the selected currency
@@ -108,15 +108,15 @@ function roundToDecimals(str, x) {
     //     ]
     // };
 
-    // Check if investorData is loaded
-    if (!investorData) {
+    // Check if companyData is loaded
+    if (!companyData) {
         return <div className='content-center page-header'>Loading...</div>;
     }
 
 
     return (
         <div className="page-container">
-            <h1 className="page-header">Welcome, {investorData.firstname} {investorData.surname}</h1>
+            <h1 className="page-header">Welcome, {companyData.firstname} {companyData.surname}</h1>
             {/* <div className="section-container">
                 <div className="balance-chart-container">
                     <BalanceChart data={mockHistoricData} />
@@ -129,7 +129,7 @@ function roundToDecimals(str, x) {
                     <div className="wallet-balances-container">
                         <div className="wallet-balance">
                             <strong className="balance-title">AGUNG</strong>
-                            <span className="balance-amount">{roundToDecimals(investorData.agungBalance, 2)}</span>
+                            <span className="balance-amount">{roundToDecimals(companyData.agungBalance, 2)}</span>
                             <div className="btn-container">
                                 <button className="btn-penomo" onClick={() => setShowTopUp(true)}>Top Up</button>
                                 <button className="btn-penomo-secondary" onClick={() => toggleWithdraw('ETH')}>Withdraw</button>
@@ -137,7 +137,7 @@ function roundToDecimals(str, x) {
                         </div>
                         <div className="wallet-balance">
                             <strong className="balance-title">USDC</strong>
-                            <span className="balance-amount">{roundToDecimals(investorData.usdcBalance, 2)}</span>
+                            <span className="balance-amount">{roundToDecimals(companyData.usdcBalance, 2)}</span>
                             <div className="btn-container">
                                 <button className="btn-penomo" onClick={() => setShowTopUp(true)}>Top Up</button>
                                 <button className="btn-penomo-secondary" onClick={() => toggleWithdraw('USDC')}>Withdraw</button>
@@ -151,8 +151,8 @@ function roundToDecimals(str, x) {
                 <h2 className="section-header">RWA Tokens</h2>
                 {isLoadingTokenHoldings ? (
                     <p>Loading...</p> // Display loading message while data is being fetched
-                ) : investorTokenHoldings && investorTokenHoldings.length > 0 ? (
-                    investorTokenHoldings.map((token) => (
+                ) : companyTokenHoldings && companyTokenHoldings.length > 0 ? (
+                    companyTokenHoldings.map((token) => (
                         <div className="portfolio-item" key={token.name}>
                             <div style={{ flex: '1 1 16.6%' }} className="label-value">
                                 <strong>{token.name} </strong>
@@ -195,7 +195,7 @@ function roundToDecimals(str, x) {
             <div className="recent-transactions section-container">
                 <h2>Recent Transactions</h2>
                 <ul className="section-list">
-                    {[...investorTransactions].map((transaction, index) => (
+                    {[...companyTransactions].map((transaction, index) => (
                         <li className="section-list-item" key={index} onClick={() => window.open(`https://agung-testnet.subscan.io/tx/${transaction.hash}`, '_blank')}>
                             {/* <strong>Date:</strong> {transaction.date}<br /> */}
                             <strong>Type:</strong> {transaction.transactionType}<br />
@@ -214,7 +214,7 @@ function roundToDecimals(str, x) {
             {
                 showTopUp &&
                 <TopUpWallet
-                    investorAddress={investorData.ethereumPublicKey}
+                    companyAddress={companyData.ethereumPublicKey}
                     closeModal={() => setShowTopUp(false)}
                     show={showTopUp}
                 />
@@ -233,6 +233,6 @@ function roundToDecimals(str, x) {
     );
 };
 
-export default InvestorDashboard;
+export default CompanyDashboard;
 
 
