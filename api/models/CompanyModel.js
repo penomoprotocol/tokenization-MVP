@@ -2,7 +2,14 @@ const mongoose = require('mongoose');
 
 // Define company schema
 const companySchema = new mongoose.Schema({
-    name: {
+    surname: {
+        type: String,
+    },    
+    firstname: {
+        type: String,
+    },
+    dob: Date,
+    businessName: {
         type: String,
         required: true
     },

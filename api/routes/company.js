@@ -142,11 +142,11 @@ function serializeBigIntInObject(obj) {
  *           schema:
  *             type: object
  *             required:
- *               - name
+ *               - businessName
  *               - email
  *               - password
  *             properties:
- *               name:
+ *               businessName:
  *                 type: string
  *                 description: Name of the company
  *               email:
@@ -181,7 +181,7 @@ function serializeBigIntInObject(obj) {
 // Company Registration
 router.post('/company/register', async (req, res) => {
     try {
-        const { name, email, password } = req.body;
+        const {businessName, email, password } = req.body;
         const hashedPassword = await bcrypt.hash(password, 10);
 
         // Create a new Ethereum wallet and get the private key
@@ -193,7 +193,7 @@ router.post('/company/register', async (req, res) => {
         const encryptedPrivateKey = encryptPrivateKey(privateKey, SECRET_KEY);
 
         const company = new Company({
-            name,
+            businessName,
             email,
             password: hashedPassword,
             ethereumPrivateKey: encryptedPrivateKey, // Store the encrypted private key
@@ -324,7 +324,15 @@ router.post('/company/login', async (req, res) => {
 // Company KYC
 router.post('/company/verify', async (req, res) => {
     try {
-        const { companyId, businessName, registrationNumber, businessAddress, businessPhone } = req.body;
+        const {
+            companyId, 
+            firstName, 
+            surname,
+            dob,
+            businessName,
+            registrationNumber,
+            businessAddress,
+            businessPhone} = req.body;
 
         // Fetch company from the database
         const company = await Company.findById(companyId);
@@ -333,7 +341,10 @@ router.post('/company/verify', async (req, res) => {
         }
 
         // Update company with additional verification info
-        company.name = businessName;
+        company.firstname = firstName;
+        company.surnamee = surname;
+        company.dob = dob;
+        company.businessName = businessName;
         company.registrationNumber = registrationNumber;
         company.businessAddress = businessAddress;
         company.businessPhone = businessPhone;

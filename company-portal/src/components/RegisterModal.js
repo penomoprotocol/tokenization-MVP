@@ -5,7 +5,7 @@ import axios from 'axios';
 import { useNavigate, Link } from 'react-router-dom';
 
 const RegisterModal = ({ show, handleClose }) => {
-  const [name, setName] = useState('');
+  const [businessName, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
@@ -17,7 +17,7 @@ const RegisterModal = ({ show, handleClose }) => {
     setIsRegistering(true); // Start the registration process
     try {
       await axios.post(`${process.env.REACT_APP_PENOMO_API}/api/company/register`, {
-        name,
+        businessName,
         email,
         password,
       });
@@ -39,12 +39,12 @@ const RegisterModal = ({ show, handleClose }) => {
       <Modal.Body>
         <form onSubmit={handleRegister}>
           <div className="form-group">
-            <label htmlFor="surname" className="form-label">Company Name:</label>
+            <label htmlFor="businessName" className="form-label">Company Name:</label>
             <input
               type="text"
-              id="name"
+              id="businessName"
               className="form-control"
-              value={name}
+              value={businessName}
               onChange={(e) => setName(e.target.value)}
               required
             />
