@@ -14,7 +14,7 @@ const WithdrawWallet = ({ currency, closeModal, show }) => {
 
     try {
       setStatus('pending');
-      await axios.post(`${process.env.REACT_APP_PENOMO_API}/api/investor/transfer`, {
+      await axios.post(`${process.env.REACT_APP_PENOMO_API}/api/company/transfer`, {
         amount,
         currency,
         walletAddress

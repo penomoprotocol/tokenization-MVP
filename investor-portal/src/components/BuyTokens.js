@@ -16,7 +16,7 @@ const BuyTokens = ({ token, closeModal, show }) => {
         throw new Error("Service contract address is not available.");
       }
 
-      const response = await axios.post(`${process.env.REACT_APP_PENOMO_API}/api/investor/buyToken`, {
+      const response = await axios.post(`${process.env.REACT_APP_PENOMO_API}/api/company/buyToken`, {
         tokenAmount: tokenAmount,
         serviceContractAddress: token.serviceContractAddress,
         currency: token.acceptedCurrency, // Include the currency in the request

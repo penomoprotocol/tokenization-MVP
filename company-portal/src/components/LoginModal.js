@@ -15,7 +15,7 @@ const LoginModal = ({ show, handleClose }) => {
   const handleLogin = async (event) => {
     event.preventDefault();
     try {
-      const response = await axios.post(`${process.env.REACT_APP_PENOMO_API}/api/investor/login`, { email, password });
+      const response = await axios.post(`${process.env.REACT_APP_PENOMO_API}/api/company/login`, { email, password });
       login(response.data.token); // Your context provider will handle the state
       localStorage.setItem('authToken', response.data.token); // Store the token in localStorage
       handleClose(); // Close the modal
