@@ -284,14 +284,13 @@ router.post('/company/login', async (req, res) => {
         res.status(500).send('Error logging in');
     }
 });
-
 /**
  * @swagger
  * /api/company/verify:
  *   post:
  *     summary: Verify company (KYB+AML) and add wallet address to GlobalStateContract whitelist.
  *     tags: 
- *     - Company
+ *       - Company
  *     requestBody:
  *       required: true
  *       content:
@@ -301,6 +300,19 @@ router.post('/company/login', async (req, res) => {
  *             properties:
  *               companyId:
  *                 type: string
+ *                 description: Unique identifier of the company.
+ *               businessName:
+ *                 type: string
+ *                 description: Name of the business.
+ *               registrationNumber:
+ *                 type: string
+ *                 description: Business registration number.
+ *               businessAddress:
+ *                 type: string
+ *                 description: Physical address of the business.
+ *               businessPhone:
+ *                 type: string
+ *                 description: Contact phone number of the business.
  *     responses:
  *       200:
  *         description: Company successfully verified.
@@ -308,16 +320,26 @@ router.post('/company/login', async (req, res) => {
  *         description: An error occurred or transaction failed.
  */
 
+
 // Company KYC
 router.post('/company/verify', async (req, res) => {
     try {
-        const { companyId } = req.body;
+        const { companyId, businessName, registrationNumber, businessAddress, businessPhone } = req.body;
 
         // Fetch company from the database
         const company = await Company.findById(companyId);
         if (!company) {
             return res.status(404).send('Company not found');
         }
+
+        // Update company with additional verification info
+        company.name = businessName;
+        company.registrationNumber = registrationNumber;
+        company.businessAddress = businessAddress;
+        company.businessPhone = businessPhone;
+        company.isVerified = true; // Set the company as verified
+
+        await company.save(); // Save the updated company data
 
         // Get company's public Ethereum address
         const companyWalletAddress = company.ethereumPublicKey;
@@ -342,8 +364,8 @@ router.post('/company/verify', async (req, res) => {
         // Check if the transaction was successful
         if (receipt.status) {
             return res.status(200).json({
-                message: 'Company successfully verified. Whitelisted company wallet in Global State Contract.',
-                transactionHash: receipt.transactionHash  // Include the transaction hash in the response
+                message: 'Company successfully verified and whitelisted in Global State Contract.',
+                transactionHash: receipt.transactionHash
             });
         } else {
             return res.status(500).json({ error: 'Transaction failed' });
@@ -354,6 +376,7 @@ router.post('/company/verify', async (req, res) => {
         return res.status(500).json({ error: 'An error occurred' });
     }
 });
+
 
 
 /**

@@ -312,8 +312,6 @@ router.post('/investor/login', async (req, res) => {
  *       500:
  *         description: An error occurred or transaction failed.
  */
-
-// TODO: update "verified" status in Investor db instance. Add kyc data, such as passport number, date and signature of KYC provider
 // Investor KYC
 router.post('/investor/verify', verifyToken, async (req, res) => {
     try {

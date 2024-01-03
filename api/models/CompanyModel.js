@@ -5,7 +5,17 @@ const companySchema = new mongoose.Schema({
     name: {
         type: String,
         required: true
-    },   
+    },
+    registrationNumber: {
+        type: String,
+        unique: true
+    },
+    businessAddress: {
+        type: String,
+    },
+    businessPhone: {
+        type: String,
+    },
     email: {
         type: String,
         required: true,
@@ -17,12 +27,16 @@ const companySchema = new mongoose.Schema({
     },
     ethereumPrivateKey: {
         type: String,
-        unique: true,
+        unique: true
     },
     ethereumPublicKey: {
         type: String,
         unique: true
     },
+    isVerified: {
+        type: Boolean,
+        default: false
+    }
 });
 
 const Company = mongoose.model('Company', companySchema);

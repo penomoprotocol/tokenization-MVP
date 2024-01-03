@@ -5,8 +5,7 @@ import axios from 'axios';
 import { useNavigate, Link } from 'react-router-dom';
 
 const RegisterModal = ({ show, handleClose }) => {
-  const [surname, setSurname] = useState('');
-  const [firstname, setFirstname] = useState('');
+  const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
@@ -18,8 +17,7 @@ const RegisterModal = ({ show, handleClose }) => {
     setIsRegistering(true); // Start the registration process
     try {
       await axios.post(`${process.env.REACT_APP_PENOMO_API}/api/company/register`, {
-        surname,
-        firstname,
+        name,
         email,
         password,
       });
@@ -41,24 +39,13 @@ const RegisterModal = ({ show, handleClose }) => {
       <Modal.Body>
         <form onSubmit={handleRegister}>
           <div className="form-group">
-            <label htmlFor="surname" className="form-label">Surname:</label>
+            <label htmlFor="surname" className="form-label">Company Name:</label>
             <input
               type="text"
-              id="surname"
+              id="name"
               className="form-control"
-              value={surname}
-              onChange={(e) => setSurname(e.target.value)}
-              required
-            />
-          </div>
-          <div className="form-group">
-            <label htmlFor="firstname" className="form-label">First Name:</label>
-            <input
-              type="text"
-              id="firstname"
-              className="form-control"
-              value={firstname}
-              onChange={(e) => setFirstname(e.target.value)}
+              value={name}
+              onChange={(e) => setName(e.target.value)}
               required
             />
           </div>
