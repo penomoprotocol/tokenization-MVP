@@ -7,10 +7,10 @@ import './CompanyDashboard.css';
 
 const CompanyDashboard = () => {
     const [companyData, setCompanyData] = useState(null);
-    const [companyTokenHoldings, setCompanyTokenHoldings] = useState(null);
+    const [companyTokenContracts, setCompanyTokenContracts] = useState(null);
     const [companyTransactions, setCompanyTransactions] = useState([]);
     const [showTopUp, setShowTopUp] = useState(false);
-    const [isLoadingTokenHoldings, setIsLoadingTokenHoldings] = useState(true);
+    const [isLoadingTokenContracts, setIsLoadingTokenContracts] = useState(true);
     const [showWithdraw, setShowWithdraw] = useState(false); // State for WithdrawWallet modal
     const [selectedCurrency, setSelectedCurrency] = useState('ETH');
 
@@ -23,14 +23,14 @@ const CompanyDashboard = () => {
                 });
                 setCompanyData(companyDataRes.data);
 
-                const companyTokenHoldingsRes = await axios.get(`${process.env.REACT_APP_PENOMO_API}/api/token/jwt`, {
-                    headers: { Authorization: `Bearer ${userToken}` }
-                });
-                setCompanyTokenHoldings(companyTokenHoldingsRes.data);
-                setIsLoadingTokenHoldings(false);
+                // const companyTokenHoldingsRes = await axios.get(`${process.env.REACT_APP_PENOMO_API}/api/token/jwt`, {
+                //     headers: { Authorization: `Bearer ${userToken}` }
+                // });
+                // setCompanyTokenHoldings(companyTokenHoldingsRes.data);
+                // setIsLoadingTokenHoldings(false);
             } catch (error) {
                 console.error('Error fetching company data:', error);
-                setIsLoadingTokenHoldings(false); // Ensure loading state is set to false even if there's an error
+                // setIsLoadingTokenHoldings(false); // Ensure loading state is set to false even if there's an error
             }
         };
         fetchCompanyData();
@@ -148,11 +148,11 @@ function roundToDecimals(str, x) {
             </div>
 
             <div className="section-container">
-                <h2 className="section-header">RWA Tokens</h2>
-                {isLoadingTokenHoldings ? (
+                <h2 className="section-header">RWA Liquidity Pools</h2>
+                {isLoadingTokenContracts ? (
                     <p>Loading...</p> // Display loading message while data is being fetched
-                ) : companyTokenHoldings && companyTokenHoldings.length > 0 ? (
-                    companyTokenHoldings.map((token) => (
+                ) : companyTokenContracts && companyTokenContracts.length > 0 ? (
+                    companyTokenContracts.map((token) => (
                         <div className="portfolio-item" key={token.name}>
                             <div style={{ flex: '1 1 16.6%' }} className="label-value">
                                 <strong>{token.name} </strong>

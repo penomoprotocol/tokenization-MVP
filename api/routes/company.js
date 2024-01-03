@@ -468,6 +468,110 @@ router.post('/company/withdrawFunds', async (req, res) => {
 
 /**
  * @swagger
+ * /api/company/jwt:
+ *   get:
+ *     summary: Retrieve logged-in company details and balances
+ *     tags: 
+ *       - Company
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: Details of the logged-in company including balances.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 firstname:
+ *                   type: string
+ *                 surname:
+ *                   type: string
+ *                 dob:
+ *                   type: string
+ *                   format: date
+ *                 businessName:
+ *                   type: string
+ *                 registrationNumber:
+ *                   type: string
+ *                 businessAddress:
+ *                   type: string
+ *                 businessPhone:
+ *                   type: string
+ *                 email:
+ *                   type: string
+ *                 ethereumPublicKey:
+ *                   type: string
+ *                 isVerified:
+ *                   type: boolean
+ *                 balances:
+ *                   type: object
+ *                   properties:
+ *                     agungBalance:
+ *                       type: string
+ *                     usdcBalance:
+ *                       type: string
+ *       401:
+ *         description: Unauthorized if token is missing or invalid.
+ *       404:
+ *         description: Company not found.
+ *       500:
+ *         description: Error retrieving company details.
+ */
+// Get company details by JWT token
+router.get('/api/company/jwt', verifyToken, async (req, res) => {
+    try {
+        const companyId = req.user.id; // ID is retrieved from the decoded JWT token
+        const company = await Company.findById(companyId);
+
+        if (!company) {
+            return res.status(404).send('Company not found');
+        }
+
+        let walletAddress = company.ethereumPublicKey;
+
+        const data = JSON.stringify({ "address": walletAddress });
+        const config = {
+            method: 'post',
+            url: `${BLOCKEXPLORER_API_URL}/api/scan/account/tokens`,
+            headers: { 
+                'User-Agent': 'Apidog/1.0.0 (https://apidog.com)', 
+                'Content-Type': 'application/json',
+                'X-API-Key': BLOCKEXPLORER_API_KEY 
+            },
+            data: data
+        };
+
+        const balances = await axios(config);
+
+        const nativeBalances = balances.data.data.native;
+        const erc20Balances = balances.data.data.ERC20;
+        
+        const agungBalanceWei = nativeBalances.find(token => token.symbol === 'AGUNG')?.balance || '0';
+        const usdcBalanceWei = erc20Balances.find(token => token.contract === USDCContractAddress)?.balance || '0';
+
+        const agungBalance = web3.utils.fromWei(agungBalanceWei, 'ether');
+        const usdcBalance = web3.utils.fromWei(usdcBalanceWei, 'ether');
+
+        // Add the balances to the company object that will be returned
+        const companyDataWithBalances = {
+            ...company.toObject(), // Convert the mongoose document to a plain object
+            balances: {
+                agungBalance,
+                usdcBalance
+            }
+        };
+
+        res.json(companyDataWithBalances);
+
+    } catch (error) {
+        console.error('Error retrieving company details and balances:', error);
+        res.status(500).send('Error retrieving company');
+    }
+});
+
+/**
+ * @swagger
  * /api/company/{id}:
  *   get:
  *     summary: Retrieve company details by ID
@@ -508,7 +612,6 @@ router.get('/company/:id', async (req, res) => {
     }
 });
 
-
 /**
  * @swagger
  * /api/company/email/{email}:
@@ -533,50 +636,6 @@ router.get('/company/:id', async (req, res) => {
  *       500:
  *         description: Error retrieving company.
  */
-// Retrieve company details by Email
-router.get('/company/email/:email', async (req, res) => {
-    try {
-        const email = req.params.email;
-        console.log('Retrieving company details for email:', email); // Add this line for debugging
-        const company = await Company.find({email});
-        if (!company) {
-            console.log('Company not found:', email); // Add this line for debugging
-            return res.status(404).send('Company not found');
-        }
-        console.log('Company details retrieved:', company); // Add this line for debugging
-        res.json(company);
-    } catch (error) {
-        console.error('Error retrieving company:', error);
-        res.status(500).send('Error retrieving company');
-    }
-});
-
-/**
- * @swagger
- * /api/company/email/{email}:
- *   get:
- *     summary: Retrieve company details by email
- *     tags: 
- *       - Company
- *     parameters:
- *       - in: path
- *         name: email
- *         required: true
- *         description: The email of the company to retrieve.
- *     responses:
- *       200:
- *         description: Details of the company.
- *         content:
- *           application/json:
- *             schema:
- *               $ref: '#/components/schemas/Company'
- *       404:
- *         description: Company not found.
- *       500:
- *         description: Error retrieving company.
- */
-
-
 // Retrieve company details by Email
 router.get('/company/email/:email', async (req, res) => {
     try {
@@ -627,8 +686,6 @@ router.get('/company/email/:email', async (req, res) => {
  *       500:
  *         description: Error updating company.
  */
-
-
 // Update company details by Email
 router.put('/company/email/:email', async (req, res) => {
     try {
@@ -644,7 +701,6 @@ router.put('/company/email/:email', async (req, res) => {
         res.status(500).send('Error updating company');
     }
 });
-
 
 /**
  * @swagger
@@ -666,7 +722,6 @@ router.put('/company/email/:email', async (req, res) => {
  *       500:
  *         description: Error deleting company.
  */
-
 // Delete company by Email
 router.delete('/company/email/:email', async (req, res) => {
     try {
