@@ -4,7 +4,7 @@ import axios from 'axios';
 import './Contracts.css';
 import ContractDetails from './ContractDetails';
 import ContractListItem from './ContractListItem';
-import TokenizeAssetModal from './TokenizeAssetModal'; // Import the modal component
+import TokenizeAssetModal from '../../components/TokenizeAssetModal/TokenizeAssetModal'; // Import the modal component
 
 const Contracts = () => {
     const [contracts, setContracts] = useState([]);
