@@ -190,8 +190,8 @@ router.get('/transactions/user/:address', async (req, res) => {
         const tokenTxList = tokenTxResponse.data.data.list;
 
         // FOR DEBUGGING
-        console.log("regularTxList: ", regularTxList);
-        console.log("tokenTxList: ", tokenTxList);
+        // console.log("regularTxList: ", regularTxList);
+        // console.log("tokenTxList: ", tokenTxList);
 
         // TODO: DEBUG RegularTxList
         // Ensure both lists are arrays

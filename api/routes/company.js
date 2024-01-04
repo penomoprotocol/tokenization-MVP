@@ -21,6 +21,7 @@ const LCPath = path.join(LCBuild);
 const LCJSON = JSON.parse(fs.readFileSync(LCPath, 'utf8'));
 const LCABI = LCJSON.abi;
 
+const verifyToken = require('../middleware/jwtCheck');
 
 const passport = require('passport');
 const JwtStrategy = require('passport-jwt').Strategy;
@@ -34,12 +35,15 @@ const swaggerUi = require('swagger-ui-express');
 
 const express = require('express');
 const router = express.Router();
+const axios = require('axios');
 
 require('dotenv').config();
 const SECRET_KEY = process.env.SECRET_KEY;
 const MONGO_URI = process.env.MONGO_URI;
 const MASTER_ADDRESS = process.env.MASTER_ADDRESS;
 const MASTER_PRIVATE_KEY = process.env.MASTER_PRIVATE_KEY;
+const BLOCKEXPLORER_API_URL = process.env.BLOCKEXPLORER_API_URL
+const BLOCKEXPLORER_API_KEY = process.env.BLOCKEXPLORER_API_KEY
 
 // Connect to MongoDB
 mongoose.connect(MONGO_URI, { useNewUrlParser: true, useUnifiedTopology: true })
@@ -519,7 +523,7 @@ router.post('/company/withdrawFunds', async (req, res) => {
  *         description: Error retrieving company details.
  */
 // Get company details by JWT token
-router.get('/api/company/jwt', verifyToken, async (req, res) => {
+router.get('/company/jwt', verifyToken, async (req, res) => {
     try {
         const companyId = req.user.id; // ID is retrieved from the decoded JWT token
         const company = await Company.findById(companyId);
@@ -544,14 +548,21 @@ router.get('/api/company/jwt', verifyToken, async (req, res) => {
 
         const balances = await axios(config);
 
-        const nativeBalances = balances.data.data.native;
-        const erc20Balances = balances.data.data.ERC20;
-        
-        const agungBalanceWei = nativeBalances.find(token => token.symbol === 'AGUNG')?.balance || '0';
-        const usdcBalanceWei = erc20Balances.find(token => token.contract === USDCContractAddress)?.balance || '0';
+        let agungBalance = '0';
+        let usdcBalance = '0';
 
-        const agungBalance = web3.utils.fromWei(agungBalanceWei, 'ether');
-        const usdcBalance = web3.utils.fromWei(usdcBalanceWei, 'ether');
+        // Check if balance arrays exist
+        if (balances.data.data.native) {
+            const nativeBalances = balances.data.data.native;
+            const agungBalanceWei = nativeBalances.find(token => token.symbol === 'AGUNG')?.balance || '0';
+            agungBalance = web3.utils.fromWei(agungBalanceWei, 'ether');
+
+        }
+        if (balances.data.data.ERC20) {
+            const erc20Balances = balances.data.data.ERC20;
+            const usdcBalanceWei = erc20Balances.find(token => token.contract === USDCContractAddress)?.balance || '0';
+            usdcBalance = web3.utils.fromWei(usdcBalanceWei, 'ether');
+        }
 
         // Add the balances to the company object that will be returned
         const companyDataWithBalances = {
@@ -570,47 +581,47 @@ router.get('/api/company/jwt', verifyToken, async (req, res) => {
     }
 });
 
-/**
- * @swagger
- * /api/company/{id}:
- *   get:
- *     summary: Retrieve company details by ID
- *     tags: 
- *       - Company
- *     parameters:
- *       - in: path
- *         name: id
- *         required: true
- *         description: The ID of the company to retrieve.
- *     responses:
- *       200:
- *         description: Details of the company.
- *         content:
- *           application/json:
- *             schema:
- *               $ref: '#/components/schemas/Company'
- *       404:
- *         description: Company not found.
- *       500:
- *         description: Error retrieving company.
- */
-// Retrieve company details by ID
-router.get('/company/:id', async (req, res) => {
-    try {
-        const companyId = req.params.id;
-        console.log('Retrieving company details for ID:', companyId); // For debugging
-        const company = await Company.findById(companyId);
-        if (!company) {
-            console.log('Company not found with ID:', companyId); // For debugging
-            return res.status(404).send('Company not found');
-        }
-        console.log('Company details retrieved:', company); // For debugging
-        res.json(company);
-    } catch (error) {
-        console.error('Error retrieving company by ID:', error);
-        res.status(500).send('Error retrieving company');
-    }
-});
+// /**
+//  * @swagger
+//  * /api/company/{id}:
+//  *   get:
+//  *     summary: Retrieve company details by ID
+//  *     tags: 
+//  *       - Company
+//  *     parameters:
+//  *       - in: path
+//  *         name: id
+//  *         required: true
+//  *         description: The ID of the company to retrieve.
+//  *     responses:
+//  *       200:
+//  *         description: Details of the company.
+//  *         content:
+//  *           application/json:
+//  *             schema:
+//  *               $ref: '#/components/schemas/Company'
+//  *       404:
+//  *         description: Company not found.
+//  *       500:
+//  *         description: Error retrieving company.
+//  */
+// // Retrieve company details by ID
+// router.get('/company/:id', async (req, res) => {
+//     try {
+//         const companyId = req.params.id;
+//         console.log('Retrieving company details for ID:', companyId); // For debugging
+//         const company = await Company.findById(companyId);
+//         if (!company) {
+//             console.log('Company not found with ID:', companyId); // For debugging
+//             return res.status(404).send('Company not found');
+//         }
+//         console.log('Company details retrieved:', company); // For debugging
+//         res.json(company);
+//     } catch (error) {
+//         console.error('Error retrieving company by ID:', error);
+//         res.status(500).send('Error retrieving company');
+//     }
+// });
 
 /**
  * @swagger

@@ -21,16 +21,17 @@ const CompanyDashboard = () => {
                 const companyDataRes = await axios.get(`${process.env.REACT_APP_PENOMO_API}/api/company/jwt`, {
                     headers: { Authorization: `Bearer ${userToken}` }
                 });
+                console.log("companyDataRes: ", companyDataRes);
                 setCompanyData(companyDataRes.data);
 
                 // const companyTokenHoldingsRes = await axios.get(`${process.env.REACT_APP_PENOMO_API}/api/token/jwt`, {
                 //     headers: { Authorization: `Bearer ${userToken}` }
                 // });
                 // setCompanyTokenHoldings(companyTokenHoldingsRes.data);
-                // setIsLoadingTokenHoldings(false);
+                setIsLoadingTokenContracts(false);
             } catch (error) {
                 console.error('Error fetching company data:', error);
-                // setIsLoadingTokenHoldings(false); // Ensure loading state is set to false even if there's an error
+                setIsLoadingTokenContracts(false); // Ensure loading state is set to false even if there's an error
             }
         };
         fetchCompanyData();
@@ -129,7 +130,7 @@ function roundToDecimals(str, x) {
                     <div className="wallet-balances-container">
                         <div className="wallet-balance">
                             <strong className="balance-title">AGUNG</strong>
-                            <span className="balance-amount">{roundToDecimals(companyData.agungBalance, 2)}</span>
+                            <span className="balance-amount">{roundToDecimals(companyData.balances.agungBalance, 2)}</span>
                             <div className="btn-container">
                                 <button className="btn-penomo" onClick={() => setShowTopUp(true)}>Top Up</button>
                                 <button className="btn-penomo-secondary" onClick={() => toggleWithdraw('ETH')}>Withdraw</button>
@@ -137,7 +138,7 @@ function roundToDecimals(str, x) {
                         </div>
                         <div className="wallet-balance">
                             <strong className="balance-title">USDC</strong>
-                            <span className="balance-amount">{roundToDecimals(companyData.usdcBalance, 2)}</span>
+                            <span className="balance-amount">{roundToDecimals(companyData.balances.usdcBalance, 2)}</span>
                             <div className="btn-container">
                                 <button className="btn-penomo" onClick={() => setShowTopUp(true)}>Top Up</button>
                                 <button className="btn-penomo-secondary" onClick={() => toggleWithdraw('USDC')}>Withdraw</button>
