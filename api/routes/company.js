@@ -385,7 +385,7 @@ router.post('/company/verify', async (req, res) => {
 
         // Update company with additional verification info
         company.firstname = firstName;
-        company.surnamee = surname;
+        company.surname = surname;
         company.dob = dob;
         company.businessName = businessName;
         company.registrationNumber = registrationNumber;
