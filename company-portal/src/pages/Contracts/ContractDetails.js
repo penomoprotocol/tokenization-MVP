@@ -1,5 +1,6 @@
 import React from 'react';
 
+
 const ContractDetails = ({ contract }) => {
     return (
         <div>

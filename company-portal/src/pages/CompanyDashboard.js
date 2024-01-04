@@ -81,7 +81,7 @@ function roundToDecimals(str, x) {
     }
 }
 
-    const formatTokenPrice = (price, currency) => currency === 'USDC' ? `${price} USDC` : `${price} ETH`;
+    // const formatTokenPrice = (price, currency) => currency === 'USDC' ? `${price} USDC` : `${price} ETH`;
 
     // const mockHistoricData = {
     //     labels: ["Jan", "Feb", "Mar", "Apr", "May", "Jun"],

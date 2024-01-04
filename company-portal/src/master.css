@@ -151,7 +151,7 @@ html, body, body * {
     /* Removes outline on focus for some browsers */
     transition: background-color 0.3s;
     /* Smooth transition for hover effect */
-    display: block; /* Add this line */
+    display: block; 
     margin: auto;
 }
 
