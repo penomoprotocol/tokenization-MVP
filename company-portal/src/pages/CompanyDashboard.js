@@ -7,10 +7,9 @@ import './CompanyDashboard.css';
 
 const CompanyDashboard = () => {
     const [companyData, setCompanyData] = useState(null);
-    const [companyTokenContracts, setCompanyTokenContracts] = useState(null);
     const [companyTransactions, setCompanyTransactions] = useState([]);
     const [showTopUp, setShowTopUp] = useState(false);
-    const [isLoadingTokenContracts, setIsLoadingTokenContracts] = useState(true);
+    const [isLoadingCompanyData, setIsLoadingTokenContracts] = useState(true);
     const [showWithdraw, setShowWithdraw] = useState(false); // State for WithdrawWallet modal
     const [selectedCurrency, setSelectedCurrency] = useState('ETH');
 
@@ -21,13 +20,7 @@ const CompanyDashboard = () => {
                 const companyDataRes = await axios.get(`${process.env.REACT_APP_PENOMO_API}/api/company/jwt`, {
                     headers: { Authorization: `Bearer ${userToken}` }
                 });
-                console.log("companyDataRes: ", companyDataRes);
                 setCompanyData(companyDataRes.data);
-
-                // const companyTokenHoldingsRes = await axios.get(`${process.env.REACT_APP_PENOMO_API}/api/token/jwt`, {
-                //     headers: { Authorization: `Bearer ${userToken}` }
-                // });
-                // setCompanyTokenHoldings(companyTokenHoldingsRes.data);
                 setIsLoadingTokenContracts(false);
             } catch (error) {
                 console.error('Error fetching company data:', error);
@@ -46,9 +39,8 @@ const CompanyDashboard = () => {
                     const response = await axios.get(`${process.env.REACT_APP_PENOMO_API}/api/transactions/user/${address}`);
                     
                     setCompanyTransactions(response.data.slice(0, 5)); // Store the first 5 transactions
-                    // TODO: Calculate revenues from tokens and insert to setter function
                     // DEBUG
-                    console.log(response);
+                    console.log("Company Transactions: ", response);
                 } catch (error) {
                     console.error('Error fetching transactions:', error);
                 }
@@ -150,45 +142,29 @@ function roundToDecimals(str, x) {
 
             <div className="section-container">
                 <h2 className="section-header">RWA Liquidity Pools</h2>
-                {isLoadingTokenContracts ? (
+                {isLoadingCompanyData ? (
                     <p>Loading...</p> // Display loading message while data is being fetched
-                ) : companyTokenContracts && companyTokenContracts.length > 0 ? (
-                    companyTokenContracts.map((token) => (
+                ) : companyData && companyData.tokens.length > 0 ? (
+                    companyData.tokens.map((token) => (
                         <div className="portfolio-item" key={token.name}>
-                            <div style={{ flex: '1 1 16.6%' }} className="label-value">
+                            <div style={{ flex: '1 1 33.3%' }} className="label-value">
                                 <strong>{token.name} </strong>
                                 <a href={fullTokenAddressLink(token.tokenContractAddress)}
                                     target="_blank" rel="noopener noreferrer">
                                     {<><span>({token.symbol})</span></>}
                                 </a>
                             </div>
-                            <div style={{ flex: '1 1 16.6%' }} className="label-value">
-                                <strong className="label">Max Supply</strong>
-                                <span className="value">{token.maxTokenSupply}</span>
+                            <div style={{ flex: '1 1 33.3%' }} className="label-value">
+                                <strong className="label">Lidquid Funds</strong>
+                                <span className="value">{token.liquidityPoolBalance}</span>
                             </div>
-                            <div style={{ flex: '1 1 16.6%' }} className="label-value">
-                                <strong className="label">Balance</strong>
-                                <span className="value">{token.balance}</span>
+                            <div className="btn-container" style={{ flex: '1 1 33.3%' }}>
+                                <button className="btn-penomo">Withdraw</button>
                             </div>
-                            <div style={{ flex: '1 1 16.6%' }} className="label-value">
-                                <strong className="label">Current Price</strong>
-                                <span className="value">{formatTokenPrice(token.tokenPrice, token.currency)}</span>
-                            </div>
-                            <div style={{ flex: '1 1 16.6%' }} className="label-value">
-                                <strong className="label">Rem. Contract Term</strong>
-                                <span className="value">{token.contractTerm} months</span>
-                            </div>
-                            {/* <div style={{ flex: '1 1 16.6%' }} className="label-value">
-                                <strong className="label">Total Revenue</strong>
-                                <span className="value">USDC {"0.00"}</span>
-                            </div> */}
-                            {/* <div className="btn-container" style={{ flex: '1 1 16.6%' }}>
-                                <button className="btn-penomo">Sell</button>
-                            </div> */}
                         </div>
                     ))
                 ) : (
-                    <p>No token holdings found.</p> // This will display if the array is empty
+                    <p>No liquidity pools found.</p> // This will display if the array is empty
                 )}
             </div>
 

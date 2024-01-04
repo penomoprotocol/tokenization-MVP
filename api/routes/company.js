@@ -53,7 +53,7 @@ mongoose.connect(MONGO_URI, { useNewUrlParser: true, useUnifiedTopology: true })
 // Import Mongoose models:
 const Asset = require('../models/AssetModel');
 const Company = require('../models/CompanyModel');
-const Contract = require('../models/TokenModel');
+const Token = require('../models/TokenModel');
 const Investor = require('../models/InvestorModel');
 
 
@@ -110,7 +110,7 @@ const createWallet = () => {
     return wallet;
 };
 
-// Function to encrypt and decrypt private keys
+// Functions to encrypt and decrypt private keys
 const encryptPrivateKey = (privateKey, SECRET_KEY) => {
     const encrypted = CryptoJS.AES.encrypt(privateKey, SECRET_KEY).toString();
     return encrypted;
@@ -132,6 +132,45 @@ function serializeBigIntInObject(obj) {
     }
     return obj;
 }
+
+// Function to fetch balance for a given address
+async function fetchBalance(address) {
+    const data = JSON.stringify({ "address": address });
+    const config = {
+        method: 'post',
+        url: `${BLOCKEXPLORER_API_URL}/api/scan/account/tokens`,
+        headers: { 
+            'User-Agent': 'Apidog/1.0.0 (https://apidog.com)', 
+            'Content-Type': 'application/json',
+            'X-API-Key': BLOCKEXPLORER_API_KEY 
+        },
+        data: data
+    };
+
+    try {
+        const response = await axios(config);
+        let agungBalance = '0';
+        let usdcBalance = '0';
+
+        // Check if balance arrays exist
+        if (response.data.data.native) {
+            const nativeBalances = response.data.data.native;
+            const agungBalanceWei = nativeBalances.find(token => token.symbol === 'AGUNG')?.balance || '0';
+            agungBalance = web3.utils.fromWei(agungBalanceWei, 'ether');
+        }
+        if (response.data.data.ERC20) {
+            const erc20Balances = response.data.data.ERC20;
+            const usdcBalanceWei = erc20Balances.find(token => token.contract === USDCContractAddress)?.balance || '0';
+            usdcBalance = web3.utils.fromWei(usdcBalanceWei, 'ether');
+        }
+
+        return { agungBalance, usdcBalance };
+    } catch (error) {
+        console.error(`Error fetching balance for address ${address}:`, error);
+        return { agungBalance: '0', usdcBalance: '0' };
+    }
+}
+
 
 /**
  * @swagger
@@ -474,14 +513,14 @@ router.post('/company/withdrawFunds', async (req, res) => {
  * @swagger
  * /api/company/jwt:
  *   get:
- *     summary: Retrieve logged-in company details and balances
+ *     summary: Retrieve logged-in company details, balances, and liquidity pool information
  *     tags: 
  *       - Company
  *     security:
  *       - bearerAuth: []
  *     responses:
  *       200:
- *         description: Details of the logged-in company including balances.
+ *         description: Details of the logged-in company including balances and liquidity pool information.
  *         content:
  *           application/json:
  *             schema:
@@ -515,13 +554,58 @@ router.post('/company/withdrawFunds', async (req, res) => {
  *                       type: string
  *                     usdcBalance:
  *                       type: string
+ *                 tokens:
+ *                   type: array
+ *                   items:
+ *                     type: object
+ *                     properties:
+ *                       name:
+ *                         type: string
+ *                       symbol:
+ *                         type: string
+ *                       maxTokenSupply:
+ *                         type: number
+ *                       tokenPrice:
+ *                         type: number
+ *                       currency:
+ *                         type: string
+ *                       revenueShare:
+ *                         type: number
+ *                       contractTerm:
+ *                         type: number
+ *                       serviceContractAddress:
+ *                         type: string
+ *                       tokenContractAddress:
+ *                         type: string
+ *                       liquidityContractAddress:
+ *                         type: string
+ *                       revenueDistributionContractAddress:
+ *                         type: string
+ *                       revenueStreamContractAddresses:
+ *                         type: array
+ *                         items:
+ *                           type: string
+ *                       assetDIDs:
+ *                         type: array
+ *                         items:
+ *                           type: string
+ *                       companyId:
+ *                         type: string
+ *                       liquidityPoolBalance:
+ *                         type: object
+ *                         properties:
+ *                           agungBalance:
+ *                             type: string
+ *                           usdcBalance:
+ *                             type: string
  *       401:
  *         description: Unauthorized if token is missing or invalid.
  *       404:
  *         description: Company not found.
  *       500:
- *         description: Error retrieving company details.
+ *         description: Error retrieving company details and liquidity pool information.
  */
+
 // Get company details by JWT token
 router.get('/company/jwt', verifyToken, async (req, res) => {
     try {
@@ -534,52 +618,38 @@ router.get('/company/jwt', verifyToken, async (req, res) => {
 
         let walletAddress = company.ethereumPublicKey;
 
-        const data = JSON.stringify({ "address": walletAddress });
-        const config = {
-            method: 'post',
-            url: `${BLOCKEXPLORER_API_URL}/api/scan/account/tokens`,
-            headers: { 
-                'User-Agent': 'Apidog/1.0.0 (https://apidog.com)', 
-                'Content-Type': 'application/json',
-                'X-API-Key': BLOCKEXPLORER_API_KEY 
-            },
-            data: data
-        };
+        // Fetch company's general balance information
+        const generalBalance = await fetchBalance(walletAddress);
 
-        const balances = await axios(config);
+        // Fetch company tokens from the database
+        const companyTokens = await Token.find({ companyId: companyId });
 
-        let agungBalance = '0';
-        let usdcBalance = '0';
+        // Fetch balance for each serviceContractAddress and add it to the token object
+        const liquidityPools = await Promise.all(
+            companyTokens.map(async (token) => {
+                const liquidityPoolBalance = await fetchBalance(token.serviceContractAddress);
+                return {
+                    ...token.toObject(),
+                    liquidityPoolBalance
+                };
+            })
+        );
 
-        // Check if balance arrays exist
-        if (balances.data.data.native) {
-            const nativeBalances = balances.data.data.native;
-            const agungBalanceWei = nativeBalances.find(token => token.symbol === 'AGUNG')?.balance || '0';
-            agungBalance = web3.utils.fromWei(agungBalanceWei, 'ether');
-
-        }
-        if (balances.data.data.ERC20) {
-            const erc20Balances = balances.data.data.ERC20;
-            const usdcBalanceWei = erc20Balances.find(token => token.contract === USDCContractAddress)?.balance || '0';
-            usdcBalance = web3.utils.fromWei(usdcBalanceWei, 'ether');
-        }
-
-        // Add the balances to the company object that will be returned
-        const companyDataWithBalances = {
+        // Add the balances and tokens with their liquidity pools to the company object
+        const companyDataWithBalancesAndLiquidityPools = {
             ...company.toObject(), // Convert the mongoose document to a plain object
-            balances: {
-                agungBalance,
-                usdcBalance
-            }
+            balances: generalBalance,
+            tokens: liquidityPools
         };
 
-        res.json(companyDataWithBalances);
+        res.json(companyDataWithBalancesAndLiquidityPools);
 
     } catch (error) {
-        console.error('Error retrieving company details and balances:', error);
+        console.error('Error retrieving company details, balances, and liquidity pools:', error);
         res.status(500).send('Error retrieving company');
     }
 });
+
 
 // /**
 //  * @swagger
