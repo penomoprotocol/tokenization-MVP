@@ -650,6 +650,148 @@ router.get('/company/jwt', verifyToken, async (req, res) => {
     }
 });
 
+/**
+ * @swagger
+ * /api/company/contracts:
+ *   get:
+ *     summary: Retrieve logged-in company contracts information
+ *     tags: 
+ *       - Company
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: Details of the logged-in company including balances and liquidity pool information.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 firstname:
+ *                   type: string
+ *                 surname:
+ *                   type: string
+ *                 dob:
+ *                   type: string
+ *                   format: date
+ *                 businessName:
+ *                   type: string
+ *                 registrationNumber:
+ *                   type: string
+ *                 businessAddress:
+ *                   type: string
+ *                 businessPhone:
+ *                   type: string
+ *                 email:
+ *                   type: string
+ *                 ethereumPublicKey:
+ *                   type: string
+ *                 isVerified:
+ *                   type: boolean
+ *                 balances:
+ *                   type: object
+ *                   properties:
+ *                     agungBalance:
+ *                       type: string
+ *                     usdcBalance:
+ *                       type: string
+ *                 tokens:
+ *                   type: array
+ *                   items:
+ *                     type: object
+ *                     properties:
+ *                       name:
+ *                         type: string
+ *                       symbol:
+ *                         type: string
+ *                       maxTokenSupply:
+ *                         type: number
+ *                       tokenPrice:
+ *                         type: number
+ *                       currency:
+ *                         type: string
+ *                       revenueShare:
+ *                         type: number
+ *                       contractTerm:
+ *                         type: number
+ *                       serviceContractAddress:
+ *                         type: string
+ *                       tokenContractAddress:
+ *                         type: string
+ *                       liquidityContractAddress:
+ *                         type: string
+ *                       revenueDistributionContractAddress:
+ *                         type: string
+ *                       revenueStreamContractAddresses:
+ *                         type: array
+ *                         items:
+ *                           type: string
+ *                       assetDIDs:
+ *                         type: array
+ *                         items:
+ *                           type: string
+ *                       companyId:
+ *                         type: string
+ *                       liquidityPoolBalance:
+ *                         type: object
+ *                         properties:
+ *                           agungBalance:
+ *                             type: string
+ *                           usdcBalance:
+ *                             type: string
+ *       401:
+ *         description: Unauthorized if token is missing or invalid.
+ *       404:
+ *         description: Company not found.
+ *       500:
+ *         description: Error retrieving company details and liquidity pool information.
+ */
+
+router.get('/company/contracts', verifyToken, async (req, res) => {
+    try {
+        const companyId = req.user.id; // ID is retrieved from the decoded JWT token
+        const company = await Company.findById(companyId);
+
+        if (!company) {
+            return res.status(404).send('Company not found');
+        }
+
+        // Fetch company tokens from the database
+        const companyTokens = await Token.find({ companyId: companyId });
+
+        // Fetch balance for each serviceContractAddress and add it to the token object
+        const companyContracts = await Promise.all(
+            companyTokens.map(async (token) => {
+                const liquidityPoolBalance = await fetchBalance(token.serviceContractAddress);
+
+                // Fetch associated assets for each token
+                const associatedAssets = await Asset.find({
+                    'DID.id': { $in: token.assetDIDs }
+                });
+
+                return {
+                    ...token.toObject(),
+                    liquidityPoolBalance,
+                    associatedAssets
+                };
+            })
+        );
+
+        // Add the balances and tokens with their liquidity pools and associated assets to the company object
+        const companyContractsWithAssets = {
+            contracts: companyContracts
+        };
+
+        res.json(companyContractsWithAssets);
+
+    } catch (error) {
+        console.error('Error retrieving company contracts with associated assets:', error);
+        res.status(500).send('Error retrieving company');
+    }
+});
+
+
+
 
 // /**
 //  * @swagger

@@ -1,10 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
-import BuyTokens from '../components/BuyTokens';
 
-import './Marketplace.css';
 
-const Marketplace = () => {
+import './Contracts.css';
+
+const Contracts = () => {
     const [tokens, setTokens] = useState([]);
     const [selectedToken, setSelectedToken] = useState(null);
     const [isModalOpen, setIsModalOpen] = useState(false);
@@ -120,5 +120,5 @@ const Marketplace = () => {
     );
 }
 
-export default Marketplace;
+export default Contracts;
 

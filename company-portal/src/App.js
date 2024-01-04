@@ -8,7 +8,7 @@ import Home from './pages/Home';
 import RegistrationPage from './pages/RegistrationPage';
 import CompanyDashboard from './pages/CompanyDashboard';
 import Transactions from './pages/Transactions';
-import Marketplace from './pages/Marketplace';
+import Contracts from './pages/Contracts';
 
 // Importing common components
 import NavBar from './components/NavBar';
@@ -47,10 +47,10 @@ function App() {
                   } 
                 />
                 <Route 
-                  path="/marketplace" 
+                  path="/contracts" 
                   element={
                     <ProtectedRoute>
-                      <Marketplace />
+                      <Contracts />
                     </ProtectedRoute>
                   } 
                 />
