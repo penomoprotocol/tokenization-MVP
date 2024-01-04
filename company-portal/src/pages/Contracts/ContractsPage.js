@@ -1,6 +1,6 @@
 // Imports
 import React, { useState, useEffect } from 'react';
-import axios from 'axios';
+// import axios from 'axios';
 import './Contracts.css';
 import ContractDetails from './ContractDetails';
 import ContractListItem from './ContractListItem';
@@ -51,7 +51,7 @@ const Contracts = () => {
             </div>
 
             {isModalOpen && (
-                <TokenizeAssetModal closeModal={handleModalClose} />
+                <TokenizeAssetModal show={isModalOpen} handleClose={handleModalClose} />
             )}
         </div>
     );
