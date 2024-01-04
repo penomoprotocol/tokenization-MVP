@@ -1,4 +1,8 @@
 import React, { useState } from 'react';
+import StepOneForm from './StepOneForm';
+import StepTwoForm from './StepTwoForm';
+import StepThreeForm from './StepThreeForm';
+import StepFourForm from './StepFourForm';
 
 const TokenizeAssetModal = ({ closeModal }) => {
     const [step, setStep] = useState(1);
@@ -29,13 +33,29 @@ const TokenizeAssetModal = ({ closeModal }) => {
 
     const handleSubmit = () => {
         // Handle final submission logic here
-        console.log('Submitting form data:', { /* form data */ });
+        console.log('Submitting form data:', {
+            assetType,
+            capacity,
+            power,
+            location,
+            assetValue,
+            revenueStreams,
+            financingGoal,
+            fundUsage,
+            tokenAmount,
+            tokenPrice,
+            contractName,
+            contractStartDate,
+            contractTerm,
+            revenueShare
+            // Other form data
+        });
         closeModal();
     };
 
     return (
         <div className="modal-container">
-            {/* Modal structure and styling here */}
+            {/* Modal structure and styling */}
             {step === 1 && (
                 <StepOneForm 
                     assetType={assetType} setAssetType={setAssetType}
