@@ -3,7 +3,7 @@ import axios from 'axios';
 import ContractDetails from './ContractDetails';
 import ContractListItem from './ContractListItem';
 
-const ContractsPage = () => {
+const Contracts = () => {
     const [contracts, setContracts] = useState([]);
     const [selectedContract, setSelectedContract] = useState(null);
 
@@ -53,4 +53,4 @@ const ContractsPage = () => {
     );
 };
 
-export default ContractsPage;
+export default Contracts

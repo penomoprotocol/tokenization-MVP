@@ -8,7 +8,7 @@ import Home from './pages/Home';
 import RegistrationPage from './pages/RegistrationPage';
 import CompanyDashboard from './pages/CompanyDashboard';
 import Transactions from './pages/Transactions';
-import Contracts from './pages/Contracts';
+import Contracts from './pages/Contracts/ContractsPage';
 
 // Importing common components
 import NavBar from './components/NavBar';
