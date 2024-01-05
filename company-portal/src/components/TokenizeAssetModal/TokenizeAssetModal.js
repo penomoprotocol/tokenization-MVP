@@ -15,7 +15,7 @@ const TokenizeAssetModal = ({ show, handleClose }) => {
     const [assetValue, setAssetValue] = useState('');
     const [revenueStreams, setRevenueStreams] = useState([]);
     const [financingGoal, setFinancingGoal] = useState('');
-    const [fundUsage, setFundUsage] = useState([]);
+    const [fundUsage, setFundUsage] = useState([{ amount: '', description: '' }]);
     const [tokenAmount, setTokenAmount] = useState('');
     const [tokenPrice, setTokenPrice] = useState('');
     const [contractName, setContractName] = useState('');
@@ -41,6 +41,21 @@ const TokenizeAssetModal = ({ show, handleClose }) => {
             }
             return stream;
         }));
+    };
+
+    // Functions to handle fund usage
+    const handleFundUsageChange = (index, field, value) => {
+        const updatedUsage = fundUsage.map((usage, i) => {
+            if (i === index) {
+                return { ...usage, [field]: value };
+            }
+            return usage;
+        });
+        setFundUsage(updatedUsage);
+    };
+
+    const addFundUsageItem = () => {
+        setFundUsage([...fundUsage, { amount: '', description: '' }]);
     };
 
     // Helper functions to change step
@@ -102,6 +117,10 @@ const TokenizeAssetModal = ({ show, handleClose }) => {
                     <StepThreeForm
                         financingGoal={financingGoal} setFinancingGoal={setFinancingGoal}
                         fundUsage={fundUsage} setFundUsage={setFundUsage}
+                        tokenAmount={tokenAmount} setTokenAmount={setTokenAmount}
+                        tokenPrice={tokenPrice} setTokenPrice={setTokenPrice}
+                        handleFundUsageChange={handleFundUsageChange}
+                        addFundUsageItem={addFundUsageItem}
                     />
                 )}
                 {step === 4 && (
