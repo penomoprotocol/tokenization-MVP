@@ -4,9 +4,9 @@ import StepOneForm from './StepOneForm';
 import StepTwoForm from './StepTwoForm';
 import StepThreeForm from './StepThreeForm';
 import StepFourForm from './StepFourForm';
+import StepFiveForm from './StepFiveForm';
 
 const TokenizeAssetModal = ({ show, handleClose }) => {
-    const [step, setStep] = useState(1);
     // State for form data
     const [assetType, setAssetType] = useState('');
     const [capacity, setCapacity] = useState('');
@@ -22,28 +22,58 @@ const TokenizeAssetModal = ({ show, handleClose }) => {
     const [contractStartDate, setContractStartDate] = useState('');
     const [contractTerm, setContractTerm] = useState('');
     const [revenueShare, setRevenueShare] = useState('');
-    // States for file uploads in StepFourForm
 
+    const [step, setStep] = useState(1);
+
+    // Functions to handle revenue streams
+    const addRevenueStream = () => {
+        setRevenueStreams([...revenueStreams, { name: '', amount: '', details: '' }]);
+    };
+
+    const deleteRevenueStream = (index) => {
+        setRevenueStreams(revenueStreams.filter((_, i) => i !== index));
+    };
+
+    const handleRevenueStreamChange = (index, field, value) => {
+        setRevenueStreams(revenueStreams.map((stream, i) => {
+            if (i === index) {
+                return { ...stream, [field]: value };
+            }
+            return stream;
+        }));
+    };
+
+    // Helper functions to change step
     const handleNextStep = () => {
-        // Add validation if needed for each step
-        setStep(step + 1);
+        setStep(prevStep => prevStep + 1);
     };
 
     const handlePreviousStep = () => {
-        setStep(step - 1);
+        setStep(prevStep => prevStep - 1);
     };
 
+    // Final submission function
     const handleSubmit = () => {
-        // Implement the final submission logic here
-        // For example, sending data to backend
         console.log('Form submission data:', {
             assetType,
             capacity,
-            // ... and other form data
+            power,
+            location,
+            assetValue,
+            revenueStreams,
+            financingGoal,
+            fundUsage,
+            tokenAmount,
+            tokenPrice,
+            contractName,
+            contractStartDate,
+            contractTerm,
+            revenueShare,
         });
         handleClose(); // Close the modal after submission
     };
 
+    // Modal structure with updated steps
     return (
         <Modal show={show} onHide={handleClose} centered>
             <Modal.Header closeButton>
@@ -56,41 +86,43 @@ const TokenizeAssetModal = ({ show, handleClose }) => {
                         capacity={capacity} setCapacity={setCapacity}
                         power={power} setPower={setPower}
                         location={location} setLocation={setLocation}
-                        assetValue={assetValue} setAssetValue={setAssetValue}
-                        revenueStreams={revenueStreams} setRevenueStreams={setRevenueStreams}
                     />
                 )}
                 {step === 2 && (
                     <StepTwoForm
-                        financingGoal={financingGoal} setFinancingGoal={setFinancingGoal}
-                        fundUsage={fundUsage} setFundUsage={setFundUsage}
-                        tokenAmount={tokenAmount} setTokenAmount={setTokenAmount}
-                        tokenPrice={tokenPrice} setTokenPrice={setTokenPrice}
+                        assetValue={assetValue} setAssetValue={setAssetValue}
+                        revenueStreams={revenueStreams}
+                        setRevenueStreams={setRevenueStreams}
+                        addRevenueStream={addRevenueStream}
+                        deleteRevenueStream={deleteRevenueStream}
+                        handleRevenueStreamChange={handleRevenueStreamChange}
                     />
                 )}
                 {step === 3 && (
                     <StepThreeForm
+                        financingGoal={financingGoal} setFinancingGoal={setFinancingGoal}
+                        fundUsage={fundUsage} setFundUsage={setFundUsage}
+                    />
+                )}
+                {step === 4 && (
+                    <StepFourForm
+                        tokenAmount={tokenAmount} setTokenAmount={setTokenAmount}
+                        tokenPrice={tokenPrice} setTokenPrice={setTokenPrice}
+                    />
+                )}
+                {step === 5 && (
+                    <StepFiveForm
                         contractName={contractName} setContractName={setContractName}
                         contractStartDate={contractStartDate} setContractStartDate={setContractStartDate}
                         contractTerm={contractTerm} setContractTerm={setContractTerm}
                         revenueShare={revenueShare} setRevenueShare={setRevenueShare}
                     />
                 )}
-                {step === 4 && (
-                    <StepFourForm
-                    // Props for file upload and other data
-                    />
-                )}
-
             </Modal.Body>
             <Modal.Footer>
-                <div className="modal-navigation">
-                    {step > 1 && <button onClick={handlePreviousStep} className="btn-secondary-navbar">Previous</button>}
-                </div>
-                <div className="modal-navigation">
-                    {step < 4 && <button onClick={handleNextStep} className="btn-penomo-navbar">Next</button>}
-                </div>
-                {step === 4 && <button onClick={handleSubmit} className="btn-penomo-navbar">Submit</button>}
+                {step > 1 && <button onClick={handlePreviousStep} className="btn-secondary-navbar">Previous</button>}
+                {step < 5 && <button onClick={handleNextStep} className="btn-penomo-navbar">Next</button>}
+                {step === 5 && <button onClick={handleSubmit} className="btn-penomo-navbar">Submit</button>}
             </Modal.Footer>
         </Modal>
     );

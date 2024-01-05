@@ -1,68 +1,80 @@
-
 import React from 'react';
 
 const StepTwoForm = ({
-    financingGoal, setFinancingGoal,
-    fundUsage, setFundUsage,
-    tokenAmount, setTokenAmount,
-    tokenPrice, setTokenPrice
+    assetValue, setAssetValue,
+    revenueStreams, setRevenueStreams,
+    addRevenueStream, deleteRevenueStream, handleRevenueStreamChange
 }) => {
-    const handleFundUsageChange = (index, field, value) => {
-        const updatedUsage = fundUsage.map((usage, i) => {
-            if (i === index) {
-                return { ...usage, [field]: value };
-            }
-            return usage;
-        });
-        setFundUsage(updatedUsage);
-    };
-
-    const addFundUsage = () => {
-        setFundUsage([...fundUsage, { amount: '', description: '' }]);
-    };
-
     return (
-        <div>
-            <h3>Financial Goal</h3>
-            <input
-                type="number"
-                value={financingGoal}
-                onChange={(e) => setFinancingGoal(e.target.value)}
-                placeholder="Financing Goal"
-            />
+        <div className="asset-evaluation-group">
+            <h3>Asset Evaluation</h3>
+            <div className="form-group">
+                <label htmlFor="assetValue">Purchase Value ($)</label>
+                <input
+                    id="assetValue"
+                    type="text"
+                    value={assetValue}
+                    onChange={(e) => setAssetValue(e.target.value)}
+                    className="form-control"
+                    placeholder="Asset Value ($)"
+                />
+            </div>
 
-            <h3>Fund Usage</h3>
-            {fundUsage.map((usage, index) => (
-                <div key={index}>
-                    <input
-                        type="number"
-                        value={usage.amount}
-                        onChange={(e) => handleFundUsageChange(index, 'amount', e.target.value)}
-                        placeholder="Amount"
-                    />
-                    <input
-                        type="text"
-                        value={usage.description}
-                        onChange={(e) => handleFundUsageChange(index, 'description', e.target.value)}
-                        placeholder="Description"
-                    />
+            {revenueStreams.map((stream, index) => (
+                <div key={index} className="revenue-stream-group">
+                    <div className="form-group">
+                        <label htmlFor={`revenueName-${index}`}>Revenue Stream Name</label>
+                        <input
+                            id={`revenueName-${index}`}
+                            type="text"
+                            value={stream.name}
+                            onChange={(e) => handleRevenueStreamChange(index, 'name', e.target.value)}
+                            className="form-control"
+                            placeholder="Revenue Stream Name"
+                        />
+                    </div>
+
+                    <div className="form-group">
+                        <label htmlFor={`revenueAmount-${index}`}>Projected Profit ($)</label>
+                        <input
+                            id={`revenueAmount-${index}`}
+                            type="number"
+                            value={stream.amount}
+                            onChange={(e) => handleRevenueStreamChange(index, 'amount', e.target.value)}
+                            className="form-control"
+                            placeholder="Amount ($)"
+                        />
+                    </div>
+
+                    <div className="form-group">
+                        <label htmlFor={`revenueDetails-${index}`}>Details</label>
+                        <input
+                            id={`revenueDetails-${index}`}
+                            type="text"
+                            value={stream.details}
+                            onChange={(e) => handleRevenueStreamChange(index, 'details', e.target.value)}
+                            className="form-control"
+                            placeholder="Details"
+                        />
+                    </div>
+                    <div className="button-group">
+                        <button
+                            className="btn btn-secondary"
+                            onClick={() => deleteRevenueStream(index)}
+                        >
+                            Delete Revenue Stream
+                        </button>
+                    </div>
                 </div>
             ))}
-            <button onClick={addFundUsage}>Add Fund Usage</button>
-
-            <h3>Tokenization</h3>
-            <input
-                type="number"
-                value={tokenAmount}
-                onChange={(e) => setTokenAmount(e.target.value)}
-                placeholder="Token Amount"
-            />
-            <input
-                type="number"
-                value={tokenPrice}
-                onChange={(e) => setTokenPrice(e.target.value)}
-                placeholder="Token Price"
-            />
+            <div className="button-group">
+                <button
+                    className="btn-penomo"
+                    onClick={addRevenueStream}
+                >
+                    Add Revenue Stream
+                </button>
+            </div>
         </div>
     );
 };

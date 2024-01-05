@@ -1,31 +1,40 @@
-import React, { useState } from 'react';
+import React from 'react';
 
-const StepFourForm = () => {
-    const [securitizationContract, setSecuritizationContract] = useState(null);
-    const [termsConditions, setTermsConditions] = useState(null);
-    const [spvTemplate, setSpvTemplate] = useState(null);
-
-    const handleFileChange = (setter) => (event) => {
-        setter(event.target.files[0]);
-    };
-
+const StepThreeForm = ({
+    contractName, setContractName,
+    contractStartDate, setContractStartDate,
+    contractTerm, setContractTerm,
+    revenueShare, setRevenueShare
+}) => {
     return (
         <div>
-            <h3>Contract and Agreement Templates</h3>
-            <div>
-                <a href="/path/to/securitization_contract.pdf" download>Download Securitization Contract</a>
-                <input type="file" onChange={handleFileChange(setSecuritizationContract)} />
-            </div>
-            <div>
-                <a href="/path/to/terms_conditions.pdf" download>Download Terms & Conditions</a>
-                <input type="file" onChange={handleFileChange(setTermsConditions)} />
-            </div>
-            <div>
-                <a href="/path/to/spv_template.pdf" download>Download SPV Template</a>
-                <input type="file" onChange={handleFileChange(setSpvTemplate)} />
-            </div>
+            <h3>Contract Details</h3>
+            <input
+                type="text"
+                value={contractName}
+                onChange={(e) => setContractName(e.target.value)}
+                placeholder="Contract Name"
+            />
+            <input
+                type="date"
+                value={contractStartDate}
+                onChange={(e) => setContractStartDate(e.target.value)}
+                placeholder="Contract Start Date"
+            />
+            <input
+                type="number"
+                value={contractTerm}
+                onChange={(e) => setContractTerm(e.target.value)}
+                placeholder="Contract Term (Months)"
+            />
+            <input
+                type="number"
+                value={revenueShare}
+                onChange={(e) => setRevenueShare(e.target.value)}
+                placeholder="Revenue Share (%)"
+            />
         </div>
     );
 };
 
-export default StepFourForm;
+export default StepThreeForm;
