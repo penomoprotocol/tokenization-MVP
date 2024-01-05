@@ -261,6 +261,7 @@ html, body, body * {
     display: flex;
     justify-content: space-between;
     align-items: center;
+    margin-top: 2rem;
     margin-bottom: 1rem;
     margin-right: 2rem;
 }

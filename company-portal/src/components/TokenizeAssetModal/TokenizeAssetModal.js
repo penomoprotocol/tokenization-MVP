@@ -51,7 +51,7 @@ const TokenizeAssetModal = ({ show, handleClose }) => {
             </Modal.Header>
             <Modal.Body>
                 {step === 1 && (
-                    <StepOneForm 
+                    <StepOneForm
                         assetType={assetType} setAssetType={setAssetType}
                         capacity={capacity} setCapacity={setCapacity}
                         power={power} setPower={setPower}
@@ -61,7 +61,7 @@ const TokenizeAssetModal = ({ show, handleClose }) => {
                     />
                 )}
                 {step === 2 && (
-                    <StepTwoForm 
+                    <StepTwoForm
                         financingGoal={financingGoal} setFinancingGoal={setFinancingGoal}
                         fundUsage={fundUsage} setFundUsage={setFundUsage}
                         tokenAmount={tokenAmount} setTokenAmount={setTokenAmount}
@@ -69,7 +69,7 @@ const TokenizeAssetModal = ({ show, handleClose }) => {
                     />
                 )}
                 {step === 3 && (
-                    <StepThreeForm 
+                    <StepThreeForm
                         contractName={contractName} setContractName={setContractName}
                         contractStartDate={contractStartDate} setContractStartDate={setContractStartDate}
                         contractTerm={contractTerm} setContractTerm={setContractTerm}
@@ -78,16 +78,18 @@ const TokenizeAssetModal = ({ show, handleClose }) => {
                 )}
                 {step === 4 && (
                     <StepFourForm
-                        // Props for file upload and other data
+                    // Props for file upload and other data
                     />
                 )}
 
-                <div className="modal-navigation">
-                    {step > 1 && <button onClick={handlePreviousStep} className="btn-secondary-navbar">Previous</button>}
-                    {step < 4 && <button onClick={handleNextStep} className="btn-penomo-navbar">Next</button>}
-                </div>
             </Modal.Body>
             <Modal.Footer>
+                <div className="modal-navigation">
+                    {step > 1 && <button onClick={handlePreviousStep} className="btn-secondary-navbar">Previous</button>}
+                </div>
+                <div className="modal-navigation">
+                    {step < 4 && <button onClick={handleNextStep} className="btn-penomo-navbar">Next</button>}
+                </div>
                 {step === 4 && <button onClick={handleSubmit} className="btn-penomo-navbar">Submit</button>}
             </Modal.Footer>
         </Modal>
