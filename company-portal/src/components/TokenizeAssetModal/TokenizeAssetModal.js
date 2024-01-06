@@ -9,6 +9,9 @@ import StepFiveForm from './StepFiveForm';
 const TokenizeAssetModal = ({ show, handleClose }) => {
     // State for form data
     const [assetType, setAssetType] = useState('');
+    const [brand, setBrand] = useState('');
+    const [model, setModel] = useState('');
+    const [serialNumber, setSerialNumber] = useState('');
     const [capacity, setCapacity] = useState('');
     const [power, setPower] = useState('');
     const [location, setLocation] = useState('');
@@ -98,6 +101,9 @@ const TokenizeAssetModal = ({ show, handleClose }) => {
                 {step === 1 && (
                     <StepOneForm
                         assetType={assetType} setAssetType={setAssetType}
+                        brand={brand} setBrand={setBrand}
+                        model={model} setModel={setModel}
+                        serialNumber={serialNumber} setSerialNumber={setSerialNumber}
                         capacity={capacity} setCapacity={setCapacity}
                         power={power} setPower={setPower}
                         location={location} setLocation={setLocation}
@@ -125,8 +131,10 @@ const TokenizeAssetModal = ({ show, handleClose }) => {
                 )}
                 {step === 4 && (
                     <StepFourForm
-                        tokenAmount={tokenAmount} setTokenAmount={setTokenAmount}
-                        tokenPrice={tokenPrice} setTokenPrice={setTokenPrice}
+                        contractName={contractName} setContractName={setContractName}
+                        contractStartDate={contractStartDate} setContractStartDate={setContractStartDate}
+                        contractTerm={contractTerm} setContractTerm={setContractTerm}
+                        revenueShare={revenueShare} setRevenueShare={setRevenueShare}
                     />
                 )}
                 {step === 5 && (

@@ -2,6 +2,9 @@ import React from 'react';
 
 const StepOneForm = ({
     assetType, setAssetType,
+    brand, setBrand,
+    model, setModel,
+    serialNumber, setSerialNumber,
     capacity, setCapacity,
     power, setPower,
     location, setLocation
@@ -24,6 +27,48 @@ const StepOneForm = ({
                 </select>
             </div>
 
+            {assetType && (
+                <div className="form-group">
+                    <label htmlFor="brand">Brand Name</label>
+                    <input
+                        id="brand"
+                        type="text"
+                        value={brand}
+                        onChange={(e) => setBrand(e.target.value)}
+                        className="form-control"
+                        placeholder="Name"
+                    />
+                </div>
+            )}
+
+            {assetType && (
+                <div className="form-group">
+                    <label htmlFor="model">Model Name</label>
+                    <input
+                        id="model"
+                        type="text"
+                        value={model}
+                        onChange={(e) => setModel(e.target.value)}
+                        className="form-control"
+                        placeholder="Name"
+                    />
+                </div>
+            )}
+
+            {assetType && (
+                <div className="form-group">
+                    <label htmlFor="model">Serial Number</label>
+                    <input
+                        id="serialNumber"
+                        type="text"
+                        value={serialNumber}
+                        onChange={(e) => setSerialNumber(e.target.value)}
+                        className="form-control"
+                        placeholder="Enter"
+                    />
+                </div>
+            )}
+
             {assetType === 'battery' && (
                 <div className="form-group">
                     <label htmlFor="capacity">Capacity (kWh)</label>
@@ -38,7 +83,7 @@ const StepOneForm = ({
                 </div>
             )}
 
-            {(assetType === 'solar' || assetType === 'windTurbine') && (
+            {assetType && (
                 <div className="form-group">
                     <label htmlFor="power">Power (kW)</label>
                     <input

@@ -17,7 +17,7 @@ const StepFourForm = ({
                     className="form-control"
                     value={contractName}
                     onChange={(e) => setContractName(e.target.value)}
-                    placeholder="Contract Name"
+                    placeholder="Enter Name"
                 />
             </div>
             <div className="form-group">
@@ -32,25 +32,25 @@ const StepFourForm = ({
                 />
             </div>
             <div className="form-group">
-                <label htmlFor="contractTerm">Contract Term (Months)</label>
+                <label htmlFor="contractTerm">Contract Term</label>
                 <input
                     id="contractTerm"
                     type="number"
                     className="form-control"
                     value={contractTerm}
                     onChange={(e) => setContractTerm(e.target.value)}
-                    placeholder="Contract Term (Months)"
+                    placeholder="Duration (Months)"
                 />
             </div>
             <div className="form-group">
-                <label htmlFor="revenueShare">Revenue Share (%)</label>
+                <label htmlFor="revenueShare">Revenue Share</label>
                 <input
                     id="revenueShare"
                     type="number"
                     className="form-control"
                     value={revenueShare}
                     onChange={(e) => setRevenueShare(e.target.value)}
-                    placeholder="Revenue Share (%)"
+                    placeholder="Percentage (%)"
                 />
             </div>
         </div>

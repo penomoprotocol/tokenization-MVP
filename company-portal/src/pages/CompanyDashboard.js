@@ -141,7 +141,7 @@ function roundToDecimals(str, x) {
             </div>
 
             <div className="section-container">
-                <h2 className="section-header">RWA Liquidity Pools</h2>
+                <h2 className="section-header">Available Liquidy Pools</h2>
                 {isLoadingCompanyData ? (
                     <p>Loading...</p> // Display loading message while data is being fetched
                 ) : companyData && companyData.tokens.length > 0 ? (
@@ -164,7 +164,7 @@ function roundToDecimals(str, x) {
                         </div>
                     ))
                 ) : (
-                    <p>No liquidity pools found.</p> // This will display if the array is empty
+                    <p>No Tokenized Assets.</p> // This will display if the array is empty
                 )}
             </div>
 

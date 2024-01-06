@@ -1,9 +1,9 @@
 import React, { useState } from 'react';
 
-const StepFourForm = () => {
+const StepFiveForm = () => {
     const [securitizationContract, setSecuritizationContract] = useState(null);
     const [termsConditions, setTermsConditions] = useState(null);
-    const [spvTemplate, setSpvTemplate] = useState(null);
+    const [prospectusTemplate, setProspectusTemplate] = useState(null);
 
     const handleFileChange = (setter) => (event) => {
         setter(event.target.files[0]);
@@ -11,21 +11,21 @@ const StepFourForm = () => {
 
     return (
         <div>
-            <h3>Contract and Agreement Templates</h3>
-            <div>
-                <a href="/path/to/securitization_contract.pdf" download>Download Securitization Contract</a>
+            <h3>Please Download, Fill Out and Upload the Following Documents:</h3>
+            <div className="form-group">
+                <label href="/path/to/securitization_contract.pdf" download className="btn-link">Download Securitization Contract</label>
                 <input type="file" onChange={handleFileChange(setSecuritizationContract)} />
             </div>
-            <div>
-                <a href="/path/to/terms_conditions.pdf" download>Download Terms & Conditions</a>
+            <div className="form-group">
+                < label href="/path/to/terms_conditions.pdf" download className="btn-link">Download Terms & Conditions</label>
                 <input type="file" onChange={handleFileChange(setTermsConditions)} />
             </div>
-            <div>
-                <a href="/path/to/spv_template.pdf" download>Download SPV Template</a>
-                <input type="file" onChange={handleFileChange(setSpvTemplate)} />
+            <div className="form-group">
+                <label href="/path/to/prospectus_template.pdf" download className="btn-link">Download Prospectus Template</label>
+                <input type="file" onChange={handleFileChange(setProspectusTemplate)} />
             </div>
         </div>
     );
 };
 
-export default StepFourForm;
+export default StepFiveForm;

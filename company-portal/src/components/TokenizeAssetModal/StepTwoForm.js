@@ -7,7 +7,7 @@ const StepTwoForm = ({
 }) => {
     return (
         <div>
-            <h3>Asset Evaluation</h3>
+            <h3>Asset Valuation</h3>
             <div className="form-group">
                 <label htmlFor="assetValue">Purchase Value</label>
                 <input
@@ -62,7 +62,7 @@ const StepTwoForm = ({
                             className="btn btn-secondary"
                             onClick={() => deleteRevenueStream(index)}
                         >
-                            Delete Revenue Stream
+                            Delete Projected Profit
                         </button>
                     </div>
                 </div>
@@ -72,7 +72,7 @@ const StepTwoForm = ({
                     className="btn-penomo"
                     onClick={addRevenueStream}
                 >
-                    Add Revenue Stream
+                    Add Projected Profit
                 </button>
             </div>
         </div>
