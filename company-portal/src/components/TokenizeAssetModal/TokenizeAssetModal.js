@@ -6,7 +6,9 @@ import StepThreeForm from './StepThreeForm';
 import StepFourForm from './StepFourForm';
 import StepFiveForm from './StepFiveForm';
 
-const TokenizeAssetModal = ({ show, handleClose }) => {
+import axios from 'axios';
+
+const TokenizeAssetModal = ({ show, handleClose, companyId, companyPassword }) => {
     // State for form data
     const [assetType, setAssetType] = useState('');
     const [brand, setBrand] = useState('');
@@ -70,26 +72,26 @@ const TokenizeAssetModal = ({ show, handleClose }) => {
         setStep(prevStep => prevStep - 1);
     };
 
-    // Final submission function
-    const handleSubmit = () => {
-        console.log('Form submission data:', {
-            assetType,
-            capacity,
-            power,
-            location,
-            assetValue,
-            revenueStreams,
-            financingGoal,
-            fundUsage,
-            tokenAmount,
-            tokenPrice,
-            contractName,
-            contractStartDate,
-            contractTerm,
-            revenueShare,
+   // Final submission function
+   const handleSubmit = async () => {
+    try {
+        // Assuming batteryName is one of the values to be sent
+        const batteryName = model; // or another appropriate value
+
+        const response = await axios.post('/api/asset/register', {
+            companyId,
+            companyPassword,
+            batteryName
         });
+
+        console.log('Asset Registration Response:', response.data);
         handleClose(); // Close the modal after submission
-    };
+    } catch (error) {
+        console.error('Error registering asset:', error);
+        // Handle the error appropriately
+    }
+};
+
 
     // Modal structure with updated steps
     return (
