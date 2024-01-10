@@ -7,6 +7,8 @@ const crypto = require('crypto');
 const fs = require('fs');
 const path = require('path');
 
+const verifyToken = require('../middleware/jwtCheck');
+
 const GSCBuild = path.join(__dirname, '..', '..', 'evm-erc20', 'artifacts', 'contracts', 'GlobalStateContract.sol', 'GlobalStateContract.json');
 const SCBuild = path.join(__dirname, '..', '..', 'evm-erc20', 'artifacts', 'contracts', 'ServiceContract.sol', 'ServiceContract.json');
 const TCBuild = path.join(__dirname, '..', '..', 'evm-erc20', 'artifacts', 'contracts', 'TokenContractERC20.sol', 'TokenContractERC20.json');
@@ -33,8 +35,6 @@ const swaggerUi = require('swagger-ui-express');
 const express = require('express');
 const router = express.Router();
 
-
-const verifyToken = require('../middleware/jwtCheck');
 
 // const ipfsClient = require('ipfs-http-client');
 // const ipfs = ipfsClient({ host: 'localhost', port: '5001', protocol: 'http' }); // adjust if you're connecting to a different IPFS node
@@ -207,20 +207,11 @@ const readDID = async (sdk, name) => {
 
 // TODO: Implement sdk integration once migrated to peaq testnet
 
-router.post('/asset/register', async (req, res) => {
+router.post('/asset/register', verifyToken, async (req, res) => {
     try {
-        const { companyId, companyPassword, batteryName } = req.body;
-
-        // Validate company and password
+        const companyId = req.user.id; // ID is retrieved from the decoded JWT token
         const company = await Company.findById(companyId);
-        if (!company) {
-            return res.status(401).send('Company not found');
-        }
 
-        const isPasswordValid = await bcrypt.compare(companyPassword, company.password);
-        if (!isPasswordValid) {
-            return res.status(401).send('Invalid credentials');
-        }
 
         // Create DID using peaq SDK
         let did;

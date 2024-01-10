@@ -79,8 +79,6 @@ const TokenizeAssetModal = ({ show, handleClose, companyId, companyPassword }) =
         const batteryName = model; // or another appropriate value
 
         const response = await axios.post('/api/asset/register', {
-            companyId,
-            companyPassword,
             batteryName
         });
 
