@@ -212,6 +212,19 @@ router.post('/asset/register', verifyToken, async (req, res) => {
         const companyId = req.user.id; // ID is retrieved from the decoded JWT token
         const company = await Company.findById(companyId);
 
+        const {
+            assetType,
+            brand,
+            model,
+            serialNumber,
+            capacity,
+            power,
+            location,
+            assetValue,
+            revenueStreams,
+            financingGoal,
+            fundUsage
+        } = req.body;
 
         // Create DID using peaq SDK
         let did;
