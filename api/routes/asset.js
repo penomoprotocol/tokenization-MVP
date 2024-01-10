@@ -229,7 +229,7 @@ router.post('/asset/register', verifyToken, async (req, res) => {
         // Create DID using peaq SDK
         let did;
         try {
-            did = await createPeaqDID(batteryName, SEED);
+            did = await createPeaqDID(serialNumber, SEED);
         } catch (error) {
             console.error(`Error creating peaq DID: ${error}`);
         }
@@ -244,7 +244,17 @@ router.post('/asset/register', verifyToken, async (req, res) => {
 
         // Create a new asset with the wallet details
         const newAsset = new Asset({
-            name: batteryName,
+            assetType: assetType,
+            brand: brand,
+            model: model,
+            serialNumber: serialNumber,
+            capacity: capacity,
+            power: power,
+            location: location,
+            assetValue: assetValue,
+            revenueStreams: revenueStreams,
+            financingGoal: financingGoal,
+            fundUsage: fundUsage,
             DID: did,
             publicKey: publicKey,
             privateKey: encryptedPrivateKey,
