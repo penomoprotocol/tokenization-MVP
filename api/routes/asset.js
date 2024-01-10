@@ -167,10 +167,10 @@ const readDID = async (sdk, name) => {
  * @swagger
  * /api/asset/register:
  *   post:
- *     summary: Register a new asset and create its DID.
- *     tags: 
- *       - Asset
- *     description: This endpoint registers a new asset for a company and generates a DID for the asset. It then returns the DID.
+ *     summary: Registers a new asset and associates it with a company.
+ *     tags: [Asset]
+ *     security:
+ *       - bearerAuth: []
  *     requestBody:
  *       required: true
  *       content:
@@ -178,34 +178,72 @@ const readDID = async (sdk, name) => {
  *           schema:
  *             type: object
  *             properties:
- *               companyId:
+ *               assetType:
  *                 type: string
- *                 description: The unique identifier of the company registering the asset.
- *               companyPassword:
+ *                 description: Type of the asset (e.g., battery, solar panel).
+ *               brand:
  *                 type: string
- *                 description: The password for company authentication.
- *               batteryName:
+ *                 description: Brand of the asset.
+ *               model:
  *                 type: string
- *                 description: The name of the battery asset to register.
+ *                 description: Model of the asset.
+ *               serialNumber:
+ *                 type: string
+ *                 description: Serial number of the asset.
+ *               capacity:
+ *                 type: string
+ *                 description: Capacity of the asset (e.g., in kWh for batteries).
+ *               power:
+ *                 type: string
+ *                 description: Power rating of the asset (e.g., in kW).
+ *               location:
+ *                 type: string
+ *                 description: Geographical location of the asset.
+ *               assetValue:
+ *                 type: number
+ *                 description: Monetary value of the asset.
+ *               revenueStreams:
+ *                 type: array
+ *                 items:
+ *                   type: object
+ *                   properties:
+ *                     name:
+ *                       type: string
+ *                     amount:
+ *                       type: number
+ *                     details:
+ *                       type: string
+ *                 description: Expected revenue streams from the asset.
+ *               financingGoal:
+ *                 type: number
+ *                 description: The funding goal for the asset.
+ *               fundUsage:
+ *                 type: array
+ *                 items:
+ *                   type: object
+ *                   properties:
+ *                     amount:
+ *                       type: number
+ *                     description:
+ *                       type: string
+ *                 description: Details on how the funds will be used.
  *     responses:
  *       200:
- *         description: Successfully registered the asset and returned DID.
+ *         description: Asset successfully registered. Returns DID and public key.
  *         content:
  *           application/json:
  *             schema:
  *               type: object
  *               properties:
- *                 did:
+ *                 message:
  *                   type: string
- *                   description: The Decentralized Identifier (DID) of the newly registered asset.
- *       400:
- *         description: Missing required fields in the request.
+ *                 newAsset:
+ *                   $ref: '#/components/schemas/Asset'
+ *       401:
+ *         description: Unauthorized. Company not found or invalid credentials.
  *       500:
- *         description: Error occurred while registering the asset.
+ *         description: Server error or unable to register the asset.
  */
-
-
-// TODO: Implement sdk integration once migrated to peaq testnet
 
 router.post('/asset/register', verifyToken, async (req, res) => {
     try {
@@ -276,6 +314,7 @@ router.post('/asset/register', verifyToken, async (req, res) => {
     }
 
 });
+
 /**
  * @swagger
  * /api/asset/storeData:
