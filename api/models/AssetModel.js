@@ -40,19 +40,46 @@ const didSchema = new mongoose.Schema({
 
 // Main Asset schema
 const assetSchema = new mongoose.Schema({
-    name: {
+    assetType: {
         type: String,
         required: true
     },
-    batteryType: {
-        type: String
+    brand: {
+        type: String,
+        required: true
+    },
+    model: {
+        type: String,
+        required: true
+    },
+    serialNumber: {
+        type: String,
+        required: true
     },
     capacity: {
-        type: String
+        type: String, // consider changing the type based on the data format
     },
-    voltage: {
-        type: String
+    power: {
+        type: String, // consider changing the type based on the data format
     },
+    location: {
+        type: String,
+    },
+    assetValue: {
+        type: Number,
+    },
+    revenueStreams: [{
+        name: String,
+        amount: Number,
+        details: String
+    }],
+    financingGoal: {
+        type: Number,
+    },
+    fundUsage: [{
+        amount: Number,
+        description: String
+    }],
     DID: {
         type: didSchema,
         required: true

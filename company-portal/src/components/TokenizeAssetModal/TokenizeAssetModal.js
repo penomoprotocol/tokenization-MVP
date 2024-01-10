@@ -8,7 +8,7 @@ import StepFiveForm from './StepFiveForm';
 
 import axios from 'axios';
 
-const TokenizeAssetModal = ({ show, handleClose, companyId, companyPassword }) => {
+const TokenizeAssetModal = ({ show, handleClose}) => {
     // State for form data
     const [assetType, setAssetType] = useState('');
     const [brand, setBrand] = useState('');
@@ -79,7 +79,17 @@ const TokenizeAssetModal = ({ show, handleClose, companyId, companyPassword }) =
         const batteryName = model; // or another appropriate value
 
         const response = await axios.post('/api/asset/register', {
-            batteryName
+            assetType,
+            brand,
+            model,
+            serialNumber,
+            capacity,
+            power,
+            location,
+            assetValue,
+            revenueStreams,
+            financingGoal,
+            fundUsage
         });
 
         console.log('Asset Registration Response:', response.data);
