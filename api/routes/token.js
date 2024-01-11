@@ -305,10 +305,11 @@ async function deployRevenueDistributionContract(serviceContractAddress, tokenCo
  * @swagger
  * /api/token/deploy:
  *   post:
- *     summary: Tokenize an asset
- *     tags: 
+ *     summary: Deploys tokenization contracts and registers a new token in the system.
+ *     tags:
  *       - Token
- *     description: Deploy contracts to tokenize an asset with provided details.
+ *     security:
+ *       - bearerAuth: []
  *     requestBody:
  *       required: true
  *       content:
@@ -316,76 +317,53 @@ async function deployRevenueDistributionContract(serviceContractAddress, tokenCo
  *           schema:
  *             type: object
  *             required:
- *               - companyId
- *               - password
- *               - DIDs
- *               - CIDs
- *               - name
- *               - symbol
- *               - revenueShare
- *               - contractTerm
- *               - maxTokenSupply
+ *               - tokenName
+ *               - tokenSymbol
+ *               - tokenSupply
  *               - tokenPrice
- *               - currency 
+ *               - paymentCurrency
+ *               - contractTerm
+ *               - revenueShare
+ *               - DIDs
  *             properties:
- *               companyId:
+ *               tokenName:
  *                 type: string
- *                 description: ID of the company initiating tokenization.
- *               password:
+ *               tokenSymbol:
  *                 type: string
- *                 description: Password for company authentication.
+ *               tokenSupply:
+ *                 type: number
+ *               tokenPrice:
+ *                 type: number
+ *               paymentCurrency:
+ *                 type: string
+ *               contractTerm:
+ *                 type: number
+ *               revenueShare:
+ *                 type: number
  *               DIDs:
  *                 type: array
  *                 items:
  *                   type: string
- *                 description: Array of Digital Identifiers.
- *               CIDs:
- *                 type: array
- *                 items:
- *                   type: string
- *                 description: Array of IPFS Identifiers. 
- *               name:
- *                 type: string
- *                 description: Name of the token.
- *               symbol:
- *                 type: string
- *                 description: Symbol of the token.
- *               revenueShare:
- *                 type: number
- *                 description: Percentage of revenue share.
- *               contractTerm:
- *                 type: number
- *                 description: Term length of the contract.
- *               maxTokenSupply:
- *                 type: number
- *                 description: Maximum supply of the tokens.
- *               tokenPrice:
- *                 type: number
- *                 description: Price of each token.
- *               currency:
- *                 type: string
- *                 description: Payment currency.
  *     responses:
  *       200:
- *         description: Successfully tokenized asset and returned contract addresses.
+ *         description: Successfully deployed tokenization contracts.
  *         content:
  *           application/json:
  *             schema:
  *               type: object
  *               properties:
- *                 tokenContractAddress:
+ *                 message:
  *                   type: string
- *                 serviceContractAddress:
- *                   type: string
- *                 liquidityContractAddress:
- *                   type: string
- *                 revenueDistributionContractAddress:
- *                   type: string
+ *                 newTokenEntry:
+ *                   $ref: '#/components/schemas/Token'
  *       400:
  *         description: Missing required parameters.
+ *       401:
+ *         description: Unauthorized. Company not found or invalid credentials.
  *       500:
  *         description: Failed to deploy the contracts.
  */
+
 
 router.post('/token/deploy', verifyToken, async (req, res) => {
     try {
