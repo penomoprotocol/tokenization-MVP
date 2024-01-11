@@ -73,12 +73,11 @@ const TokenizeAssetModal = ({ show, handleClose}) => {
     };
 
    // Final submission function
-   const handleSubmit = async () => {
+// Final submission function
+const handleSubmit = async () => {
     try {
-        // Assuming batteryName is one of the values to be sent
-        const batteryName = model; // or another appropriate value
-
-        const response = await axios.post('/api/asset/register', {
+        // Prepare the data to send for asset registration
+        const assetData = {
             assetType,
             brand,
             model,
@@ -90,15 +89,38 @@ const TokenizeAssetModal = ({ show, handleClose}) => {
             revenueStreams,
             financingGoal,
             fundUsage
-        });
+        };
 
-        console.log('Asset Registration Response:', response.data);
+        // Call the asset registration endpoint
+        const assetResponse = await axios.post('/api/asset/register', assetData);
+        console.log('Asset Registration Response:', assetResponse.data);
+
+        const newAsset = assetResponse.data.newAsset;
+        
+        // Prepare the data for token deployment
+        const tokenData = {
+            tokenName: contractName,
+            tokenSymbol: contractName,
+            tokenSupply: tokenAmount,
+            tokenPrice: tokenPrice,
+            paymentCurrency: 'USDC',
+            contractTerm: contractTerm,
+            revenueShare: revenueShare,
+            DIDs: [newAsset.DID.value] // Assuming DID is in the response and has a value property
+        };
+
+        // Call the token deployment endpoint
+        const tokenResponse = await axios.post('/api/token/deploy', tokenData);
+        console.log('Token Deployment Response:', tokenResponse.data);
+
         handleClose(); // Close the modal after submission
+
     } catch (error) {
-        console.error('Error registering asset:', error);
+        console.error('Error in process:', error);
         // Handle the error appropriately
     }
 };
+
 
 
     // Modal structure with updated steps
