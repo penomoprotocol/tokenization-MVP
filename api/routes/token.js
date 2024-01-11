@@ -386,38 +386,43 @@ async function deployRevenueDistributionContract(serviceContractAddress, tokenCo
  *       500:
  *         description: Failed to deploy the contracts.
  */
-router.post('/token/deploy', async (req, res) => {
-    try {
-        // Get data from the request
-        const { companyId, password, DIDs, CIDs, name, symbol, revenueShare, contractTerm, maxTokenSupply, tokenPrice, currency } = req.body;
 
-        if (!companyId || !password || !DIDs || !CIDs || !name || !symbol || !revenueShare || !contractTerm || !maxTokenSupply || !tokenPrice) {
+router.post('/token/deploy', verifyToken, async (req, res) => {
+    try {
+        const companyId = req.user.id; // Retrieved from the JWT token by verifyToken middleware
+
+        const {
+            tokenName,
+            tokenSymbol,
+            tokenSupply,
+            tokenPrice,
+            paymentCurrency,
+            contractTerm,
+            revenueShare,
+            DIDs
+            // Include other fields if necessary
+        } = req.body;
+
+        // Validate the required parameters
+        if (!tokenSupply || !tokenPrice || !tokenName || !contractTerm || !revenueShare) {
             return res.status(400).send('Missing required parameters.');
         }
 
-        // Step 1: Get the company from the database using the provided companyId
         const company = await Company.findById(companyId);
         if (!company) {
             console.log('Company not found:', companyId);
             return res.status(401).send('Company not found');
         }
-
-        // Step 2: Verify password
-        const isPasswordValid = await bcrypt.compare(password, company.password);
-        if (!isPasswordValid) {
-            console.log('Invalid credentials for company ID:', companyId);
-            return res.status(401).send('Invalid credentials');
-        }
-
         console.log("company.ethereumPublicKey: ", company.ethereumPublicKey);
 
         BBWalletAddress = company.ethereumPublicKey;
+        maxTokenSupply = tokenAmount;
 
         // Deploy the ServiceContract and get its address
         const serviceContractAddress = await deployServiceContract(GSCAddress);
 
         // Deploy the TokenContract using the ServiceContract's address
-        const tokenContractAddress = await deployTokenContract(DIDs, CIDs, [10000], name, symbol, revenueShare, contractTerm, maxTokenSupply, tokenPrice, currency, serviceContractAddress);
+        const tokenContractAddress = await deployTokenContract(DIDs, tokenName, tokenSymbol, revenueShare, contractTerm, tokenSupply, tokenPrice, paymentCurrency, serviceContractAddress);
 
         // Deploy LiquidityContract
         const liquidityContractAddress = await deployLiquidityContract(serviceContractAddress, BBWalletAddress, MASTER_ADDRESS);
@@ -441,11 +446,11 @@ router.post('/token/deploy', async (req, res) => {
 
         // Generate DB entry for new tokenization contracts
         const newTokenEntry = new Token({
-            name: name,
-            symbol: symbol,
-            maxTokenSupply: maxTokenSupply, // Add this field
+            name: tokenName,
+            symbol: tokenSymbol,
+            maxTokenSupply: tokenSupply, // Add this field
             tokenPrice: tokenPrice, // Add this field
-            currency: currency,
+            currency: paymentCurrency,
             revenueShare: revenueShare, // Add this field
             contractTerm: contractTerm, // Add this field
             serviceContractAddress: serviceContractAddress,
@@ -458,10 +463,6 @@ router.post('/token/deploy', async (req, res) => {
         });
 
         // Save the new token entry to the database
-        await newTokenEntry.save();
-
-
-        // Save the new contract entry to the database
         await newTokenEntry.save();
 
         // Respond with the deployed contracts' addresses
