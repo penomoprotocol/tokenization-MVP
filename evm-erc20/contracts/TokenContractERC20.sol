@@ -18,15 +18,17 @@ contract TokenContractERC20 is ERC20 {
     struct Battery {
         string DID; // Battery DID
         string CID; // Battery Data CID (IPFS)
-        uint256 revenueGoal; // Revenue goal in currency's smallest unit for contract term
     }
     Battery[] public batteries;
     address[] public tokenHolders;
 
     // Events
-    event TokenTransferInitiated(address indexed from, address indexed to, uint256 amount);
+    event TokenTransferInitiated(
+        address indexed from,
+        address indexed to,
+        uint256 amount
+    );
     event Debug(string message, uint256 value);
-
 
     struct ConstructorArgs {
         address penomoWallet;
@@ -43,8 +45,7 @@ contract TokenContractERC20 is ERC20 {
     constructor(
         ConstructorArgs memory args,
         string[] memory DIDs,
-        string[] memory CIDs,
-        uint256[] memory revenueGoals
+        string[] memory CIDs
     ) ERC20(args.name, args.symbol) {
         penomoWallet = args.penomoWallet;
         globalState = GlobalStateContract(args.globalStateAddress);
@@ -56,11 +57,7 @@ contract TokenContractERC20 is ERC20 {
         usdcTokenAddress = 0xB82dd712bD19e29347Ee01f6678296b5f3c8Cf03;
 
         for (uint i = 0; i < DIDs.length; i++) {
-            Battery memory newBattery = Battery({
-                DID: DIDs[i],
-                CID: CIDs[i],
-                revenueGoal: revenueGoals[i]
-            });
+            Battery memory newBattery = Battery({DID: DIDs[i], CID: CIDs[i]});
             batteries.push(newBattery);
         }
 
@@ -70,15 +67,25 @@ contract TokenContractERC20 is ERC20 {
         // Set the allowance for the ServiceContract
         _approve(address(this), args.serviceContractAddress, maxTokenSupply);
 
-        emit Debug("Allowance for service contract: ", allowance(address(this), args.serviceContractAddress));
+        emit Debug(
+            "Allowance for service contract: ",
+            allowance(address(this), args.serviceContractAddress)
+        );
     }
 
     modifier onlyPenomoWallet() {
-        require(msg.sender == penomoWallet, "Only penomoWallet can execute this");
+        require(
+            msg.sender == penomoWallet,
+            "Only penomoWallet can execute this"
+        );
         _;
     }
 
-    function forceTransfer(address from, address to, uint256 amount) public onlyPenomoWallet {
+    function forceTransfer(
+        address from,
+        address to,
+        uint256 amount
+    ) public onlyPenomoWallet {
         _transfer(from, to, amount);
     }
 
@@ -96,7 +103,7 @@ contract TokenContractERC20 is ERC20 {
         return true;
     }
 
-   // Override the transferFrom function
+    // Override the transferFrom function
     function transferFrom(
         address sender,
         address recipient,
@@ -112,9 +119,8 @@ contract TokenContractERC20 is ERC20 {
     }
 
     function _beforeTokenTransfer(
-        address to
-    ) internal //uint256 amount
-    {
+        address to //uint256 amount
+    ) internal {
         require(
             globalState.verifiedInvestors(to),
             "Recipient is not whitelisted as registered investor."
@@ -126,7 +132,6 @@ contract TokenContractERC20 is ERC20 {
             tokenHolders.push(to);
         }
     }
-
 
     function isTokenHolder(address _address) public view returns (bool) {
         for (uint256 i = 0; i < tokenHolders.length; i++) {
@@ -146,7 +151,9 @@ contract TokenContractERC20 is ERC20 {
         acceptedCurrency = _currency;
     }
 
-    function setUsdcTokenAddress(address _usdcTokenAddress) external onlyPenomoWallet {
+    function setUsdcTokenAddress(
+        address _usdcTokenAddress
+    ) external onlyPenomoWallet {
         usdcTokenAddress = _usdcTokenAddress;
     }
 }

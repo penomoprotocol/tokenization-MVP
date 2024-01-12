@@ -191,7 +191,7 @@ async function deployServiceContract(GSCAddress) {
 }
 
 // Deploy Token Contract
-async function deployTokenContract(DIDs, name, symbol, revenueShare, contractTerm, maxTokenSupply, tokenPrice, currency, serviceContractAddress) {
+async function deployTokenContract(DIDs, CIDs, name, symbol, revenueShare, contractTerm, maxTokenSupply, tokenPrice, currency, serviceContractAddress) {
     const contractPath = path.join(TCBuild);
     const contractJSON = JSON.parse(fs.readFileSync(contractPath, 'utf8'));
     const TokenContract = new web3.eth.Contract(contractJSON.abi);
@@ -210,7 +210,7 @@ async function deployTokenContract(DIDs, name, symbol, revenueShare, contractTer
 
     const deploymentData = TokenContract.deploy({
         data: contractJSON.bytecode,
-        arguments: [constructorArgs, DIDs, CIDs, revenueGoals]
+        arguments: [constructorArgs, DIDs, CIDs]
     });
 
     const estimatedGas = await deploymentData.estimateGas({
@@ -381,6 +381,9 @@ router.post('/token/deploy', verifyToken, async (req, res) => {
             // Include other fields if necessary
         } = req.body;
 
+        // TODO: Implement CID handling (Datastorage on IPFS)
+        const CIDs = [];
+
         // Validate the required parameters
         if (!tokenSupply || !tokenPrice || !tokenName || !contractTerm || !revenueShare) {
             return res.status(400).send('Missing required parameters.');
@@ -400,7 +403,7 @@ router.post('/token/deploy', verifyToken, async (req, res) => {
         const serviceContractAddress = await deployServiceContract(GSCAddress);
 
         // Deploy the TokenContract using the ServiceContract's address
-        const tokenContractAddress = await deployTokenContract(DIDs, tokenName, tokenSymbol, revenueShare, contractTerm, tokenSupply, tokenPrice, paymentCurrency, serviceContractAddress);
+        const tokenContractAddress = await deployTokenContract(DIDs, CIDs, tokenName, tokenSymbol, revenueShare, contractTerm, tokenSupply, tokenPrice, paymentCurrency, serviceContractAddress);
 
         // Deploy LiquidityContract
         const liquidityContractAddress = await deployLiquidityContract(serviceContractAddress, BBWalletAddress, MASTER_ADDRESS);

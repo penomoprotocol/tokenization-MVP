@@ -113,7 +113,7 @@ const TokenizeAssetModal = ({ show, handleClose }) => {
                 paymentCurrency: 'USDC',
                 contractTerm: contractTerm,
                 revenueShare: revenueShare,
-                DIDs: [newAsset.DID.value] // Assuming DID is in the response and has a value property
+                DIDs: [newAsset.DID.document.id]
             };
 
             // Call the token deployment endpoint
