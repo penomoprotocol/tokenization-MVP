@@ -8,7 +8,7 @@ import StepFiveForm from './StepFiveForm';
 
 import axios from 'axios';
 
-const TokenizeAssetModal = ({ show, handleClose}) => {
+const TokenizeAssetModal = ({ show, handleClose }) => {
     // State for form data
     const [assetType, setAssetType] = useState('');
     const [brand, setBrand] = useState('');
@@ -72,54 +72,61 @@ const TokenizeAssetModal = ({ show, handleClose}) => {
         setStep(prevStep => prevStep - 1);
     };
 
-   // Final submission function
-// Final submission function
-const handleSubmit = async () => {
-    try {
-        // Prepare the data to send for asset registration
-        const assetData = {
-            assetType,
-            brand,
-            model,
-            serialNumber,
-            capacity,
-            power,
-            location,
-            assetValue,
-            revenueStreams,
-            financingGoal,
-            fundUsage
-        };
+    // Final submission function
+    const handleSubmit = async () => {
+        try {
+            // Prepare the data to send for asset registration
+            const assetData = {
+                assetType,
+                brand,
+                model,
+                serialNumber,
+                capacity,
+                power,
+                location,
+                assetValue,
+                revenueStreams,
+                financingGoal,
+                fundUsage
+            };
 
-        // Call the asset registration endpoint
-        const assetResponse = await axios.post('/api/asset/register', assetData);
-        console.log('Asset Registration Response:', assetResponse.data);
+            // Get JWT token
+            const token = localStorage.getItem('authToken');
 
-        const newAsset = assetResponse.data.newAsset;
-        
-        // Prepare the data for token deployment
-        const tokenData = {
-            tokenName: contractName,
-            tokenSymbol: contractName,
-            tokenSupply: tokenAmount,
-            tokenPrice: tokenPrice,
-            paymentCurrency: 'USDC',
-            contractTerm: contractTerm,
-            revenueShare: revenueShare,
-            DIDs: [newAsset.DID.value] // Assuming DID is in the response and has a value property
-        };
+            // Set up Axios headers
+            const config = {
+                headers: { Authorization: `Bearer ${token}` }
+            };
 
-        // Call the token deployment endpoint
-        const tokenResponse = await axios.post('/api/token/deploy', tokenData);
-        console.log('Token Deployment Response:', tokenResponse.data);
+            // Call the asset registration endpoint with the token in the header
+            const assetResponse = await axios.post(`${process.env.REACT_APP_PENOMO_API}/api/asset/register`, assetData, config);
+            console.log('Asset Registration Response:', assetResponse.data);
 
-        handleClose(); // Close the modal after submission
+            const newAsset = assetResponse.data.newAsset;
 
-    } catch (error) {
-        console.error('Error in process:', error);
-        // Handle the error appropriately
-    }
-};
+            // Prepare the data for token deployment
+            const tokenData = {
+                tokenName: contractName,
+                tokenSymbol: contractName,
+                tokenSupply: tokenAmount,
+                tokenPrice: tokenPrice,
+                paymentCurrency: 'USDC',
+                contractTerm: contractTerm,
+                revenueShare: revenueShare,
+                DIDs: [newAsset.DID.value] // Assuming DID is in the response and has a value property
+            };
+
+            // Call the token deployment endpoint
+            const tokenResponse = await axios.post(`${process.env.REACT_APP_PENOMO_API}/api/token/deploy`, tokenData, config);
+            console.log('Token Deployment Response:', tokenResponse.data);
+
+            handleClose(); // Close the modal after submission
+
+        } catch (error) {
+            console.error('Error in process:', error);
+            // Handle the error appropriately
+        }
+    };
 
 
 
