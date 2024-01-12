@@ -200,18 +200,26 @@ async function deployTokenContract(DIDs, CIDs, name, symbol, revenueShare, contr
         penomoWallet: MASTER_ADDRESS,
         globalStateAddress: GSCAddress,
         serviceContractAddress: serviceContractAddress,
+        name: name,
+        symbol: symbol,
         revenueShare: revenueShare * 10000,
         maxTokenSupply: web3.utils.toWei(maxTokenSupply.toString(), 'ether'),
         tokenPrice: web3.utils.toWei(tokenPrice.toString(), 'ether'),
         currency: currency,
-        name: name,
-        symbol: symbol,
     };
+
+    // DEBUG
+    console.log("constructorArgs:", constructorArgs);
 
     const deploymentData = TokenContract.deploy({
         data: contractJSON.bytecode,
-        arguments: [constructorArgs, DIDs, CIDs]
+        // DEBUG: Include DIDs and CIDs
+        //arguments: [constructorArgs, DIDs, CIDs, []]
+        arguments: [constructorArgs, [], [], []]
     });
+
+    // DEBUG
+    console.log("deploymentData:", deploymentData);
 
     const estimatedGas = await deploymentData.estimateGas({
         from: MASTER_ADDRESS
@@ -401,15 +409,20 @@ router.post('/token/deploy', verifyToken, async (req, res) => {
 
         // Deploy the ServiceContract and get its address
         const serviceContractAddress = await deployServiceContract(GSCAddress);
+        console.log("serviceContractAddress:", serviceContractAddress);
 
         // Deploy the TokenContract using the ServiceContract's address
         const tokenContractAddress = await deployTokenContract(DIDs, CIDs, tokenName, tokenSymbol, revenueShare, contractTerm, tokenSupply, tokenPrice, paymentCurrency, serviceContractAddress);
+        console.log("tokenContractAddress:", tokenContractAddress);
 
+        
         // Deploy LiquidityContract
         const liquidityContractAddress = await deployLiquidityContract(serviceContractAddress, BBWalletAddress, MASTER_ADDRESS);
+        console.log("tokenContractAddress:", tokenContractAddress);
 
         // Deploy RevenueDistributionContract
         const revenueDistributionContractAddress = await deployRevenueDistributionContract(serviceContractAddress, tokenContractAddress, liquidityContractAddress);
+        console.log("tokenContractAddress:", tokenContractAddress);
 
         // Get SC ABI
         const contractPath = path.join(SCBuild);

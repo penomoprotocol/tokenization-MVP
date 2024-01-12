@@ -5,11 +5,10 @@ import StepTwoForm from './StepTwoForm';
 import StepThreeForm from './StepThreeForm';
 import StepFourForm from './StepFourForm';
 import StepFiveForm from './StepFiveForm';
-
 import axios from 'axios';
 
 const TokenizeAssetModal = ({ show, handleClose }) => {
-    // State for form data
+    // State for form data and response
     const [assetType, setAssetType] = useState('');
     const [brand, setBrand] = useState('');
     const [model, setModel] = useState('');
@@ -27,8 +26,9 @@ const TokenizeAssetModal = ({ show, handleClose }) => {
     const [contractStartDate, setContractStartDate] = useState('');
     const [contractTerm, setContractTerm] = useState('');
     const [revenueShare, setRevenueShare] = useState('');
-
     const [step, setStep] = useState(1);
+    const [isSubmitting, setIsSubmitting] = useState(false);
+    const [responseMessage, setResponseMessage] = useState('');
 
     // Functions to handle revenue streams
     const addRevenueStream = () => {
@@ -50,13 +50,12 @@ const TokenizeAssetModal = ({ show, handleClose }) => {
 
     // Functions to handle fund usage
     const handleFundUsageChange = (index, field, value) => {
-        const updatedUsage = fundUsage.map((usage, i) => {
+        setFundUsage(fundUsage.map((usage, i) => {
             if (i === index) {
                 return { ...usage, [field]: value };
             }
             return usage;
-        });
-        setFundUsage(updatedUsage);
+        }));
     };
 
     const addFundUsageItem = () => {
@@ -74,124 +73,83 @@ const TokenizeAssetModal = ({ show, handleClose }) => {
 
     // Final submission function
     const handleSubmit = async () => {
+        setIsSubmitting(true);
+
         try {
-            // Prepare the data to send for asset registration
+            // Asset registration data
             const assetData = {
-                assetType,
-                brand,
-                model,
-                serialNumber,
-                capacity,
-                power,
-                location,
-                assetValue,
-                revenueStreams,
-                financingGoal,
-                fundUsage
+                assetType, brand, model, serialNumber, capacity, power, location, assetValue, revenueStreams, financingGoal, fundUsage
             };
 
             // Get JWT token
             const token = localStorage.getItem('authToken');
 
-            // Set up Axios headers
+            // Set Axios headers
             const config = {
                 headers: { Authorization: `Bearer ${token}` }
             };
 
-            // Call the asset registration endpoint with the token in the header
+            // Register asset
             const assetResponse = await axios.post(`${process.env.REACT_APP_PENOMO_API}/api/asset/register`, assetData, config);
-            console.log('Asset Registration Response:', assetResponse.data);
-
             const newAsset = assetResponse.data.newAsset;
 
-            // Prepare the data for token deployment
+            // Token deployment data
             const tokenData = {
                 tokenName: contractName,
                 tokenSymbol: contractName,
                 tokenSupply: tokenAmount,
-                tokenPrice: tokenPrice,
+                tokenPrice,
                 paymentCurrency: 'USDC',
-                contractTerm: contractTerm,
-                revenueShare: revenueShare,
+                contractTerm,
+                revenueShare,
                 DIDs: [newAsset.DID.document.id]
             };
 
-            // Call the token deployment endpoint
+            // Deploy token
             const tokenResponse = await axios.post(`${process.env.REACT_APP_PENOMO_API}/api/token/deploy`, tokenData, config);
-            console.log('Token Deployment Response:', tokenResponse.data);
 
-            handleClose(); // Close the modal after submission
-
+            // Set response message
+            setResponseMessage(`Your asset has been registered under the following DID: ${newAsset.DID.document.id}. Your Security Contract has been deployed under the following address: ${tokenResponse.data.tokenContractAddress}.`);
         } catch (error) {
             console.error('Error in process:', error);
-            // Handle the error appropriately
+            setResponseMessage('An error occurred during the process.');
         }
+
+        setIsSubmitting(false);
     };
 
-
-
-    // Modal structure with updated steps
     return (
-        <Modal show={show} onHide={handleClose} centered>
+        <Modal className='modal-body p' show={show} onHide={handleClose} centered>
             <Modal.Header closeButton>
                 <Modal.Title>Tokenize Asset</Modal.Title>
             </Modal.Header>
             <Modal.Body>
-                {step === 1 && (
-                    <StepOneForm
-                        assetType={assetType} setAssetType={setAssetType}
-                        brand={brand} setBrand={setBrand}
-                        model={model} setModel={setModel}
-                        serialNumber={serialNumber} setSerialNumber={setSerialNumber}
-                        capacity={capacity} setCapacity={setCapacity}
-                        power={power} setPower={setPower}
-                        location={location} setLocation={setLocation}
-                    />
-                )}
-                {step === 2 && (
-                    <StepTwoForm
-                        assetValue={assetValue} setAssetValue={setAssetValue}
-                        revenueStreams={revenueStreams}
-                        setRevenueStreams={setRevenueStreams}
-                        addRevenueStream={addRevenueStream}
-                        deleteRevenueStream={deleteRevenueStream}
-                        handleRevenueStreamChange={handleRevenueStreamChange}
-                    />
-                )}
-                {step === 3 && (
-                    <StepThreeForm
-                        financingGoal={financingGoal} setFinancingGoal={setFinancingGoal}
-                        fundUsage={fundUsage} setFundUsage={setFundUsage}
-                        tokenAmount={tokenAmount} setTokenAmount={setTokenAmount}
-                        tokenPrice={tokenPrice} setTokenPrice={setTokenPrice}
-                        handleFundUsageChange={handleFundUsageChange}
-                        addFundUsageItem={addFundUsageItem}
-                    />
-                )}
-                {step === 4 && (
-                    <StepFourForm
-                        contractName={contractName} setContractName={setContractName}
-                        contractStartDate={contractStartDate} setContractStartDate={setContractStartDate}
-                        contractTerm={contractTerm} setContractTerm={setContractTerm}
-                        revenueShare={revenueShare} setRevenueShare={setRevenueShare}
-                    />
-                )}
-                {step === 5 && (
-                    <StepFiveForm
-                        contractName={contractName} setContractName={setContractName}
-                        contractStartDate={contractStartDate} setContractStartDate={setContractStartDate}
-                        contractTerm={contractTerm} setContractTerm={setContractTerm}
-                        revenueShare={revenueShare} setRevenueShare={setRevenueShare}
-                    />
+                {!responseMessage ? (
+                    <>
+                        {step === 1 && <StepOneForm {...{ assetType, setAssetType, brand, setBrand, model, setModel, serialNumber, setSerialNumber, capacity, setCapacity, power, setPower, location, setLocation }} />}
+                        {step === 2 && <StepTwoForm {...{ assetValue, setAssetValue, revenueStreams, setRevenueStreams, addRevenueStream, deleteRevenueStream, handleRevenueStreamChange }} />}
+                        {step === 3 && <StepThreeForm {...{ financingGoal, setFinancingGoal, fundUsage, setFundUsage, tokenAmount, setTokenAmount, tokenPrice, setTokenPrice, handleFundUsageChange, addFundUsageItem }} />}
+                        {step === 4 && <StepFourForm {...{ contractName, setContractName, contractStartDate, setContractStartDate, contractTerm, setContractTerm, revenueShare, setRevenueShare }} />}
+                        {step === 5 && <StepFiveForm {...{ contractName, setContractName, contractStartDate, setContractStartDate, contractTerm, setContractTerm, revenueShare, setRevenueShare }} />}
+                    </>
+                ) : (
+                    <div>{responseMessage}</div>
                 )}
             </Modal.Body>
             <Modal.Footer>
-                {step > 1 && <button onClick={handlePreviousStep} className="btn-secondary-navbar">Previous</button>}
-                {step < 5 && <button onClick={handleNextStep} className="btn-penomo-navbar">Next</button>}
-                {step === 5 && <button onClick={handleSubmit} className="btn-penomo-navbar">Submit</button>}
+                {!responseMessage ? (
+                    <>
+                        {step > 1 && <button onClick={handlePreviousStep} className="btn-secondary-navbar">Previous</button>}
+                        {step < 5 && <button onClick={handleNextStep} className="btn-penomo-navbar">Next</button>}
+                        {step === 5 && <button onClick={handleSubmit} className="btn-penomo-navbar" disabled={isSubmitting}>{isSubmitting ? 'Processing..' : 'Submit'}</button>}
+                    </>
+                ) : (
+                    <button onClick={handleClose} className="btn-penomo-navbar">Close</button>
+                )}
             </Modal.Footer>
         </Modal>
     );
 };
 
 export default TokenizeAssetModal;
+
