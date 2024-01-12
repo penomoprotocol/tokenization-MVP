@@ -191,7 +191,7 @@ async function deployServiceContract(GSCAddress) {
 }
 
 // Deploy Token Contract
-async function deployTokenContract(DIDs, CIDs, revenueGoals, name, symbol, revenueShare, contractTerm, maxTokenSupply, tokenPrice, currency, serviceContractAddress) {
+async function deployTokenContract(DIDs, name, symbol, revenueShare, contractTerm, maxTokenSupply, tokenPrice, currency, serviceContractAddress) {
     const contractPath = path.join(TCBuild);
     const contractJSON = JSON.parse(fs.readFileSync(contractPath, 'utf8'));
     const TokenContract = new web3.eth.Contract(contractJSON.abi);
@@ -394,7 +394,7 @@ router.post('/token/deploy', verifyToken, async (req, res) => {
         console.log("company.ethereumPublicKey: ", company.ethereumPublicKey);
 
         BBWalletAddress = company.ethereumPublicKey;
-        maxTokenSupply = tokenAmount;
+        maxTokenSupply = tokenSupply;
 
         // Deploy the ServiceContract and get its address
         const serviceContractAddress = await deployServiceContract(GSCAddress);
