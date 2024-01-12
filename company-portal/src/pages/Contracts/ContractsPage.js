@@ -1,55 +1,52 @@
 // Imports
 import React, { useState, useEffect } from 'react';
-// import axios from 'axios';
+import axios from 'axios';
 import './Contracts.css';
-import ContractDetails from './ContractDetails';
-import ContractListItem from './ContractListItem';
-import TokenizeAssetModal from '../../components/TokenizeAssetModal/TokenizeAssetModal'; // Import the modal component
+import ContractProgressItem from './ContractProgressItem'; // Import the new component
+import TokenizeAssetModal from '../../components/TokenizeAssetModal/TokenizeAssetModal';
 
 const Contracts = () => {
     const [contracts, setContracts] = useState([]);
-    const [selectedContract, setSelectedContract] = useState(null);
-    const [isModalOpen, setIsModalOpen] = useState(false); // State to manage modal open/close
+    const [isModalOpen, setIsModalOpen] = useState(false);
 
     useEffect(() => {
         const fetchContracts = async () => {
-            // Fetching logic
+            try {
+                const token = localStorage.getItem('authToken'); // Retrieve the JWT token from storage
+                const config = {
+                    headers: { Authorization: `Bearer ${token}` }
+                };
+                const response = await axios.get(`${process.env.REACT_APP_PENOMO_API}/api/token/get/companyId`, config); // Update the URL accordingly
+                setContracts(response.data.contracts);
+            } catch (error) {
+                console.error('Error fetching contracts:', error);
+                // Handle error
+            }
         };
 
         fetchContracts();
     }, []);
 
-    const handleContractSelect = (contract) => {
-        setSelectedContract(contract);
-    };
-
     const handleTokenizeAsset = () => {
-        setIsModalOpen(true); // Open the modal
+        setIsModalOpen(true);
     };
 
     const handleModalClose = () => {
-        setIsModalOpen(false); // Close the modal
+        setIsModalOpen(false);
     };
 
     return (
         <div className="page-container">
             <h1 className="page-header">Your Contracts</h1>
-            <div className="section-container">
-                {selectedContract && (
-                    <ContractDetails contract={selectedContract} />
-                )}
-
-                <button className="btn-penomo" onClick={handleTokenizeAsset}>Tokenize Asset</button>
-
+            <button className="btn-penomo" onClick={handleTokenizeAsset}>Tokenize Asset</button>
+            <div className="contracts-list">
                 {contracts.map(contract => (
-                    <ContractListItem
+                    <ContractProgressItem
                         key={contract.tokenContractAddress}
                         contract={contract}
-                        onSelect={() => handleContractSelect(contract)}
                     />
                 ))}
             </div>
-
             {isModalOpen && (
                 <TokenizeAssetModal show={isModalOpen} handleClose={handleModalClose} />
             )}

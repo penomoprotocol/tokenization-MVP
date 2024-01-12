@@ -99,6 +99,7 @@ const TokenizeAssetModal = ({ show, handleClose }) => {
                 tokenSymbol: contractName,
                 tokenSupply: tokenAmount,
                 tokenPrice,
+                // TODO: Add functionality to choose currency
                 paymentCurrency: 'USDC',
                 contractTerm,
                 revenueShare,
@@ -109,7 +110,7 @@ const TokenizeAssetModal = ({ show, handleClose }) => {
             const tokenResponse = await axios.post(`${process.env.REACT_APP_PENOMO_API}/api/token/deploy`, tokenData, config);
 
             // Set response message
-            setResponseMessage(`Your asset has been registered under the following DID: ${newAsset.DID.document.id}. Your Security Contract has been deployed under the following address: ${tokenResponse.data.tokenContractAddress}.`);
+            setResponseMessage(`Your asset has been registered under the following DID: ${newAsset.DID.document.id}. Your Security Contract has been deployed under the following address: ${tokenResponse.data.newTokenEntry.tokenContractAddress}.`);
         } catch (error) {
             console.error('Error in process:', error);
             setResponseMessage('An error occurred during the process.');
