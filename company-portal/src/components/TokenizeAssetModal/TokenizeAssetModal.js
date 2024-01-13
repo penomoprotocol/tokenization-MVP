@@ -23,6 +23,7 @@ const TokenizeAssetModal = ({ show, handleClose }) => {
     const [tokenAmount, setTokenAmount] = useState('');
     const [tokenPrice, setTokenPrice] = useState('');
     const [contractName, setContractName] = useState('');
+    const [projectDescription, setProjectDescription] = useState('');
     const [tokenSymbol, setTokenSymbol] = useState('');
     const [contractStartDate, setContractStartDate] = useState('');
     const [contractTerm, setContractTerm] = useState('');
@@ -79,7 +80,7 @@ const TokenizeAssetModal = ({ show, handleClose }) => {
         try {
             // Asset registration data
             const assetData = {
-                assetType, brand, model, serialNumber, capacity, power, location, assetValue, revenueStreams, financingGoal, fundUsage
+                assetType, brand, model, serialNumber, capacity, power, location
             };
 
             // Get JWT token
@@ -97,15 +98,16 @@ const TokenizeAssetModal = ({ show, handleClose }) => {
             // Token deployment data
             const tokenData = {
                 tokenName: contractName,
-                // TODO: Token Symbol must be eg TESLA-BAT-3 (fetch existing tokens from company and then determine index)
+                // TODO: Automate Token Symbol: Must be eg TESLA-BAT-3 (fetch existing tokens from company and then determine index)
                 tokenSymbol: tokenSymbol,
                 tokenSupply: tokenAmount,
                 tokenPrice,
-                // TODO: Add functionality to choose currency
+                // TODO: Add functionality to choose currency (Optional)
                 paymentCurrency: 'USDC',
                 contractTerm,
                 revenueShare,
-                DIDs: [newAsset.DID.document.id]
+                DIDs: [newAsset.DID.document.id],
+                assetValue, revenueStreams, financingGoal, fundUsage, projectDescription
             };
 
             // Deploy token
@@ -129,7 +131,7 @@ const TokenizeAssetModal = ({ show, handleClose }) => {
             <Modal.Body>
                 {!responseMessage ? (
                     <>
-                        {step === 1 && <StepFourForm {...{ contractName, setContractName, tokenSymbol, setTokenSymbol, contractStartDate, setContractStartDate, contractTerm, setContractTerm, revenueShare, setRevenueShare }} />}  
+                        {step === 1 && <StepFourForm {...{ contractName, setContractName, projectDescription, setProjectDescription, tokenSymbol, setTokenSymbol, contractStartDate, setContractStartDate, contractTerm, setContractTerm, revenueShare, setRevenueShare }} />}  
                         {step === 2 && <StepThreeForm {...{ financingGoal, setFinancingGoal, fundUsage, setFundUsage, tokenAmount, setTokenAmount, tokenPrice, setTokenPrice, handleFundUsageChange, addFundUsageItem }} />}
                         {step === 3 && <StepOneForm {...{ assetType, setAssetType, brand, setBrand, model, setModel, serialNumber, setSerialNumber, capacity, setCapacity, power, setPower, location, setLocation }} />}
                         {step === 4 && <StepTwoForm {...{ assetValue, setAssetValue, revenueStreams, setRevenueStreams, addRevenueStream, deleteRevenueStream, handleRevenueStreamChange }} />}

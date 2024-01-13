@@ -385,8 +385,8 @@ router.post('/token/deploy', verifyToken, async (req, res) => {
             paymentCurrency,
             contractTerm,
             revenueShare,
-            DIDs
-            // Include other fields if necessary
+            DIDs,
+            assetValue, revenueStreams, financingGoal, fundUsage, projectDescription
         } = req.body;
 
         // TODO: Implement CID handling (Datastorage on IPFS)
@@ -442,17 +442,22 @@ router.post('/token/deploy', verifyToken, async (req, res) => {
         const newTokenEntry = new Token({
             name: tokenName,
             symbol: tokenSymbol,
-            maxTokenSupply: tokenSupply, // Add this field
-            tokenPrice: tokenPrice, // Add this field
+            maxTokenSupply: tokenSupply, 
+            tokenPrice: tokenPrice, 
             currency: paymentCurrency,
-            revenueShare: revenueShare, // Add this field
-            contractTerm: contractTerm, // Add this field
+            revenueShare: revenueShare, 
+            contractTerm: contractTerm, 
+            assetValue: assetValue,
+            revenueStreams: revenueStreams, 
+            financingGoal: financingGoal, 
+            fundUsage: fundUsage, 
+            projectDescription: projectDescription,
             serviceContractAddress: serviceContractAddress,
             tokenContractAddress: tokenContractAddress,
             liquidityContractAddress: liquidityContractAddress,
             revenueDistributionContractAddress: revenueDistributionContractAddress,
-            revenueStreamContractAddresses: [], // Add this field if necessary
-            assetDIDs: DIDs, // Assuming DIDs is an array of asset DIDs
+            revenueStreamContractAddresses: [], 
+            assetDIDs: DIDs, 
             companyId: companyId
         });
 

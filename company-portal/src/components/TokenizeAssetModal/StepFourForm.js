@@ -2,6 +2,7 @@ import React from 'react';
 
 const StepFourForm = ({
     contractName, setContractName,
+    projectDescription, setProjectDescription,
     tokenSymbol, setTokenSymbol,
     contractStartDate, setContractStartDate,
     contractTerm, setContractTerm,
@@ -9,9 +10,9 @@ const StepFourForm = ({
 }) => {
     return (
         <div>
-            <h3>General Contract Specifications</h3>
+            <h3>General Specifications</h3>
             <div className="form-group">
-                <label htmlFor="contractName">Contract Name</label>
+                <label htmlFor="contractName">Project Name</label>
                 <input
                     id="contractName"
                     type="text"
@@ -22,14 +23,24 @@ const StepFourForm = ({
                 />
             </div>
             <div className="form-group">
+                <label htmlFor="projectDescription">Project Description</label>
+                <textarea
+                    id="projectDescription"
+                    className="form-control"
+                    value={projectDescription}
+                    onChange={(e) => setProjectDescription(e.target.value)}
+                    placeholder="Enter a short description of your project."
+                />
+            </div>
+            <div className="form-group">
                 <label htmlFor="tokenSymbol">Token Symbol</label>
                 <input
                     id="tokenSymbol"
                     type="text"
                     className="form-control"
-                    value={contractName}
+                    value={tokenSymbol}
                     onChange={(e) => setTokenSymbol(e.target.value)}
-                    placeholder="Enter Symbol (YOURCOMPANY-ASSETTYPE-INDEX)"
+                    placeholder="Set Symbol"
                 />
             </div>
             <div className="form-group">

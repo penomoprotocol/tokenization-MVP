@@ -45,6 +45,9 @@ const tokenSchema = new mongoose.Schema({
         amount: Number,
         description: String
     }],
+    projectDescription: {
+        type: String,
+    },
     serviceContractAddress: {
         type: String,
         required: true,
