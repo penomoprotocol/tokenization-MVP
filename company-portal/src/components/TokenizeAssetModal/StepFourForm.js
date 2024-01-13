@@ -8,7 +8,7 @@ const StepFourForm = ({
 }) => {
     return (
         <div>
-            <h3>Contract Details</h3>
+            <h3>General Contract Specifications</h3>
             <div className="form-group">
                 <label htmlFor="contractName">Contract Name</label>
                 <input

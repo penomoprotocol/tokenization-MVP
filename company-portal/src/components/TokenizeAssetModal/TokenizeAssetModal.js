@@ -127,10 +127,10 @@ const TokenizeAssetModal = ({ show, handleClose }) => {
             <Modal.Body>
                 {!responseMessage ? (
                     <>
-                        {step === 1 && <StepOneForm {...{ assetType, setAssetType, brand, setBrand, model, setModel, serialNumber, setSerialNumber, capacity, setCapacity, power, setPower, location, setLocation }} />}
-                        {step === 2 && <StepTwoForm {...{ assetValue, setAssetValue, revenueStreams, setRevenueStreams, addRevenueStream, deleteRevenueStream, handleRevenueStreamChange }} />}
-                        {step === 3 && <StepThreeForm {...{ financingGoal, setFinancingGoal, fundUsage, setFundUsage, tokenAmount, setTokenAmount, tokenPrice, setTokenPrice, handleFundUsageChange, addFundUsageItem }} />}
-                        {step === 4 && <StepFourForm {...{ contractName, setContractName, contractStartDate, setContractStartDate, contractTerm, setContractTerm, revenueShare, setRevenueShare }} />}
+                        {step === 1 && <StepFourForm {...{ contractName, setContractName, contractStartDate, setContractStartDate, contractTerm, setContractTerm, revenueShare, setRevenueShare }} />}  
+                        {step === 2 && <StepThreeForm {...{ financingGoal, setFinancingGoal, fundUsage, setFundUsage, tokenAmount, setTokenAmount, tokenPrice, setTokenPrice, handleFundUsageChange, addFundUsageItem }} />}
+                        {step === 3 && <StepOneForm {...{ assetType, setAssetType, brand, setBrand, model, setModel, serialNumber, setSerialNumber, capacity, setCapacity, power, setPower, location, setLocation }} />}
+                        {step === 4 && <StepTwoForm {...{ assetValue, setAssetValue, revenueStreams, setRevenueStreams, addRevenueStream, deleteRevenueStream, handleRevenueStreamChange }} />}
                         {step === 5 && <StepFiveForm {...{ contractName, setContractName, contractStartDate, setContractStartDate, contractTerm, setContractTerm, revenueShare, setRevenueShare }} />}
                     </>
                 ) : (
