@@ -459,7 +459,11 @@ router.post('/token/deploy', async (req, res) => {
             revenueStreamContractAddresses: [],
             assetDIDs: DIDs,
             companyId: companyId,
-            status: "pending",
+            statusUpdates: [{
+                status: 'pending',
+                messages: ["Your submitted documents are currently under review. We will notify your via mail with updates."],
+                actionsNeeded: []
+            }]
         });
 
         // Save the new token entry to the database
