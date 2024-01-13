@@ -120,7 +120,7 @@ const TokenizeAssetModal = ({ show, handleClose }) => {
     };
 
     return (
-        <Modal className='modal-body p' show={show} onHide={handleClose} centered>
+        <Modal show={show} onHide={handleClose} centered>
             <Modal.Header closeButton>
                 <Modal.Title>Tokenize Asset</Modal.Title>
             </Modal.Header>
@@ -134,7 +134,7 @@ const TokenizeAssetModal = ({ show, handleClose }) => {
                         {step === 5 && <StepFiveForm {...{ contractName, setContractName, contractStartDate, setContractStartDate, contractTerm, setContractTerm, revenueShare, setRevenueShare }} />}
                     </>
                 ) : (
-                    <div>{responseMessage}</div>
+                    <div style={{ padding: '20px', wordWrap: 'break-word' }}>{responseMessage}</div>
                 )}
             </Modal.Body>
             <Modal.Footer>

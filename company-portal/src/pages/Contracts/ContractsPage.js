@@ -2,38 +2,39 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import './Contracts.css';
-import ContractProgressItem from './ContractProgressItem'; // Import the new component
+import ContractProgressItem from './ContractProgressItem';
 import TokenizeAssetModal from '../../components/TokenizeAssetModal/TokenizeAssetModal';
 
 const Contracts = () => {
     const [contracts, setContracts] = useState([]);
     const [isModalOpen, setIsModalOpen] = useState(false);
+    const [companyId, setCompanyId] = useState('');
+    const [isVerified, setIsVerified] = useState(false);
+
+    const authToken = localStorage.getItem('authToken'); // Retrieve the JWT token from storage
 
     useEffect(() => {
-        const fetchContracts = async () => {
-            try {
-                const token = localStorage.getItem('authToken'); // Retrieve the JWT token from storage
-                const config = {
-                    headers: { Authorization: `Bearer ${token}` }
-                };
-                const response = await axios.get(`${process.env.REACT_APP_PENOMO_API}/api/token/get/companyId`, config); // Update the URL accordingly
-                setContracts(response.data.contracts);
-            } catch (error) {
-                console.error('Error fetching contracts:', error);
-                // Handle error
+        const fetchCompanyData = async () => {
+            if (authToken) {
+                try {
+                    const response = await axios.get(`${process.env.REACT_APP_PENOMO_API}/api/company/jwt`, {
+                        headers: { Authorization: `Bearer ${authToken}` }
+                    });
+                    setCompanyId(response.data._id); // Store the company ID
+                    setIsVerified(response.data.isVerified);
+                    setContracts(response.data.tokens); 
+                } catch (error) {
+                    console.error('Error fetching company data:', error);
+                }
             }
         };
 
-        fetchContracts();
-    }, []);
 
-    const handleTokenizeAsset = () => {
-        setIsModalOpen(true);
-    };
+        fetchCompanyData();
+    }, [authToken]);
 
-    const handleModalClose = () => {
-        setIsModalOpen(false);
-    };
+    const handleTokenizeAsset = () => setIsModalOpen(true);
+    const handleModalClose = () => setIsModalOpen(false);
 
     return (
         <div className="page-container">
@@ -41,15 +42,10 @@ const Contracts = () => {
             <button className="btn-penomo" onClick={handleTokenizeAsset}>Tokenize Asset</button>
             <div className="contracts-list">
                 {contracts.map(contract => (
-                    <ContractProgressItem
-                        key={contract.tokenContractAddress}
-                        contract={contract}
-                    />
+                    <ContractProgressItem key={contract.tokenContractAddress} contract={contract} />
                 ))}
             </div>
-            {isModalOpen && (
-                <TokenizeAssetModal show={isModalOpen} handleClose={handleModalClose} />
-            )}
+            {isModalOpen && <TokenizeAssetModal show={isModalOpen} handleClose={handleModalClose} />}
         </div>
     );
 };
