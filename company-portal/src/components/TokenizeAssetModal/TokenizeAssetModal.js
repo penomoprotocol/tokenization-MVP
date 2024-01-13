@@ -23,6 +23,7 @@ const TokenizeAssetModal = ({ show, handleClose }) => {
     const [tokenAmount, setTokenAmount] = useState('');
     const [tokenPrice, setTokenPrice] = useState('');
     const [contractName, setContractName] = useState('');
+    const [tokenSymbol, setTokenSymbol] = useState('');
     const [contractStartDate, setContractStartDate] = useState('');
     const [contractTerm, setContractTerm] = useState('');
     const [revenueShare, setRevenueShare] = useState('');
@@ -96,7 +97,8 @@ const TokenizeAssetModal = ({ show, handleClose }) => {
             // Token deployment data
             const tokenData = {
                 tokenName: contractName,
-                tokenSymbol: contractName,
+                // TODO: Token Symbol must be eg TESLA-BAT-3 (fetch existing tokens from company and then determine index)
+                tokenSymbol: tokenSymbol,
                 tokenSupply: tokenAmount,
                 tokenPrice,
                 // TODO: Add functionality to choose currency
@@ -127,11 +129,11 @@ const TokenizeAssetModal = ({ show, handleClose }) => {
             <Modal.Body>
                 {!responseMessage ? (
                     <>
-                        {step === 1 && <StepFourForm {...{ contractName, setContractName, contractStartDate, setContractStartDate, contractTerm, setContractTerm, revenueShare, setRevenueShare }} />}  
+                        {step === 1 && <StepFourForm {...{ contractName, setContractName, tokenSymbol, setTokenSymbol, contractStartDate, setContractStartDate, contractTerm, setContractTerm, revenueShare, setRevenueShare }} />}  
                         {step === 2 && <StepThreeForm {...{ financingGoal, setFinancingGoal, fundUsage, setFundUsage, tokenAmount, setTokenAmount, tokenPrice, setTokenPrice, handleFundUsageChange, addFundUsageItem }} />}
                         {step === 3 && <StepOneForm {...{ assetType, setAssetType, brand, setBrand, model, setModel, serialNumber, setSerialNumber, capacity, setCapacity, power, setPower, location, setLocation }} />}
                         {step === 4 && <StepTwoForm {...{ assetValue, setAssetValue, revenueStreams, setRevenueStreams, addRevenueStream, deleteRevenueStream, handleRevenueStreamChange }} />}
-                        {step === 5 && <StepFiveForm {...{ contractName, setContractName, contractStartDate, setContractStartDate, contractTerm, setContractTerm, revenueShare, setRevenueShare }} />}
+                        {step === 5 && <StepFiveForm {...{ }} />}
                     </>
                 ) : (
                     <div style={{ padding: '20px', wordWrap: 'break-word' }}>{responseMessage}</div>

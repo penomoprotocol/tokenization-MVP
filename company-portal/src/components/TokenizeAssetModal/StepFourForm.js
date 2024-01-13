@@ -2,6 +2,7 @@ import React from 'react';
 
 const StepFourForm = ({
     contractName, setContractName,
+    tokenSymbol, setTokenSymbol,
     contractStartDate, setContractStartDate,
     contractTerm, setContractTerm,
     revenueShare, setRevenueShare
@@ -18,6 +19,17 @@ const StepFourForm = ({
                     value={contractName}
                     onChange={(e) => setContractName(e.target.value)}
                     placeholder="Enter Name"
+                />
+            </div>
+            <div className="form-group">
+                <label htmlFor="tokenSymbol">Token Symbol</label>
+                <input
+                    id="tokenSymbol"
+                    type="text"
+                    className="form-control"
+                    value={contractName}
+                    onChange={(e) => setTokenSymbol(e.target.value)}
+                    placeholder="Enter Symbol (YOURCOMPANY-ASSETTYPE-INDEX)"
                 />
             </div>
             <div className="form-group">

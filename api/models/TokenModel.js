@@ -30,6 +30,21 @@ const tokenSchema = new mongoose.Schema({
         type: Number,
         required: true,
     },
+    assetValue: {
+        type: Number,
+    },
+    revenueStreams: [{
+        name: String,
+        amount: Number,
+        details: String
+    }],
+    financingGoal: {
+        type: Number,
+    },
+    fundUsage: [{
+        amount: Number,
+        description: String
+    }],
     serviceContractAddress: {
         type: String,
         required: true,

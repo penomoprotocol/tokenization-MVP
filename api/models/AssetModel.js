@@ -65,21 +65,6 @@ const assetSchema = new mongoose.Schema({
     location: {
         type: String,
     },
-    assetValue: {
-        type: Number,
-    },
-    revenueStreams: [{
-        name: String,
-        amount: Number,
-        details: String
-    }],
-    financingGoal: {
-        type: Number,
-    },
-    fundUsage: [{
-        amount: Number,
-        description: String
-    }],
     DID: {
         type: didSchema,
         required: true
