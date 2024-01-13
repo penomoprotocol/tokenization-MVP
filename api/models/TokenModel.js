@@ -1,5 +1,23 @@
 const mongoose = require('mongoose');
 
+const statusUpdateSchema = new mongoose.Schema({
+    status: {
+        type: String,
+        enum: ['approved', 'action needed', 'denied', 'pending'], // Add 'pending' if needed as an initial state
+        required: true
+    },
+    messages: [{
+        type: String
+    }],
+    actionsNeeded: [{
+        type: String
+    }],
+    date: {
+        type: Date,
+        default: Date.now
+    }
+});
+
 const tokenSchema = new mongoose.Schema({
     name: {
         type: String,
@@ -72,6 +90,7 @@ const tokenSchema = new mongoose.Schema({
         type: String,
         unique: true
     }],
+    statusUpdates: [statusUpdateSchema], // Use the statusUpdateSchema for status updates
     companyId: {
         type: mongoose.Schema.Types.ObjectId,
         ref: 'Company',

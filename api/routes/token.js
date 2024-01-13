@@ -373,7 +373,7 @@ async function deployRevenueDistributionContract(serviceContractAddress, tokenCo
  */
 
 
-router.post('/token/deploy', verifyToken, async (req, res) => {
+router.post('/token/deploy', async (req, res) => {
     try {
         const companyId = req.user.id; // Retrieved from the JWT token by verifyToken middleware
 
@@ -415,7 +415,7 @@ router.post('/token/deploy', verifyToken, async (req, res) => {
         const tokenContractAddress = await deployTokenContract(DIDs, CIDs, tokenName, tokenSymbol, revenueShare, contractTerm, tokenSupply, tokenPrice, paymentCurrency, serviceContractAddress);
         console.log("tokenContractAddress:", tokenContractAddress);
 
-        
+
         // Deploy LiquidityContract
         const liquidityContractAddress = await deployLiquidityContract(serviceContractAddress, BBWalletAddress, MASTER_ADDRESS);
         console.log("tokenContractAddress:", tokenContractAddress);
@@ -442,23 +442,24 @@ router.post('/token/deploy', verifyToken, async (req, res) => {
         const newTokenEntry = new Token({
             name: tokenName,
             symbol: tokenSymbol,
-            maxTokenSupply: tokenSupply, 
-            tokenPrice: tokenPrice, 
+            maxTokenSupply: tokenSupply,
+            tokenPrice: tokenPrice,
             currency: paymentCurrency,
-            revenueShare: revenueShare, 
-            contractTerm: contractTerm, 
+            revenueShare: revenueShare,
+            contractTerm: contractTerm,
             assetValue: assetValue,
-            revenueStreams: revenueStreams, 
-            financingGoal: financingGoal, 
-            fundUsage: fundUsage, 
+            revenueStreams: revenueStreams,
+            financingGoal: financingGoal,
+            fundUsage: fundUsage,
             projectDescription: projectDescription,
             serviceContractAddress: serviceContractAddress,
             tokenContractAddress: tokenContractAddress,
             liquidityContractAddress: liquidityContractAddress,
             revenueDistributionContractAddress: revenueDistributionContractAddress,
-            revenueStreamContractAddresses: [], 
-            assetDIDs: DIDs, 
-            companyId: companyId
+            revenueStreamContractAddresses: [],
+            assetDIDs: DIDs,
+            companyId: companyId,
+            status: "pending",
         });
 
         // Save the new token entry to the database
@@ -475,6 +476,48 @@ router.post('/token/deploy', verifyToken, async (req, res) => {
         res.status(500).send('Failed to deploy the contracts.');
     }
 });
+
+// PATCH endpoint to update the status of the token object
+router.patch('/token/status/:tokenId', verifyToken, async (req, res) => {
+    try {
+        const { status, messages, actionsNeeded } = req.body;
+        const { tokenId } = req.params;
+
+        // Optional: Validate the status and ensure it's one of the allowed values
+        const validStatuses = ["pending", "approved", "denied", "action needed",];
+        if (!validStatuses.includes(status)) {
+            return res.status(400).send('Invalid status value.');
+        }
+
+        // Find the token by ID and update its status
+        const updatedToken = await Token.findByIdAndUpdate(
+            tokenId,
+            {
+                $set: {
+                    status: status,
+                    messages: messages, // Assuming messages is an array of strings
+                    actionsNeeded: actionsNeeded // Assuming actionsNeeded is an array of strings
+                }
+            },
+            { new: true } // Return the updated document
+        );
+
+        if (!updatedToken) {
+            return res.status(404).send('Token not found.');
+        }
+
+        // Respond with the updated token details
+        res.status(200).json({
+            message: "Token status updated successfully.",
+            updatedToken
+        });
+
+    } catch (error) {
+        console.error('Error updating token status:', error);
+        res.status(500).send('Error updating token status.');
+    }
+});
+
 
 /**
  * @swagger
