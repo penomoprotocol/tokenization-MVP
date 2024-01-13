@@ -88,7 +88,6 @@ const tokenSchema = new mongoose.Schema({
     }],
     assetDIDs: [{
         type: String,
-        unique: true
     }],
     statusUpdates: [statusUpdateSchema], // Use the statusUpdateSchema for status updates
     companyId: {

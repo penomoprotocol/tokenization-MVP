@@ -97,13 +97,12 @@ const StepThreeForm = ({
                     </div>
                     <div className="form-group">
                         <label htmlFor={`fundDescription-${index}`}>Description</label>
-                        <input
+                        <textarea
                             id={`fundDescription-${index}`}
-                            type="text"
                             className="form-control"
                             value={usage.description}
                             onChange={(e) => handleFundUsageChange(index, 'description', e.target.value)}
-                            placeholder="Enter description"
+                            placeholder="Specify how you will use the funds."
                         />
                     </div>
                     <div className="button-group">

@@ -35,7 +35,7 @@ const StepTwoForm = ({
                     </div>
 
                     <div className="form-group">
-                        <label htmlFor={`revenueAmount-${index}`}>Projected Profit</label>
+                        <label htmlFor={`revenueAmount-${index}`}>Projected Profit (During Contract Term)</label>
                         <input
                             id={`revenueAmount-${index}`}
                             type="number"
@@ -48,13 +48,12 @@ const StepTwoForm = ({
 
                     <div className="form-group">
                         <label htmlFor={`revenueDetails-${index}`}>Details</label>
-                        <input
+                        <textarea
                             id={`revenueDetails-${index}`}
-                            type="text"
                             value={stream.details}
                             onChange={(e) => handleRevenueStreamChange(index, 'details', e.target.value)}
                             className="form-control"
-                            placeholder="Revenues & Expenses"
+                            placeholder="Please project revenues & expenses."
                         />
                     </div>
                     <div className="button-group">

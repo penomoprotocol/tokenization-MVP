@@ -373,7 +373,7 @@ async function deployRevenueDistributionContract(serviceContractAddress, tokenCo
  */
 
 
-router.post('/token/deploy', async (req, res) => {
+router.post('/token/deploy', verifyToken, async (req, res) => {
     try {
         const companyId = req.user.id; // Retrieved from the JWT token by verifyToken middleware
 
@@ -386,7 +386,11 @@ router.post('/token/deploy', async (req, res) => {
             contractTerm,
             revenueShare,
             DIDs,
-            assetValue, revenueStreams, financingGoal, fundUsage, projectDescription
+            assetValue, 
+            revenueStreams, 
+            financingGoal, 
+            fundUsage, 
+            projectDescription
         } = req.body;
 
         // TODO: Implement CID handling (Datastorage on IPFS)
@@ -418,11 +422,11 @@ router.post('/token/deploy', async (req, res) => {
 
         // Deploy LiquidityContract
         const liquidityContractAddress = await deployLiquidityContract(serviceContractAddress, BBWalletAddress, MASTER_ADDRESS);
-        console.log("tokenContractAddress:", tokenContractAddress);
+        console.log("liquidityContractAddress:", liquidityContractAddress);
 
         // Deploy RevenueDistributionContract
         const revenueDistributionContractAddress = await deployRevenueDistributionContract(serviceContractAddress, tokenContractAddress, liquidityContractAddress);
-        console.log("tokenContractAddress:", tokenContractAddress);
+        console.log("revenueDistributionContractAddress:", revenueDistributionContractAddress);
 
         // Get SC ABI
         const contractPath = path.join(SCBuild);
@@ -457,7 +461,7 @@ router.post('/token/deploy', async (req, res) => {
             liquidityContractAddress: liquidityContractAddress,
             revenueDistributionContractAddress: revenueDistributionContractAddress,
             revenueStreamContractAddresses: [],
-            assetDIDs: DIDs,
+            // DEBUG (duplicate DIDs) assetDIDs: DIDs,
             companyId: companyId,
             statusUpdates: [{
                 status: 'pending',
@@ -482,7 +486,7 @@ router.post('/token/deploy', async (req, res) => {
 });
 
 // PATCH endpoint to update the status of the token object
-router.patch('/token/status/:tokenId', verifyToken, async (req, res) => {
+router.patch('/token/status/:tokenId', async (req, res) => {
     try {
         const { status, messages, actionsNeeded } = req.body;
         const { tokenId } = req.params;
