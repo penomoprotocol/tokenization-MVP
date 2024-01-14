@@ -386,6 +386,7 @@ router.post('/token/deploy', verifyToken, async (req, res) => {
             contractTerm,
             revenueShare,
             assetIds,
+            DIDs,
             assetValue, 
             revenueStreams, 
             financingGoal, 

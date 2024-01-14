@@ -94,6 +94,9 @@ const TokenizeAssetModal = ({ show, handleClose }) => {
             // Register asset
             const assetResponse = await axios.post(`${process.env.REACT_APP_PENOMO_API}/api/asset/register`, assetData, config);
             const newAsset = assetResponse.data.newAsset;
+            
+            //DEBUG
+            console.log("registered newAsset: ", newAsset);
 
             // Token deployment data
             const tokenData = {
@@ -107,7 +110,8 @@ const TokenizeAssetModal = ({ show, handleClose }) => {
                 contractTerm,
                 revenueShare,
                 //TODO: Enable multiple asset Ids
-                assetIds: [newAsset.id],
+                assetIds: [newAsset._id],
+                DIDs: [newAsset.DID.document.id],
                 assetValue, revenueStreams, financingGoal, fundUsage, projectDescription
             };
 

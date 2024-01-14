@@ -86,15 +86,17 @@ const tokenSchema = new mongoose.Schema({
     revenueStreamContractAddresses: [{
         type: String
     }],
-    assetDIDs: [{
-        type: String,
+    assetIds: [{
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'Asset',
+        required: true
     }],
-    statusUpdates: [statusUpdateSchema], // Use the statusUpdateSchema for status updates
     companyId: {
         type: mongoose.Schema.Types.ObjectId,
         ref: 'Company',
         required: true
-    }
+    },
+    statusUpdates: [statusUpdateSchema] 
 });
 
 const Token = mongoose.model('Token', tokenSchema);
