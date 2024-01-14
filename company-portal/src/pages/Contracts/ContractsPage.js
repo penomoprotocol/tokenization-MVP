@@ -39,6 +39,7 @@ const ContractsPage = () => {
         <div className="page-container">
             <h1 className="page-header">Your Contracts</h1>
             <button className="btn-penomo" onClick={handleTokenizeAsset}>Tokenize Asset</button>
+            
             <div className="contracts-list">
                 {contracts.map(contract => (
                     <div key={contract.tokenContractAddress} className="contract-item">

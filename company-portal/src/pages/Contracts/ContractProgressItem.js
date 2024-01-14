@@ -1,5 +1,5 @@
 import React from 'react';
-// import './ContractProgressItem.css'; // Assuming you have a separate CSS file for this component
+import './ContractProgressItem.css'; // Assuming you have a separate CSS file for this component
 
 const ContractProgressItem = ({ contract, onSelect, isSelected }) => {
     const financingGoal = contract.financingGoal || 0;
@@ -13,19 +13,18 @@ const ContractProgressItem = ({ contract, onSelect, isSelected }) => {
         <div className={`contract-progress-item ${isSelected ? 'selected' : ''}`} onClick={onSelect}>
             <div className="contract-header">
                 <h3>{contract.name}</h3>
+                <div className="contract-financial-info">
+                    <p>Goal: ${financingGoal.toLocaleString()}</p>
+                    <p>Raised: ${financingPercentage.toFixed(2)}%</p>
+                    <p>Closing: ${daysUntilClosing >= 0 ? daysUntilClosing : 'Closed'} days</p>
+                </div>
                 <span className="toggle-arrow">{isSelected ? '▲' : '▼'}</span>
             </div>
-            <div className="contract-body">
-                <div className="contract-info">
-                    <p>Fin
-                        ancing Goal: ${financingGoal.toLocaleString()}</p>
-                    <div className="progress-bar-container">
-                        <div className="progress-bar" style={{ width: `${financingPercentage}%`, backgroundColor: '#yourPenomoColor' }}></div>
-                    </div>
-                    <p>${financingPercentage.toFixed(2)}% Raised</p>
-                    <p>${daysUntilClosing >= 0 ? daysUntilClosing : 'Closed'} days until financing closing</p>
+            {isSelected && (
+                <div className="contract-details">
+                    {/* Additional Contract Details Here */}
                 </div>
-            </div>
+            )}
         </div>
     );
 };
