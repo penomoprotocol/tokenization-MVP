@@ -106,7 +106,8 @@ const TokenizeAssetModal = ({ show, handleClose }) => {
                 paymentCurrency: 'USDC',
                 contractTerm,
                 revenueShare,
-                DIDs: [newAsset.DID.document.id],
+                //TODO: Enable multiple asset Ids
+                assetIds: [newAsset.id],
                 assetValue, revenueStreams, financingGoal, fundUsage, projectDescription
             };
 

@@ -20,6 +20,8 @@ const Contracts = () => {
                     const response = await axios.get(`${process.env.REACT_APP_PENOMO_API}/api/company/jwt`, {
                         headers: { Authorization: `Bearer ${authToken}` }
                     });
+                    //DEBUG
+                    console.log("/api/company/jwt: ", response.data)
                     setCompanyId(response.data._id); // Store the company ID
                     setIsVerified(response.data.isVerified);
                     setContracts(response.data.tokens); 

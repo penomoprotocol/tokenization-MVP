@@ -627,7 +627,7 @@ router.get('/company/jwt', verifyToken, async (req, res) => {
         // Fetch balance for each serviceContractAddress and add it to the token object
         const liquidityPools = await Promise.all(
             companyTokens.map(async (token) => {
-                const liquidityPoolBalance = await fetchBalance(token.serviceContractAddress);
+                const liquidityPoolBalance = await fetchBalance(token.liquidityContractAddress);
                 return {
                     ...token.toObject(),
                     liquidityPoolBalance

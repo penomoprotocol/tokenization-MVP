@@ -385,7 +385,7 @@ router.post('/token/deploy', verifyToken, async (req, res) => {
             paymentCurrency,
             contractTerm,
             revenueShare,
-            DIDs,
+            assetIds,
             assetValue, 
             revenueStreams, 
             financingGoal, 
@@ -462,6 +462,7 @@ router.post('/token/deploy', verifyToken, async (req, res) => {
             revenueDistributionContractAddress: revenueDistributionContractAddress,
             revenueStreamContractAddresses: [],
             // DEBUG (duplicate DIDs) assetDIDs: DIDs,
+            assetIds: assetIds,
             companyId: companyId,
             statusUpdates: [{
                 status: 'pending',
