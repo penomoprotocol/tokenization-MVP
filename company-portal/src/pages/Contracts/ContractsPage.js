@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
-import './Contracts.css';
 import ContractProgressItem from './ContractProgressItem';
 import TokenizeAssetModal from '../../components/TokenizeAssetModal/TokenizeAssetModal';
+import './ContractsPage.css';
 
 const ContractsPage = () => {
     const [contracts, setContracts] = useState([]);
@@ -31,35 +31,28 @@ const ContractsPage = () => {
     const handleTokenizeAsset = () => setIsModalOpen(true);
     const handleModalClose = () => setIsModalOpen(false);
 
-    const toggleContractDetails = contractId => {
-        setSelectedContractId(selectedContractId === contractId ? null : contractId);
+    const toggleContractDetails = (contractId) => {
+        setSelectedContractId((prevSelectedContractId) =>
+            prevSelectedContractId === contractId ? null : contractId
+        );
     };
 
     return (
         <div className="page-container">
             <h1 className="page-header">Your Contracts</h1>
-            <button className="btn-penomo" onClick={handleTokenizeAsset}>Tokenize Asset</button>
-            
-            <div className="contracts-list">
-                {contracts.map(contract => (
+            <div className="tokenize-button-container">
+                <button className="btn-penomo" onClick={handleTokenizeAsset}>
+                    Tokenize Asset
+                </button>
+            </div>
+            <div className="contracts-list-container">
+                {contracts.map((contract) => (
                     <div key={contract.tokenContractAddress} className="contract-item">
                         <ContractProgressItem
                             contract={contract}
                             onSelect={() => toggleContractDetails(contract.tokenContractAddress)}
+                            isSelected={contract.tokenContractAddress === selectedContractId}
                         />
-                        {selectedContractId === contract.tokenContractAddress && (
-                            <div className="contract-details">
-                                <p>Service Contract Address: {contract.serviceContractAddress}</p>
-                                <p>Liquidity Pool Balance: {contract.liquidityPoolBalance.agungBalance} AGUNG, {contract.liquidityPoolBalance.usdcBalance} USDC</p>
-                                <h4>Associated Assets:</h4>
-                                <ul>
-                                    {contract.assetDIDs.map((did, index) => (
-                                        <li key={index}>{did}</li>
-                                    ))}
-                                </ul>
-                                {/* Additional details here */}
-                            </div>
-                        )}
                     </div>
                 ))}
             </div>
@@ -69,4 +62,3 @@ const ContractsPage = () => {
 };
 
 export default ContractsPage;
-
