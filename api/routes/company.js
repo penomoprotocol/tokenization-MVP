@@ -139,10 +139,10 @@ async function fetchBalance(address) {
     const config = {
         method: 'post',
         url: `${BLOCKEXPLORER_API_URL}/api/scan/account/tokens`,
-        headers: { 
-            'User-Agent': 'Apidog/1.0.0 (https://apidog.com)', 
+        headers: {
+            'User-Agent': 'Apidog/1.0.0 (https://apidog.com)',
             'Content-Type': 'application/json',
-            'X-API-Key': BLOCKEXPLORER_API_KEY 
+            'X-API-Key': BLOCKEXPLORER_API_KEY
         },
         data: data
     };
@@ -224,7 +224,7 @@ async function fetchBalance(address) {
 // Company Registration
 router.post('/company/register', async (req, res) => {
     try {
-        const {businessName, email, password } = req.body;
+        const { businessName, email, password } = req.body;
         const hashedPassword = await bcrypt.hash(password, 10);
 
         // Create a new Ethereum wallet and get the private key
@@ -368,14 +368,14 @@ router.post('/company/login', async (req, res) => {
 router.post('/company/verify', async (req, res) => {
     try {
         const {
-            companyId, 
-            firstName, 
+            companyId,
+            firstName,
             surname,
             dob,
             businessName,
             registrationNumber,
             businessAddress,
-            businessPhone} = req.body;
+            businessPhone } = req.body;
 
         // Fetch company from the database
         const company = await Company.findById(companyId);
@@ -625,27 +625,33 @@ router.get('/company/jwt', verifyToken, async (req, res) => {
         const companyTokens = await Token.find({ companyId: companyId });
 
         // Fetch balance for each serviceContractAddress and add it to the token object
-        const liquidityPools = await Promise.all(
+        const tokenData = await Promise.all(
             companyTokens.map(async (token) => {
+                // Fetch liquidity pool balance for each token
                 const liquidityPoolBalance = await fetchBalance(token.liquidityContractAddress);
+                // Fetch associated assets for each token based on assetIds array
+                const associatedAssets = await Asset.find({ _id: { $in: token.assetIds } });
+
                 return {
                     ...token.toObject(),
-                    liquidityPoolBalance
+                    liquidityPoolBalance,
+                    associatedAssets
                 };
             })
         );
 
+
         // Add the balances and tokens with their liquidity pools to the company object
-        const companyDataWithBalancesAndLiquidityPools = {
+        const companyDataWithBalancesAndTokenData = {
             ...company.toObject(), // Convert the mongoose document to a plain object
             balances: generalBalance,
-            tokens: liquidityPools
+            tokens: tokenData,
         };
 
-        res.json(companyDataWithBalancesAndLiquidityPools);
+        res.json(companyDataWithBalancesAndTokenData);
 
     } catch (error) {
-        console.error('Error retrieving company details, balances, and liquidity pools:', error);
+        console.error('Error retrieving company details, balances, and token data:', error);
         res.status(500).send('Error retrieving company');
     }
 });
@@ -864,7 +870,7 @@ router.get('/company/email/:email', async (req, res) => {
     try {
         const email = req.params.email;
         console.log('Retrieving company details for email:', email); // Add this line for debugging
-        const company = await Company.find({email});
+        const company = await Company.find({ email });
         if (!company) {
             console.log('Company not found:', email); // Add this line for debugging
             return res.status(404).send('Company not found');
