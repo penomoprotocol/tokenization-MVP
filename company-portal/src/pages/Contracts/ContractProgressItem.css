@@ -11,10 +11,12 @@
     background-color: #eef6ff;
 }
 
+
 .contract-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
+    display: grid;
+    grid-template-columns: 2fr 1fr 1fr 0.1fr; /* Three columns with equal width */
+    gap: 10px; /* Adjust the gap as needed */
+    align-items: left; /* Center-align items vertically */
 }
 
 .contract-header h3 {
