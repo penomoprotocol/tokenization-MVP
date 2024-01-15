@@ -112,7 +112,11 @@ const TokenizeAssetModal = ({ show, handleClose }) => {
                 //TODO: Enable multiple asset Ids
                 assetIds: [newAsset._id],
                 DIDs: [newAsset.DID.document.id],
-                assetValue, revenueStreams, financingGoal, fundUsage, projectDescription
+                assetValue, 
+                revenueStreams, 
+                fundingGoal, 
+                fundingUsage, 
+                projectDescription
             };
 
             // Deploy token

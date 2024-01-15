@@ -56,10 +56,13 @@ const tokenSchema = new mongoose.Schema({
         amount: Number,
         details: String
     }],
-    financingGoal: {
+    fundingGoal: {
         type: Number,
     },
-    fundUsage: [{
+    fundingCurrent: {
+        type: Number,
+    },
+    fundingUsage: [{
         amount: Number,
         description: String
     }],

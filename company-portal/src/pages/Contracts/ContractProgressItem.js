@@ -12,6 +12,9 @@ const ContractProgressItem = ({ contract, onSelect, isSelected }) => {
         <div className="section-container" onClick={onSelect}>
             <div>
                 <h3>{contract.name}</h3>
+                <p>Total Funding: {contract.liquidityPoolBalance}</p>
+                <p>Funding Goal: {contract.financingGoal}</p>
+
                 <span className="toggle-arrow">{isSelected ? '▲' : '▼'}</span>
             </div>
             {isSelected && (

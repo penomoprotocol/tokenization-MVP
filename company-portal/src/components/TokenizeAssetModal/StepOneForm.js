@@ -21,9 +21,10 @@ const StepOneForm = ({
                     className="form-control"
                 >
                     <option value="">Select Asset Type</option>
-                    <option value="battery">Battery Storage</option>
-                    <option value="solar">Solar Plant</option>
-                    <option value="windTurbine">Wind Turbine</option>
+                    <option value="Mobile Battery Storage">Mobile Battery Storage</option>
+                    <option value="Stationary Battery Storage">Stationary Battery Storage</option>
+                    <option value="Solar Plant">Solar Plant</option>
+                    <option value="Wind Turbine">Wind Turbine</option>
                 </select>
             </div>
 

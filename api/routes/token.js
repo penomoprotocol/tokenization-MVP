@@ -389,8 +389,8 @@ router.post('/token/deploy', verifyToken, async (req, res) => {
             DIDs,
             assetValue, 
             revenueStreams, 
-            financingGoal, 
-            fundUsage, 
+            fundingGoal, 
+            fundingUsage, 
             projectDescription
         } = req.body;
 
@@ -454,8 +454,9 @@ router.post('/token/deploy', verifyToken, async (req, res) => {
             contractTerm: contractTerm,
             assetValue: assetValue,
             revenueStreams: revenueStreams,
-            financingGoal: financingGoal,
-            fundUsage: fundUsage,
+            fundingGoal: fundingGoal,
+            fundingCurrent: 0,
+            fundingUsage: fundingUsage,
             projectDescription: projectDescription,
             serviceContractAddress: serviceContractAddress,
             tokenContractAddress: tokenContractAddress,
