@@ -19,8 +19,8 @@ const ContractProgressItem = ({ contract, onSelect, isSelected }) => {
 
             {isSelected && (
                 <div>
-                    <div className={'section-container'}>
-                        <h4>Status</h4>
+                    {/* <div className={'section-container'}> */}
+                    {/* <h4>Status</h4>
                         <ul>
                             {contract.statusUpdates && contract.statusUpdates.length > 0 ? (
                                 contract.statusUpdates.map((status, index) => (
@@ -30,11 +30,20 @@ const ContractProgressItem = ({ contract, onSelect, isSelected }) => {
                                 <li>No status updates available</li>
                             )}
                         </ul>
-                    </div>
+                    </div> */}
 
                     <div className='section-container'>
                         <h4>Funding Info</h4>
-                        <p><strong>Contract Address: </strong> {contract.tokenContractAddress ? `${contract.tokenContractAddress}` : 'N/A'}</p>
+                        <p>
+                            <strong>Contract Address: </strong>
+                            {contract.tokenContractAddress ? (
+                                <a href={`https://agung-testnet.subscan.io/token/${contract.tokenContractAddress}`} target="_blank" rel="noopener noreferrer">
+                                    {`${contract.tokenContractAddress.substring(0, 6)}...${contract.tokenContractAddress.substring(contract.tokenContractAddress.length - 6)}`}
+                                </a>
+                            ) : (
+                                'N/A'
+                            )}
+                        </p>
                         <p><strong>Contract Term: </strong> {contract.contractTerm ? `${contract.contractTerm} months` : 'N/A'}</p>
                         <p><strong>Revenue Share: </strong> {contract.revenueShare ? `${contract.revenueShare}%` : 'N/A'}</p>
                         <p><strong>Funding Goal:</strong> {contract.financingGoal ? `$${contract.financingGoal.toLocaleString()}` : 'N/A'}</p>

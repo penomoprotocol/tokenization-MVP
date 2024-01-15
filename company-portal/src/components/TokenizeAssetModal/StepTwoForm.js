@@ -5,6 +5,21 @@ const StepTwoForm = ({
     revenueStreams, setRevenueStreams,
     addRevenueStream, deleteRevenueStream, handleRevenueStreamChange
 }) => {
+    const formatNumberWithSpaces = (value) => {
+        // Remove existing spaces and commas, then add spaces for thousands separator
+        return value.replace(/[\s,]/g, '').replace(/\B(?=(\d{3})+(?!\d))/g, ' ');
+    };
+
+    const handleAssetValueChange = (e) => {
+        const formattedValue = formatNumberWithSpaces(e.target.value);
+        setAssetValue(formattedValue);
+    };
+
+    const handleRevenueAmountChange = (index, e) => {
+        const formattedValue = formatNumberWithSpaces(e.target.value);
+        handleRevenueStreamChange(index, 'amount', formattedValue);
+    };
+
     return (
         <div>
             <h3>Asset Valuation</h3>
@@ -12,9 +27,9 @@ const StepTwoForm = ({
                 <label htmlFor="assetValue">Purchase Value</label>
                 <input
                     id="assetValue"
-                    type="number"
+                    type="text"  {/* Change input type to text */}
                     value={assetValue}
-                    onChange={(e) => setAssetValue(e.target.value)}
+                    onChange={handleAssetValueChange} {/* Use the new handler */}
                     className="form-control"
                     placeholder="Amount ($)"
                 />
@@ -38,9 +53,9 @@ const StepTwoForm = ({
                         <label htmlFor={`revenueAmount-${index}`}>Projected Profit (During Contract Term)</label>
                         <input
                             id={`revenueAmount-${index}`}
-                            type="number"
+                            type="text"  {/* Change input type to text */}
                             value={stream.amount}
-                            onChange={(e) => handleRevenueStreamChange(index, 'amount', e.target.value)}
+                            onChange={(e) => handleRevenueAmountChange(index, e)}  {/* Use the new handler */}
                             className="form-control"
                             placeholder="Amount ($)"
                         />

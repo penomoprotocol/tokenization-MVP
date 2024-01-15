@@ -1,73 +1,66 @@
 import React, { useEffect, useState } from 'react';
 
+// Custom function to format numbers with a blank space for thousands separators
+const formatNumberWithSpace = (number) => {
+    return number.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ' ');
+};
+
 const StepThreeForm = ({
-    financingGoal, setFinancingGoal,
-    fundUsage, setFundUsage,
+    fundingGoal, setFundingGoal,
+    fundingUsage, setFundingUsage,
     tokenAmount, setTokenAmount,
     tokenPrice, setTokenPrice
 }) => {
-    // Initialize the internal token amount state with the external token amount
-    const [internalTokenAmount, setInternalTokenAmount] = useState(tokenAmount || 1000000);
+    // Initialize the internal token price state with the initial value of 50
+    const [internalTokenPrice, setInternalTokenPrice] = useState(50);
 
+    // Calculate token amount based on funding goal and internal token price
     useEffect(() => {
-        // Update external token amount when internal token amount changes
-        setTokenAmount(internalTokenAmount);
-    }, [internalTokenAmount, setTokenAmount]);
+        const calculatedTokenAmount = fundingGoal / internalTokenPrice;
+        setTokenAmount(calculatedTokenAmount);
+    }, [fundingGoal, internalTokenPrice, setTokenAmount]);
 
-    useEffect(() => {
-        // Calculate and update token price when financing goal or internal token amount changes
-        const calculatedTokenPrice = internalTokenAmount > 0 ? financingGoal / internalTokenAmount : 0;
-        setTokenPrice(calculatedTokenPrice.toFixed(2)); // Keep two decimal places
-    }, [financingGoal, internalTokenAmount, setTokenPrice]);
-
-    // Handle token amount change
-    const handleTokenAmountChange = (value) => {
-        setInternalTokenAmount(Number(value));
-        setTokenAmount(Number(value));
+    // Handle token price change
+    const handleTokenPriceChange = (value) => {
+        setInternalTokenPrice(Number(value));
+        setTokenPrice(Number(value));
     };
 
-    const handleFundUsageChange = (index, field, value) => {
-        const updatedUsage = fundUsage.map((usage, i) => {
+    const handleFundingUsageChange = (index, field, value) => {
+        const updatedUsage = fundingUsage.map((usage, i) => {
             if (i === index) {
                 return { ...usage, [field]: value };
             }
             return usage;
         });
-        setFundUsage(updatedUsage);
+        setFundingUsage(updatedUsage);
     };
 
-    const addFundUsage = () => {
-        setFundUsage([...fundUsage, { amount: '', description: '' }]);
+    const addFundingUsage = () => {
+        setFundingUsage([...fundingUsage, { amount: '', description: '' }]);
     };
 
-    const deleteFundUsage = (index) => {
-        const updatedUsage = fundUsage.filter((_, i) => i !== index);
-        setFundUsage(updatedUsage);
+    const deleteFundingUsage = (index) => {
+        const updatedUsage = fundingUsage.filter((_, i) => i !== index);
+        setFundingUsage(updatedUsage);
     };
 
     return (
         <div>
             <h3>Funding</h3>
             <div className="form-group">
-                <label htmlFor="financingGoal">Funding Goal ($)</label>
+                <label htmlFor="fundingGoal">Funding Goal ($)</label>
                 <input
-                    id="financingGoal"
-                    type="number"
+                    id="fundingGoal"
+                    type="text" // Change input type to text
                     className="form-control"
-                    value={financingGoal}
-                    onChange={(e) => setFinancingGoal(e.target.value)}
+                    value={formatNumberWithSpace(fundingGoal)} // Use custom formatting function
+                    onChange={(e) => {
+                        // Remove spaces and commas when the user edits the field
+                        const formattedValue = e.target.value.replace(/[\s,]/g, '');
+                        setFundingGoal(formattedValue);
+                    }}
                     placeholder="Amount ($)"
-                />
-            </div>
-            <div className="form-group">
-                <label htmlFor="tokenAmount">Token Amount</label>
-                <input
-                    id="tokenAmount"
-                    type="number"
-                    className="form-control"
-                    value={internalTokenAmount}
-                    onChange={(e) => setInternalTokenAmount(Number(e.target.value))}
-                    placeholder="Enter token amount"
                 />
             </div>
             <div className="form-group">
@@ -76,22 +69,37 @@ const StepThreeForm = ({
                     id="tokenPrice"
                     type="number"
                     className="form-control"
-                    value={tokenPrice}
-                    readOnly // Make the token price field read-only
+                    value={internalTokenPrice}
+                    onChange={(e) => handleTokenPriceChange(e.target.value)}
+                    placeholder="Enter token price"
+                />
+            </div>
+            <div className="form-group">
+                <label htmlFor="tokenAmount">Token Amount</label>
+                <input
+                    id="tokenAmount"
+                    type="text" // Change input type to text
+                    className="form-control"
+                    value={formatNumberWithSpace(tokenAmount)} // Use custom formatting function
+                    readOnly // Make the token amount field read-only
                 />
             </div>
 
             <h3>Fund Usage</h3>
-            {fundUsage.map((usage, index) => (
-                <div key={index} className='revenue-stream-group'>
+            {fundingUsage.map((usage, index) => (
+                <div key={index} className="revenue-stream-group">
                     <div className="form-group">
                         <label htmlFor={`fundAmount-${index}`}>Amount</label>
                         <input
                             id={`fundAmount-${index}`}
-                            type="number"
+                            type="text" // Change input type to text
                             className="form-control"
-                            value={usage.amount}
-                            onChange={(e) => handleFundUsageChange(index, 'amount', e.target.value)}
+                            value={formatNumberWithSpace(usage.amount)} // Use custom formatting function
+                            onChange={(e) => {
+                                // Remove spaces and commas when the user edits the field
+                                const formattedValue = e.target.value.replace(/[\s,]/g, '');
+                                handleFundingUsageChange(index, 'amount', formattedValue);
+                            }}
                             placeholder="Enter amount ($)"
                         />
                     </div>
@@ -101,21 +109,21 @@ const StepThreeForm = ({
                             id={`fundDescription-${index}`}
                             className="form-control"
                             value={usage.description}
-                            onChange={(e) => handleFundUsageChange(index, 'description', e.target.value)}
+                            onChange={(e) => handleFundingUsageChange(index, 'description', e.target.value)}
                             placeholder="Specify how you will use the funds."
                         />
                     </div>
                     <div className="button-group">
                         <button
                             className="btn btn-secondary"
-                            onClick={() => deleteFundUsage(index)}
+                            onClick={() => deleteFundingUsage(index)}
                         >
                             Delete Fund Usage
                         </button>
                     </div>
                 </div>
             ))}
-            <button onClick={addFundUsage} className="btn-penomo">Add Fund Usage</button>
+            <button onClick={addFundingUsage} className="btn-penomo">Add Fund Usage</button>
         </div>
     );
 };
