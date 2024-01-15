@@ -18,8 +18,8 @@ const TokenizeAssetModal = ({ show, handleClose }) => {
     const [location, setLocation] = useState('');
     const [assetValue, setAssetValue] = useState('');
     const [revenueStreams, setRevenueStreams] = useState([]);
-    const [financingGoal, setFinancingGoal] = useState('');
-    const [fundUsage, setFundUsage] = useState([{ amount: '', description: '' }]);
+    const [fundingGoal, setFundingGoal] = useState('');
+    const [fundingUsage, setFundingUsage] = useState([{ amount: '', description: '' }]);
     const [tokenAmount, setTokenAmount] = useState('');
     const [tokenPrice, setTokenPrice] = useState('');
     const [contractName, setContractName] = useState('');
@@ -51,8 +51,8 @@ const TokenizeAssetModal = ({ show, handleClose }) => {
     };
 
     // Functions to handle fund usage
-    const handleFundUsageChange = (index, field, value) => {
-        setFundUsage(fundUsage.map((usage, i) => {
+    const handleFundingUsageChange = (index, field, value) => {
+        setFundingUsage(fundingUsage.map((usage, i) => {
             if (i === index) {
                 return { ...usage, [field]: value };
             }
@@ -60,8 +60,8 @@ const TokenizeAssetModal = ({ show, handleClose }) => {
         }));
     };
 
-    const addFundUsageItem = () => {
-        setFundUsage([...fundUsage, { amount: '', description: '' }]);
+    const addFundingUsageItem = () => {
+        setFundingUsage([...fundingUsage, { amount: '', description: '' }]);
     };
 
     // Helper functions to change step
@@ -141,7 +141,7 @@ const TokenizeAssetModal = ({ show, handleClose }) => {
                 {!responseMessage ? (
                     <>
                         {step === 1 && <StepFourForm {...{ contractName, setContractName, projectDescription, setProjectDescription, tokenSymbol, setTokenSymbol, contractStartDate, setContractStartDate, contractTerm, setContractTerm, revenueShare, setRevenueShare }} />}  
-                        {step === 2 && <StepThreeForm {...{ financingGoal, setFinancingGoal, fundUsage, setFundUsage, tokenAmount, setTokenAmount, tokenPrice, setTokenPrice, handleFundUsageChange, addFundUsageItem }} />}
+                        {step === 2 && <StepThreeForm {...{ fundingGoal, setFundingGoal, fundingUsage, setFundingUsage, tokenAmount, setTokenAmount, tokenPrice, setTokenPrice, handleFundingUsageChange, addFundingUsageItem }} />}
                         {step === 3 && <StepOneForm {...{ assetType, setAssetType, brand, setBrand, model, setModel, serialNumber, setSerialNumber, capacity, setCapacity, power, setPower, location, setLocation }} />}
                         {step === 4 && <StepTwoForm {...{ assetValue, setAssetValue, revenueStreams, setRevenueStreams, addRevenueStream, deleteRevenueStream, handleRevenueStreamChange }} />}
                         {step === 5 && <StepFiveForm {...{ }} />}

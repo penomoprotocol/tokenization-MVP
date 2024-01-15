@@ -11,16 +11,16 @@ const ContractProgressItem = ({ contract, onSelect, isSelected }) => {
     return (
         <div className="section-container" onClick={onSelect}>
             <div>
-                <h3>{contract.name}</h3>
-                <p>Total Funding: {contract.liquidityPoolBalance}</p>
-                <p>Funding Goal: {contract.financingGoal}</p>
+                <h2>{contract.name}</h2>
+                <p>Total Funding: {contract.liquidityPoolBalance ? contract.liquidityPoolBalance.totalFunding : 'N/A'}</p>
+                <p>Funding Goal: {contract.financingGoal ? contract.financingGoal : 'N/A'}</p>
 
                 <span className="toggle-arrow">{isSelected ? '▲' : '▼'}</span>
             </div>
             {isSelected && (
                 <div>
                     <div className={'section-container'}>
-                        <h4>Status</h4>
+                        <h3>Status</h3>
                         <ul>
                             {contract.statusUpdates && contract.statusUpdates.length > 0 ? (
                                 contract.statusUpdates.map((status, index) => (
@@ -32,30 +32,66 @@ const ContractProgressItem = ({ contract, onSelect, isSelected }) => {
                         </ul>
                     </div>
                     <div className={'section-container'}>
-                        <h4>General Info</h4>
+                        <h3>General Info</h3>
                         <p>{contract.projectDescription}</p>
                     </div>
 
-
                     <div className={'section-container'}>
-                        <h4>Funding</h4>
-                        <ul>
-                            <li>Financing Goal: {contract.financingGoal ? `$${contract.financingGoal.toLocaleString()}` : 'N/A'}</li>
-                            <li>Max Supply: {contract.maxTokenSupply}</li>
-                            <li>Token Price: ${contract.tokenPrice}</li>
-                            <li>Contract Term: {contract.contractTerm} months</li>
-                            <li>Revenue Share: {contract.revenueShare}%</li>
-                            <li>Fund Usage: {contract.fundUsage.join(', ')}</li>
-                            <li>Liquidity Pool Balance:</li>
-                            <ul>
-                                <li>AGUNG Balance: {contract.liquidityPoolBalance.agungBalance} AGUNG</li>
-                                <li>USDC Balance: {contract.liquidityPoolBalance.usdcBalance} USDC</li>
-                            </ul>
-                        </ul>
+                        <h3 className={'section-header'}>Funding</h3>
+                        <div className='section-container'>
+                        <h4>Status</h4>
+                            <p><strong>Funding Goal:</strong> {contract.financingGoal ? `$${contract.financingGoal.toLocaleString()}` : 'N/A'}</p>
+                            <p><strong>Total Funding:</strong>  ${contract.fundingCurrrent ? contract.fundingCurrrent : 'N/A'}</p>
+                            <p><strong>Available Funds:</strong> 
+                                
+                                {contract.liquidityPoolBalance ? (
+                                    contract.liquidityPoolBalance.usdcBalance ? ` $${contract.liquidityPoolBalance.usdcBalance}` : 'N/A'
+                                ) : (
+                                    'N/A'
+                                )}
+                            </p>
+                        </div>
+                        <div className='section-container'>
+                        <h4>Info</h4>    
+                        <p>Contract Term: {contract.contractTerm ? `${contract.contractTerm} months` : 'N/A'}</p>
+                        <p>Max Supply: {contract.maxTokenSupply ? contract.maxTokenSupply : 'N/A'}</p>
+                        <p>Token Price: ${contract.tokenPrice ? contract.tokenPrice : 'N/A'}</p>
+                        </div>
+
+                        <div className='section-container '>
+                        <h4>Fund Usage</h4>
+                            {contract.fundUsage && contract.fundUsage.length > 0 ? (
+                                contract.fundUsage.map((usage, index) => (
+                                    <div className='section-container' key={index}>
+                                        <strong>Amount: ${usage.amount.toLocaleString()} </strong><br />
+                                        <strong>Description:</strong> {usage.description}<br />
+                                    </div>
+                                ))
+                            ) : (
+                                <p>No fund usage information available</p>
+                            )}
+                        </div>
                     </div>
 
                     <div className={'section-container'}>
-                        <h4>Associated Assets</h4>
+                        <h4 className={'section-header'}>Projected Revenue</h4>
+                        <p>Revenue Share: {contract.revenueShare ? `${contract.revenueShare}%` : 'N/A'}</p>
+                        <p>Revenue Streams</p>
+                        {contract.revenueStreams && contract.revenueStreams.length > 0 ? (
+                            contract.revenueStreams.map((stream, index) => (
+                                <p key={index}>
+                                    <strong>{stream.name}</strong> <br />
+                                    <strong>Amount:</strong> ${stream.amount.toLocaleString()}<br />
+                                    <strong>Details:</strong> {stream.details}<br />
+                                </p>
+                            ))
+                        ) : (
+                            <p>No revenue streams available</p>
+                        )}
+                    </div>
+
+                    <div className={'section-container'}>
+                        <h3>Associated Assets</h3>
                         {contract.associatedAssets && contract.associatedAssets.length > 0 ? (
                             contract.associatedAssets.map((asset, index) => (
                                 <div className={'section-container'} key={index}>
