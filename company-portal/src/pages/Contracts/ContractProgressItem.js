@@ -10,18 +10,17 @@ const ContractProgressItem = ({ contract, onSelect, isSelected }) => {
 
     return (
         <div className="section-container" onClick={onSelect}>
-            
-                <div className='contract-header'>
-                    <h3>{contract.name}</h3>
-                    <p><strong>Total Funding:</strong>  ${contract.fundingCurrent ? `$${contract.fundingCurrent}`: 'N/A'}</p>
-                    <p><strong>Funding Goal:</strong> {contract.financingGoal ? `$${contract.financingGoal.toLocaleString()}` : 'N/A'}</p>
-                    <span className="toggle-arrow">{isSelected ? '▲' : '▼'}</span>
-                </div>
-            
+            <div className='contract-header'>
+                <h3>{contract.name}</h3>
+                <p><strong>Total Funding:</strong>  ${contract.fundingCurrent ? `$${contract.fundingCurrent}` : 'N/A'}</p>
+                <p><strong>Funding Goal:</strong> {contract.financingGoal ? `$${contract.financingGoal.toLocaleString()}` : 'N/A'}</p>
+                <span className="toggle-arrow">{isSelected ? '▲' : '▼'}</span>
+            </div>
+
             {isSelected && (
                 <div>
                     <div className={'section-container'}>
-                        <h3>Status</h3>
+                        <h4>Status</h4>
                         <ul>
                             {contract.statusUpdates && contract.statusUpdates.length > 0 ? (
                                 contract.statusUpdates.map((status, index) => (
@@ -33,71 +32,54 @@ const ContractProgressItem = ({ contract, onSelect, isSelected }) => {
                         </ul>
                     </div>
 
-                    <div className={'section-container'}>
-                        <h3 className={'section-header'}>Funding</h3>
-                        <div className='section-container'>
-                            <h4>Funding Status</h4>
+                    <div className='section-container'>
+                        <h4>Funding Info</h4>
+                        <p><strong>Contract Address: </strong> {contract.tokenContractAddress ? `${contract.tokenContractAddress}` : 'N/A'}</p>
+                        <p><strong>Contract Term: </strong> {contract.contractTerm ? `${contract.contractTerm} months` : 'N/A'}</p>
+                        <p><strong>Revenue Share: </strong> {contract.revenueShare ? `${contract.revenueShare}%` : 'N/A'}</p>
+                        <p><strong>Funding Goal:</strong> {contract.financingGoal ? `$${contract.financingGoal.toLocaleString()}` : 'N/A'}</p>
+                        <p><strong>Share Supply: </strong>{contract.maxTokenSupply ? contract.maxTokenSupply : 'N/A'}</p>
+                        <p><strong>Share Price: </strong> ${contract.tokenPrice ? contract.tokenPrice : 'N/A'}</p>
+                    </div>
 
-                            <p><strong>Total Funding:</strong>  ${contract.fundingCurrent ? `$${contract.fundingCurrent}`: 'N/A'}</p>
-                            <p><strong>Available Funds:</strong>
-
-                                {contract.liquidityPoolBalance ? (
-                                    contract.liquidityPoolBalance.usdcBalance ? ` $${contract.liquidityPoolBalance.usdcBalance}` : 'N/A'
-                                ) : (
-                                    'N/A'
-                                )}
-                            </p>
-                        </div>
-                        <div className='section-container'>
-                            <h4>Funding Info</h4>
-                            <p><strong>Contract Address: </strong> {contract.tokenContractAddress ? `${contract.tokenContractAddress}` : 'N/A'}</p>
-                            <p><strong>Contract Term: </strong> {contract.contractTerm ? `${contract.contractTerm} months` : 'N/A'}</p>
-                            <p><strong>Revenue Share: </strong> {contract.revenueShare ? `${contract.revenueShare}%` : 'N/A'}</p>
-                            <p><strong>Funding Goal:</strong> {contract.financingGoal ? `$${contract.financingGoal.toLocaleString()}` : 'N/A'}</p>
-                            <p><strong>Share Supply: </strong>{contract.maxTokenSupply ? contract.maxTokenSupply : 'N/A'}</p>
-                            <p><strong>Share Price: </strong> ${contract.tokenPrice ? contract.tokenPrice : 'N/A'}</p>
-
-                        </div>
-
-                        <div className='section-container '>
-                            <h4>Funding Usage</h4>
-                            {contract.fundUsage && contract.fundUsage.length > 0 ? (
-                                contract.fundUsage.map((usage, index) => (
-                                    <div className='section-container' key={index}>
-                                        <span><strong>Type: </strong>{usage.description} </span><br />
-                                        <span><strong>Amount:  </strong>${usage.amount.toLocaleString()}</span><br />
-                                        <strong>Details:</strong> {usage.description}<br />
-                                    </div>
-                                ))
-                            ) : (
-                                <p>No fund usage information available</p>
-                            )}
-                        </div>
-
-                        <div className={'section-container'}>
-                            <h4 className={'section-header'}>Projected Revenue</h4>
-                            {contract.revenueStreams && contract.revenueStreams.length > 0 ? (
-                                contract.revenueStreams.map((stream, index) => (
-                                    <div className='section-container' key={index}>
-                                        <span><strong>Type: </strong>{stream.name} </span><br />
-                                        <span><strong>Amount:</strong> ${stream.amount.toLocaleString()}</span><br />
-                                        <strong>Details:</strong> {stream.details}<br />
-                                    </div>
-                                ))
-                            ) : (
-                                <p>No revenue streams available</p>
-                            )}
-                        </div>
+                    <div className='section-container'>
+                        <h4>Funding Usage</h4>
+                        {contract.fundUsage && contract.fundUsage.length > 0 ? (
+                            contract.fundUsage.map((usage, index) => (
+                                <div className='section-container' key={index}>
+                                    <span><strong>Type: </strong>{usage.description}</span>
+                                    <span><strong>Amount: </strong>${usage.amount.toLocaleString()}</span>
+                                    <span><strong>Details:</strong> {usage.description}</span>
+                                </div>
+                            ))
+                        ) : (
+                            <p>No fund usage information available</p>
+                        )}
                     </div>
 
                     <div className={'section-container'}>
-                        <h3>Associated Assets</h3>
+                        <h4 className={'section-header'}>Projected Revenue</h4>
+                        {contract.revenueStreams && contract.revenueStreams.length > 0 ? (
+                            contract.revenueStreams.map((stream, index) => (
+                                <div className='section-container' key={index}>
+                                    <span><strong>Type: </strong>{stream.name}</span>
+                                    <span><strong>Amount:</strong> ${stream.amount.toLocaleString()}</span>
+                                    <span><strong>Details:</strong> {stream.details}</span>
+                                </div>
+                            ))
+                        ) : (
+                            <p>No revenue streams available</p>
+                        )}
+                    </div>
+
+                    <div className={'section-container'}>
+                        <h4>Associated Assets</h4>
                         {contract.associatedAssets && contract.associatedAssets.length > 0 ? (
                             contract.associatedAssets.map((asset, index) => (
                                 <div className={'section-container'} key={index}>
-                                    <h4 className={'section-header'}>
+                                    <strong className={'section-header'}>
                                         {`Serial Number: ${asset.serialNumber} (DID: ${shortenDID(asset.DID.value)})`}
-                                    </h4>
+                                    </strong>
                                     <p>Asset Type: {asset.assetType}</p>
                                     <p>Brand: {asset.brand}</p>
                                     <p>Model: {asset.model}</p>

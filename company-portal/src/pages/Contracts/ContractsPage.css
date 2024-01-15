@@ -15,6 +15,14 @@
     flex: 1; /* Pushes the button to the bottom */
   }
   
+  .button-container{
+    display: flex;
+    grid-template-columns:  0.1fr; /* Three columns with equal width */
+    gap: 10px; /* Adjust the gap as needed */
+    align-items: right; /* Center-align items vertically */
+    margin-bottom: 3rem;
+}
+
   .card-content h2 {
     text-align: center;
     margin-bottom: 1rem;

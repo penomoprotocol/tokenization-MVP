@@ -135,7 +135,7 @@ const TokenizeAssetModal = ({ show, handleClose }) => {
     return (
         <Modal show={show} onHide={handleClose} centered>
             <Modal.Header closeButton>
-                <Modal.Title>Tokenize Asset</Modal.Title>
+                <Modal.Title>New Funding Contract</Modal.Title>
             </Modal.Header>
             <Modal.Body>
                 {!responseMessage ? (

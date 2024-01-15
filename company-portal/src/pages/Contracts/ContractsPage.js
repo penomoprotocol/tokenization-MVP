@@ -40,9 +40,9 @@ const ContractsPage = () => {
     return (
         <div className="page-container">
             <h1 className="page-header">Your Contracts</h1>
-            <div className="tokenize-button-container">
+            <div className="button-container">
                 <button className="btn-penomo" onClick={handleTokenizeAsset}>
-                    Tokenize Asset
+                    Add New Funding Contract
                 </button>
             </div>
             <div className="contracts-list-container">
