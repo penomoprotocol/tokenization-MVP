@@ -7,7 +7,8 @@ const StepTwoForm = ({
 }) => {
     const formatNumberWithSpaces = (value) => {
         // Remove existing spaces and commas, then add spaces for thousands separator
-        return value.replace(/[\s,]/g, '').replace(/\B(?=(\d{3})+(?!\d))/g, ' ');
+        // return value.replace(/[\s,]/g, '').replace(/\B(?=(\d{3})+(?!\d))/g, ' ');
+        return value
     };
 
     const handleAssetValueChange = (e) => {
@@ -27,9 +28,9 @@ const StepTwoForm = ({
                 <label htmlFor="assetValue">Purchase Value</label>
                 <input
                     id="assetValue"
-                    type="text"  {/* Change input type to text */}
+                    type="text" // Change input type to text
                     value={assetValue}
-                    onChange={handleAssetValueChange} {/* Use the new handler */}
+                    onChange={handleAssetValueChange} // Use the new handler
                     className="form-control"
                     placeholder="Amount ($)"
                 />
@@ -53,9 +54,9 @@ const StepTwoForm = ({
                         <label htmlFor={`revenueAmount-${index}`}>Projected Profit (During Contract Term)</label>
                         <input
                             id={`revenueAmount-${index}`}
-                            type="text"  {/* Change input type to text */}
+                            type="text" // Change input type to text
                             value={stream.amount}
-                            onChange={(e) => handleRevenueAmountChange(index, e)}  {/* Use the new handler */}
+                            onChange={(e) => handleRevenueAmountChange(index, e)} // Use the new handler
                             className="form-control"
                             placeholder="Amount ($)"
                         />

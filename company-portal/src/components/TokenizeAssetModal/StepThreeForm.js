@@ -2,7 +2,8 @@ import React, { useEffect, useState } from 'react';
 
 // Custom function to format numbers with a blank space for thousands separators
 const formatNumberWithSpace = (number) => {
-    return number.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ' ');
+    // return number.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ' ');
+    return number  
 };
 
 const StepThreeForm = ({
@@ -11,19 +12,15 @@ const StepThreeForm = ({
     tokenAmount, setTokenAmount,
     tokenPrice, setTokenPrice
 }) => {
-    // Initialize the internal token price state with the initial value of 50
-    const [internalTokenPrice, setInternalTokenPrice] = useState(50);
-
-    // Calculate token amount based on funding goal and internal token price
+    setTokenPrice(50);
+    // Calculate token amount based on funding goal and token price
     useEffect(() => {
-        const calculatedTokenAmount = fundingGoal / internalTokenPrice;
+        const calculatedTokenAmount = fundingGoal / tokenPrice;
         setTokenAmount(calculatedTokenAmount);
-    }, [fundingGoal, internalTokenPrice, setTokenAmount]);
+    }, [fundingGoal, tokenPrice, setTokenAmount]);
 
-    // Handle token price change
     const handleTokenPriceChange = (value) => {
-        setInternalTokenPrice(Number(value));
-        setTokenPrice(Number(value));
+        setTokenPrice(value);
     };
 
     const handleFundingUsageChange = (index, field, value) => {
@@ -54,40 +51,38 @@ const StepThreeForm = ({
                     id="fundingGoal"
                     type="text" // Change input type to text
                     className="form-control"
-                    value={formatNumberWithSpace(fundingGoal)} // Use custom formatting function
+                    value={fundingGoal} // Use custom formatting function
                     onChange={(e) => {
-                        // Remove spaces and commas when the user edits the field
-                        const formattedValue = e.target.value.replace(/[\s,]/g, '');
-                        setFundingGoal(formattedValue);
+                        setFundingGoal(e.target.value);
                     }}
                     placeholder="Amount ($)"
                 />
             </div>
             <div className="form-group">
-                <label htmlFor="tokenPrice">Token Price ($)</label>
+                <label htmlFor="tokenPrice">Ticket Size ($)</label>
                 <input
                     id="tokenPrice"
                     type="number"
                     className="form-control"
-                    value={internalTokenPrice}
+                    value={tokenPrice}
                     onChange={(e) => handleTokenPriceChange(e.target.value)}
-                    placeholder="Enter token price"
+                    placeholder="Enter Fractional Investment Amount"
                 />
             </div>
             <div className="form-group">
-                <label htmlFor="tokenAmount">Token Amount</label>
+                <label htmlFor="tokenAmount">Ticket Amount</label>
                 <input
                     id="tokenAmount"
                     type="text" // Change input type to text
                     className="form-control"
-                    value={formatNumberWithSpace(tokenAmount)} // Use custom formatting function
+                    value={tokenAmount} // Use custom formatting function
                     readOnly // Make the token amount field read-only
                 />
             </div>
 
             <h3>Fund Usage</h3>
             {fundingUsage.map((usage, index) => (
-                <div key={index} className="revenue-stream-group">
+                <div key={index} className="section-container">
                     <div className="form-group">
                         <label htmlFor={`fundAmount-${index}`}>Amount</label>
                         <input

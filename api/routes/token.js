@@ -386,16 +386,14 @@ router.post('/token/deploy', verifyToken, async (req, res) => {
             contractTerm,
             revenueShare,
             assetIds,
-            DIDs,
-            assetValue, 
-            revenueStreams, 
-            fundingGoal, 
-            fundingUsage, 
+            assetValue,
+            revenueStreams,
+            fundingGoal,
+            fundingUsage,
             projectDescription
         } = req.body;
 
-        // TODO: Implement CID handling (Datastorage on IPFS)
-        const CIDs = [];
+        console.log("/token/deploy req.body: ", req.body); 
 
         // Validate the required parameters
         if (!tokenSupply || !tokenPrice || !tokenName || !contractTerm || !revenueShare) {
@@ -416,8 +414,10 @@ router.post('/token/deploy', verifyToken, async (req, res) => {
         const serviceContractAddress = await deployServiceContract(GSCAddress);
         console.log("serviceContractAddress:", serviceContractAddress);
 
+
         // Deploy the TokenContract using the ServiceContract's address
-        const tokenContractAddress = await deployTokenContract(DIDs, CIDs, tokenName, tokenSymbol, revenueShare, contractTerm, tokenSupply, tokenPrice, paymentCurrency, serviceContractAddress);
+        // TODO: Implement DID & CID handling (Datastorage on IPFS)
+        const tokenContractAddress = await deployTokenContract([], [], tokenName, tokenSymbol, revenueShare, contractTerm, tokenSupply, tokenPrice, paymentCurrency, serviceContractAddress);
         console.log("tokenContractAddress:", tokenContractAddress);
 
 
@@ -463,7 +463,6 @@ router.post('/token/deploy', verifyToken, async (req, res) => {
             liquidityContractAddress: liquidityContractAddress,
             revenueDistributionContractAddress: revenueDistributionContractAddress,
             revenueStreamContractAddresses: [],
-            // DEBUG (duplicate DIDs) assetDIDs: DIDs,
             assetIds: assetIds,
             companyId: companyId,
             statusUpdates: [{

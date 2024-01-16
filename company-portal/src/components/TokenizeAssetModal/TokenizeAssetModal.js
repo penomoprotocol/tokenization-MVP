@@ -111,7 +111,6 @@ const TokenizeAssetModal = ({ show, handleClose }) => {
                 revenueShare,
                 //TODO: Enable multiple asset Ids
                 assetIds: [newAsset._id],
-                DIDs: [newAsset.DID.document.id],
                 assetValue, 
                 revenueStreams, 
                 fundingGoal, 

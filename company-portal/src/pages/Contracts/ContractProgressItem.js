@@ -12,8 +12,8 @@ const ContractProgressItem = ({ contract, onSelect, isSelected }) => {
         <div className="section-container" onClick={onSelect}>
             <div className='contract-header'>
                 <h3>{contract.name}</h3>
-                <p><strong>Total Funding:</strong>  ${contract.fundingCurrent ? `$${contract.fundingCurrent}` : 'N/A'}</p>
-                <p><strong>Funding Goal:</strong> {contract.financingGoal ? `$${contract.financingGoal.toLocaleString()}` : 'N/A'}</p>
+                <p><strong>Total Funding:</strong>  ${contract.fundingCurrent ? `$${contract.fundingCurrent}` : '0.00'}</p>
+                <p><strong>Funding Goal:</strong> {contract.fundingGoal ? `$${contract.fundingGoal.toLocaleString()}` : 'N/A'}</p>
                 <span className="toggle-arrow">{isSelected ? '▲' : '▼'}</span>
             </div>
 
@@ -46,15 +46,15 @@ const ContractProgressItem = ({ contract, onSelect, isSelected }) => {
                         </p>
                         <p><strong>Contract Term: </strong> {contract.contractTerm ? `${contract.contractTerm} months` : 'N/A'}</p>
                         <p><strong>Revenue Share: </strong> {contract.revenueShare ? `${contract.revenueShare}%` : 'N/A'}</p>
-                        <p><strong>Funding Goal:</strong> {contract.financingGoal ? `$${contract.financingGoal.toLocaleString()}` : 'N/A'}</p>
+                        <p><strong>Funding Goal:</strong> {contract.fundingGoal ? `$${contract.fundingGoal.toLocaleString()}` : 'N/A'}</p>
                         <p><strong>Share Supply: </strong>{contract.maxTokenSupply ? contract.maxTokenSupply : 'N/A'}</p>
                         <p><strong>Share Price: </strong> ${contract.tokenPrice ? contract.tokenPrice : 'N/A'}</p>
                     </div>
 
                     <div className='section-container'>
                         <h4>Funding Usage</h4>
-                        {contract.fundUsage && contract.fundUsage.length > 0 ? (
-                            contract.fundUsage.map((usage, index) => (
+                        {contract.fundingUsage && contract.fundingUsage.length > 0 ? (
+                            contract.fundingUsage.map((usage, index) => (
                                 <div className='section-container' key={index}>
                                     <span><strong>Type: </strong>{usage.description}</span>
                                     <span><strong>Amount: </strong>${usage.amount.toLocaleString()}</span>
