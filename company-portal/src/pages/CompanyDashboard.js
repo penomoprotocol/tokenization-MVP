@@ -84,7 +84,7 @@ const CompanyDashboard = () => {
                 <div className="balances-container">
                     <div className="wallet-balances-container">
                         <div className="wallet-balance">
-                            <strong className="balance-title">AGUNG</strong>
+                            <strong className="balance-title">PENOMO</strong>
                             <span className="balance-amount">{roundToDecimals(companyData.balances.agungBalance, 2)}</span>
                             <div className="btn-container">
                                 <button className="btn-penomo" onClick={() => setShowTopUp(true)}>Top Up</button>
@@ -104,32 +104,33 @@ const CompanyDashboard = () => {
             </div>
 
             <div className="section-container">
-                <h2 className="section-header">Available Liquidity Pools</h2>
-                {isLoadingCompanyData ? (
-                    <p>Loading...</p>
-                ) : companyData && companyData.tokens.length > 0 ? (
-                    companyData.tokens.map((token) => (
-                        <div className="portfolio-item" key={token.name}>
-                            <div style={{ flex: '1 1 33.3%' }} className="label-value">
-                                <strong>{token.name} </strong>
-                                <a href={fullTokenAddressLink(token.tokenContractAddress)}
-                                    target="_blank" rel="noopener noreferrer">
-                                    <span>({token.symbol})</span>
-                                </a>
-                            </div>
-                            <div style={{ flex: '1 1 33.3%' }} className="label-value">
-                                <strong className="label">Liquid Funds</strong>
-                                <span className="value">{token.liquidityPoolBalance}</span>
-                            </div>
-                            <div className="btn-container" style={{ flex: '1 1 33.3%' }}>
-                                <button className="btn-penomo">Withdraw</button>
-                            </div>
-                        </div>
-                    ))
-                ) : (
-                    <p>No Tokenized Assets.</p>
-                )}
+    <h2 className="section-header">Available Liquidity Pools</h2>
+    {isLoadingCompanyData ? (
+        <p>Loading...</p>
+    ) : companyData && companyData.tokens.length > 0 ? (
+        companyData.tokens.map((token) => (
+            <div className="portfolio-item" key={token.name}>
+                <div style={{ flex: '1 1 33.3%' }} className="label-value">
+                    <strong>{token.name} </strong>
+                    <a href={fullTokenAddressLink(token.tokenContractAddress)}
+                        target="_blank" rel="noopener noreferrer">
+                        <span>({token.symbol})</span>
+                    </a>
+                </div>
+                <div style={{ flex: '1 1 33.3%' }} className="label-value">
+                    <strong className="label">Liquid Funds</strong>
+                    <span className="value">${roundToDecimals(token.liquidityPoolBalance.usdcBalance, 2)}</span>
+                </div>
+                <div className="btn-container" style={{ flex: '1 1 10%' }}>
+                    <button className="btn-penomo">Withdraw</button>
+                </div>
             </div>
+        ))
+    ) : (
+        <p>No Tokenized Assets.</p>
+    )}
+</div>
+
 
             <div className="recent-transactions section-container">
                 <h2>Recent Transactions</h2>

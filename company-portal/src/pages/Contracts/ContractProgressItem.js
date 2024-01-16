@@ -10,17 +10,19 @@ const ContractProgressItem = ({ contract, onSelect, isSelected }) => {
 
     return (
         <div className="section-container" onClick={onSelect}>
-            <div className='contract-header'>
+           <div className='contract-header'>
                 <h3>{contract.name}</h3>
                 <p><strong>Total Funding:</strong>  ${contract.fundingCurrent ? `$${contract.fundingCurrent}` : '0.00'}</p>
                 <p><strong>Funding Goal:</strong> {contract.fundingGoal ? `$${contract.fundingGoal.toLocaleString()}` : 'N/A'}</p>
+                <p><strong>Status:</strong> {contract.statusUpdates[0].status}</p>{/* Display the fetched status */}
                 <span className="toggle-arrow">{isSelected ? '▲' : '▼'}</span>
             </div>
 
+
             {isSelected && (
                 <div>
-                    {/* <div className={'section-container'}> */}
-                    {/* <h4>Status</h4>
+                    <div className={'section-container'}>
+                        <h4>Funding Status</h4>
                         <ul>
                             {contract.statusUpdates && contract.statusUpdates.length > 0 ? (
                                 contract.statusUpdates.map((status, index) => (
@@ -30,7 +32,7 @@ const ContractProgressItem = ({ contract, onSelect, isSelected }) => {
                                 <li>No status updates available</li>
                             )}
                         </ul>
-                    </div> */}
+                    </div>
 
                     <div className='section-container'>
                         <h4>Funding Info</h4>

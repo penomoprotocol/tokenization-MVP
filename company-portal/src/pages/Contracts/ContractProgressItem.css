@@ -14,7 +14,7 @@
 
 .contract-header {
     display: grid;
-    grid-template-columns: 2fr 1fr 1fr 0.1fr; /* Three columns with equal width */
+    grid-template-columns: 2fr 1fr 1fr 1fr 0.1fr; /* Three columns with equal width */
     gap: 10px; /* Adjust the gap as needed */
     align-items: left; /* Center-align items vertically */
 }
