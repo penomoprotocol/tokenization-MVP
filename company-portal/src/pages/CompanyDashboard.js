@@ -1,7 +1,9 @@
+// CompanyDashboard.js
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import TopUpWallet from '../components/TopUpWallet';
 import WithdrawWallet from '../components/WithdrawWallet';
+import AssetCard from '../components/AssetCard'; // Import the AssetCard component
 import './CompanyDashboard.css';
 
 const CompanyDashboard = () => {
@@ -71,13 +73,33 @@ const CompanyDashboard = () => {
         }
     }
 
+    const calculateAssetsInProgress = (tokens) => {
+        if (!tokens || tokens.length === 0) {
+            return 0;
+        }
+        return tokens.reduce((count, token) => {
+            // Implement your logic to count assets in progress here
+            // For example, you can check a property like 'status' to determine if an asset is in progress
+            // Update the condition below according to your data structure
+            if (token.status === 'in-progress') {
+                return count + 1;
+            }
+            return count;
+        }, 0);
+    };
+
     if (!companyData) {
         return <div className='content-center page-header'>Loading...</div>;
     }
 
+    const assetsInProgress = calculateAssetsInProgress(companyData.tokens);
+
     return (
         <div className="page-container">
             <h1 className="page-header">Welcome, {companyData.firstname} {companyData.surname}</h1>
+
+            {/* Add the AssetCard component to display the number of assets */}
+            <AssetCard totalAssets={companyData.tokens.length} assetsInProgress={assetsInProgress} />
             
             <div className="section-container">
                 <h2 className="section-header">Balance</h2>
@@ -104,7 +126,7 @@ const CompanyDashboard = () => {
             </div>
 
             <div className="section-container">
-    <h2 className="section-header">Your Funding Pools</h2>
+    <h2 className="section-header">Your Financing Pools ({companyData.tokens.length} listed on penomo, {assetsInProgress} in progress) </h2>
     {isLoadingCompanyData ? (
         <p>Loading...</p>
     ) : companyData && companyData.tokens.length > 0 ? (
