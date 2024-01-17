@@ -65,6 +65,7 @@ const NavBar = () => {
                                 <Nav.Link as={NavLink} to="/dashboard" activeStyle={{ fontWeight: "bold" }}>Wallet</Nav.Link>
                                 <Nav.Link as={NavLink} to="/contracts" activeStyle={{ fontWeight: "bold" }}>Contracts</Nav.Link>
                                 <Nav.Link as={NavLink} to="/transaction-history" activeStyle={{ fontWeight: "bold" }}>Transaction History</Nav.Link>
+
                             </>
                         )}
                     </Nav>
@@ -74,6 +75,10 @@ const NavBar = () => {
                                 {!isVerified && (
                                     <Link onClick={handleVerifyModalShow} className="btn-secondary-navbar">Verify</Link>
                                 )}
+                                {/* Contact Support Button */}
+                                <Link to="#" className="btn-secondary-navbar">
+                                    Contact Support
+                                </Link>
                                 <Logout />
                             </>
                         ) : (
@@ -84,6 +89,7 @@ const NavBar = () => {
                                 </Nav>
                                 <Link onClick={handleLoginModalShow} className="btn-penomo-navbar">Login</Link>
                                 <Link onClick={handleRegisterModalShow} className="btn-secondary-navbar">Register</Link>
+
                             </>
                         )}
                     </Nav>
