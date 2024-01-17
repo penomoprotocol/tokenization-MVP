@@ -5,6 +5,7 @@ import TopUpWallet from '../components/TopUpWallet';
 import WithdrawWallet from '../components/WithdrawWallet';
 import AssetCard from '../components/AssetCard'; // Import the AssetCard component
 import './CompanyDashboard.css';
+import CompanyCard from '../components/CompanyCard';
 
 const CompanyDashboard = () => {
     const [companyData, setCompanyData] = useState(null);
@@ -98,60 +99,75 @@ const CompanyDashboard = () => {
         <div className="page-container">
             <h1 className="page-header">Welcome, {companyData.firstname} {companyData.surname}</h1>
 
-            {/* Add the AssetCard component to display the number of assets */}
-            <AssetCard totalAssets={companyData.tokens.length} assetsInProgress={assetsInProgress} />
-            
-            <div className="section-container">
-                <h2 className="section-header">Balance</h2>
-                <div className="balances-container">
-                    <div className="wallet-balances-container">
+
+
+            <div className="horizontal-center equal-height">
+
+                {/* Company Card */}
+                <CompanyCard companyData={companyData} />
+
+                {/* Balance Card */}
+                <div className="section-container">
                     <div className="wallet-balance">
-                            <strong className="balance-title">$</strong>
-                            <span className="balance-amount">{roundToDecimals(companyData.balances.usdcBalance, 2)}</span>
-                            <div className="btn-container">
-                                <button className="btn-penomo" onClick={() => setShowTopUp(true)}>Top Up</button>
-                                <button className="btn-penomo-secondary" onClick={() => toggleWithdraw('USDC')}>Withdraw</button>
-                            </div>
+                        <h2 className="section-header">Balance</h2>
+                        <strong className="balance-title">$</strong>
+                        <span className="balance-amount">{roundToDecimals(companyData.balances.usdcBalance, 2)}</span>
+                        <div className="btn-container">
+                            {/* <button className="btn-penomo" onClick={() => setShowTopUp(true)}>Top Up</button> */}
+                            <button className="btn-penomo-secondary" onClick={() => toggleWithdraw('USDC')}>Withdraw</button>
                         </div>
-                        <div className="wallet-balance">
-                            <strong className="balance-title">PENOMO</strong>
-                            <span className="balance-amount">{roundToDecimals(companyData.balances.agungBalance, 2)}</span>
-                            <div className="btn-container">
-                                <button className="btn-penomo" onClick={() => setShowTopUp(true)}>Top Up</button>
-                                <button className="btn-penomo-secondary" onClick={() => toggleWithdraw('ETH')}>Withdraw</button>
-                            </div>
+                    </div>
+
+                    <div className="wallet-balance">
+                        <h2 className="section-header">Rewards</h2>
+                        <strong className="balance-title">PENOMO</strong>
+                        <span className="balance-amount">{roundToDecimals(companyData.balances.agungBalance, 2)}</span>
+                        <div className="btn-container">
+                            {/* <button className="btn-penomo" onClick={() => setShowTopUp(true)}>Top Up</button> */}
+                            <button className="btn-penomo-secondary" onClick={() => toggleWithdraw('ETH')}>Withdraw</button>
                         </div>
                     </div>
                 </div>
             </div>
 
-            <div className="section-container">
-    <h2 className="section-header">Your Financing Pools ({companyData.tokens.length} listed on penomo, {assetsInProgress} in progress) </h2>
-    {isLoadingCompanyData ? (
-        <p>Loading...</p>
-    ) : companyData && companyData.tokens.length > 0 ? (
-        companyData.tokens.map((token) => (
-            <div className="portfolio-item" key={token.name}>
-                <div style={{ flex: '1 1 33.3%' }} className="label-value">
-                    <strong>{token.name} </strong>
-                    <a href={fullTokenAddressLink(token.tokenContractAddress)}
-                        target="_blank" rel="noopener noreferrer">
-                        <span>({token.symbol})</span>
-                    </a>
-                </div>
-                <div style={{ flex: '1 1 33.3%' }} className="label-value">
-                    <strong className="label">Available Funds</strong>
-                    <span className="value">${roundToDecimals(token.liquidityPoolBalance.usdcBalance, 2)}</span>
-                </div>
-                <div className="btn-container" style={{ flex: '1 1 10%' }}>
-                    <button className="btn-penomo">Withdraw</button>
+            <div className="horizontal-center equal-height">
+
+                {/* AssetCard */}
+                {/* <AssetCard totalAssets={companyData.tokens.length} assetsInProgress={assetsInProgress} /> */}
+
+                {/* Rewards Card */}
+                <div className="two-columns">
                 </div>
             </div>
-        ))
-    ) : (
-        <p>No Tokenized Assets.</p>
-    )}
-</div>
+
+
+            <div className="section-container">
+                <h2 className="section-header">Your Financing Pools</h2>
+                {isLoadingCompanyData ? (
+                    <p>Loading...</p>
+                ) : companyData && companyData.tokens.length > 0 ? (
+                    companyData.tokens.map((token) => (
+                        <div className="portfolio-item" key={token.name}>
+                            <div style={{ flex: '1 1 33.3%' }} className="label-value">
+                                <strong>{token.name} </strong>
+                                <a href={fullTokenAddressLink(token.tokenContractAddress)}
+                                    target="_blank" rel="noopener noreferrer">
+                                    <span>({token.symbol})</span>
+                                </a>
+                            </div>
+                            <div style={{ flex: '1 1 33.3%' }} className="label-value">
+                                <strong className="label">Available Funds</strong>
+                                <span className="value">${roundToDecimals(token.liquidityPoolBalance.usdcBalance, 2)}</span>
+                            </div>
+                            <div className="btn-container" style={{ flex: '1 1 10%' }}>
+                                <button className="btn-penomo">Withdraw</button>
+                            </div>
+                        </div>
+                    ))
+                ) : (
+                    <p>No Tokenized Assets.</p>
+                )}
+            </div>
 
 
             <div className="recent-transactions section-container">

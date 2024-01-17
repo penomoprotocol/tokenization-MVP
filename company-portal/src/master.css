@@ -115,6 +115,29 @@ html, body, body * {
     background-color: #eef6ff;
 }
 
+.horizontal-center {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between; /* Cards spaced evenly horizontally */
+}
+
+/* Style for each individual card */
+.two-columns{
+    flex-basis: calc(50% - 20px); 
+    margin-bottom: 20px; /* Spacing between cards */
+    padding: 20px;
+}
+
+.equal-height {
+    display: flex;
+    flex-wrap: wrap;
+}
+
+.equal-height> * {
+    flex: 1;
+    margin: 0 10px; /* Add margin between cards as needed */
+}
+
 /* Common button styling */
 .btn {
     background-color: #0056b3;
