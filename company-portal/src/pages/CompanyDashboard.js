@@ -101,13 +101,12 @@ const CompanyDashboard = () => {
 
 
 
-            <div className="horizontal-center equal-height">
-
+            <div style={{ display: 'flex', alignItems: 'stretch' }} className="horizontal-center equal-height">
                 {/* Company Card */}
                 <CompanyCard companyData={companyData} />
 
                 {/* Balance Card */}
-                <div className="section-container">
+                <div style={{ display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }} className="section-container">
                     <div className="wallet-balance">
                         <h2 className="section-header">Balance</h2>
                         <strong className="balance-title">$</strong>
@@ -130,15 +129,7 @@ const CompanyDashboard = () => {
                 </div>
             </div>
 
-            <div className="horizontal-center equal-height">
 
-                {/* AssetCard */}
-                {/* <AssetCard totalAssets={companyData.tokens.length} assetsInProgress={assetsInProgress} /> */}
-
-                {/* Rewards Card */}
-                <div className="two-columns">
-                </div>
-            </div>
 
 
             <div className="section-container">
