@@ -1,20 +1,28 @@
-import React from 'react';
-import './ContractProgressItem.css'; // Import your custom CSS file for ContractProgressItem
+import React, { useState } from 'react';
+import './ContractProgressItem.css'; 
+import UploadDocumentModal from '../../components/UploadDocumentModal';
+
 
 const ContractProgressItem = ({ contract, onSelect, isSelected }) => {
+    const [showUploadDocumentModal, setShowUploadDocumentModal] = useState(false);
+
     const shortenDID = (did) => {
         // Implement your logic to shorten the DID here
         // For example, you can keep the first and last few characters
         return `did:peaq:${did.substring(0, 8)}...${did.slice(-8)}`;
     };
 
+    const formatDate = (dateString) => {
+        const options = { year: 'numeric', month: 'long', day: 'numeric' };
+        return new Date(dateString).toLocaleDateString(undefined, options);
+    };
     return (
         <div className="section-container" onClick={onSelect}>
-           <div className='contract-header'>
+            <div className='contract-header'>
                 <h3>{contract.name}</h3>
-                <p><strong>Total Funding:</strong>  ${contract.fundingCurrent ? `$${contract.fundingCurrent}` : '0.00'}</p>
-                <p><strong>Funding Goal:</strong> {contract.fundingGoal ? `$${contract.fundingGoal.toLocaleString()}` : 'N/A'}</p>
-                <p><strong>Status:</strong> {contract.statusUpdates[0].status}</p>{/* Display the fetched status */}
+                <div className='center-vertical-group'><strong>Total Funding:</strong>  ${contract.fundingCurrent ? `$${contract.fundingCurrent}` : '0.00'}</div>
+                <div className='center-vertical-group'><strong>Funding Goal:</strong> {contract.fundingGoal ? `$${contract.fundingGoal.toLocaleString()}` : 'N/A'}</div>
+                <div className='center-vertical-group'><strong>Status:</strong> {contract.statusUpdates[0].status}</div>
                 <span className="toggle-arrow">{isSelected ? '▲' : '▼'}</span>
             </div>
 
@@ -23,15 +31,29 @@ const ContractProgressItem = ({ contract, onSelect, isSelected }) => {
                 <div>
                     <div className={'section-container'}>
                         <h4>Funding Status</h4>
-                        <ul>
+                        <div className={'section-container'}>
                             {contract.statusUpdates && contract.statusUpdates.length > 0 ? (
                                 contract.statusUpdates.map((status, index) => (
-                                    <li key={index}>{status.statusMessages}</li>
+                                    <div className="status-update" key={index}>
+                                         <p><strong>Date:</strong> {formatDate(status.date)}</p>
+                                        <p><strong>Status:</strong> {status.status}</p>
+                                        <p><strong>Messages:</strong> {status.messages.join(', ')}</p>
+                                        {status.actionsNeeded.length > 0 ? (
+                                            <div>
+                                                <p><strong>Actions Needed:</strong> {status.actionsNeeded.join(', ')}</p>
+                                                {status.actionsNeeded.includes('Upload Document') && (
+                                                    <button onClick={() => setShowUploadDocumentModal(true)}>Open</button>
+                                                )}
+                                            </div>
+                                        ) : (
+                                            <p>No actions needed</p>
+                                        )}
+                                    </div>
                                 ))
                             ) : (
-                                <li>No status updates available</li>
+                                <p>No status updates available</p>
                             )}
-                        </ul>
+                        </div>
                     </div>
 
                     <div className='section-container'>
@@ -108,7 +130,20 @@ const ContractProgressItem = ({ contract, onSelect, isSelected }) => {
                         <h3>General Info</h3>
                         <p>{contract.projectDescription}</p>
                     </div>
+                    <div className={'section-container'}>
+                        <h3>Documents</h3>
+                        <label href="/path/to/prospectus_template.pdf" download className="btn-link">Prospectus</label>
+                        <label href="/path/to/prospectus_template.pdf" download className="btn-link">penomo Terms & Conditions</label>
+                        <label href="/path/to/prospectus_template.pdf" download className="btn-link">Cost Informations</label>
+                        <label href="/path/to/prospectus_template.pdf" download className="btn-link">Transfer of Future Revenues Agreement</label>
+                    </div>
                 </div>
+            )}
+            {showUploadDocumentModal && (
+                <UploadDocumentModal
+                    actionsNeeded={contract.statusUpdates[0].actionsNeeded}
+                    onClose={() => setShowUploadDocumentModal(false)}
+                />
             )}
         </div>
     );

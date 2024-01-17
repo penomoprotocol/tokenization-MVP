@@ -80,9 +80,17 @@ const CompanyDashboard = () => {
             <h1 className="page-header">Welcome, {companyData.firstname} {companyData.surname}</h1>
             
             <div className="section-container">
-                <h2 className="section-header">Cryptocurrencies</h2>
+                <h2 className="section-header">Balance</h2>
                 <div className="balances-container">
                     <div className="wallet-balances-container">
+                    <div className="wallet-balance">
+                            <strong className="balance-title">$</strong>
+                            <span className="balance-amount">{roundToDecimals(companyData.balances.usdcBalance, 2)}</span>
+                            <div className="btn-container">
+                                <button className="btn-penomo" onClick={() => setShowTopUp(true)}>Top Up</button>
+                                <button className="btn-penomo-secondary" onClick={() => toggleWithdraw('USDC')}>Withdraw</button>
+                            </div>
+                        </div>
                         <div className="wallet-balance">
                             <strong className="balance-title">PENOMO</strong>
                             <span className="balance-amount">{roundToDecimals(companyData.balances.agungBalance, 2)}</span>
@@ -91,20 +99,12 @@ const CompanyDashboard = () => {
                                 <button className="btn-penomo-secondary" onClick={() => toggleWithdraw('ETH')}>Withdraw</button>
                             </div>
                         </div>
-                        <div className="wallet-balance">
-                            <strong className="balance-title">USDC</strong>
-                            <span className="balance-amount">{roundToDecimals(companyData.balances.usdcBalance, 2)}</span>
-                            <div className="btn-container">
-                                <button className="btn-penomo" onClick={() => setShowTopUp(true)}>Top Up</button>
-                                <button className="btn-penomo-secondary" onClick={() => toggleWithdraw('USDC')}>Withdraw</button>
-                            </div>
-                        </div>
                     </div>
                 </div>
             </div>
 
             <div className="section-container">
-    <h2 className="section-header">Available Liquidity Pools</h2>
+    <h2 className="section-header">Your Funding Pools</h2>
     {isLoadingCompanyData ? (
         <p>Loading...</p>
     ) : companyData && companyData.tokens.length > 0 ? (
@@ -118,7 +118,7 @@ const CompanyDashboard = () => {
                     </a>
                 </div>
                 <div style={{ flex: '1 1 33.3%' }} className="label-value">
-                    <strong className="label">Liquid Funds</strong>
+                    <strong className="label">Available Funds</strong>
                     <span className="value">${roundToDecimals(token.liquidityPoolBalance.usdcBalance, 2)}</span>
                 </div>
                 <div className="btn-container" style={{ flex: '1 1 10%' }}>

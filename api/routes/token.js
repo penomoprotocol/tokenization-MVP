@@ -466,9 +466,9 @@ router.post('/token/deploy', verifyToken, async (req, res) => {
             assetIds: assetIds,
             companyId: companyId,
             statusUpdates: [{
-                status: 'pending',
-                messages: ["Your submitted documents are currently under review. We will notify your via mail with updates."],
-                actionsNeeded: []
+                status: 'Pending',
+                messages: ["Your submitted documents are currently under review. We will notify you via mail with updates."],
+                actionsNeeded: ["No actions needed for now."]
             }]
         });
 

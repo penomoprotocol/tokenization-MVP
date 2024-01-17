@@ -29,6 +29,13 @@ html, body, body * {
     align-items: center;
 }
 
+.center-vertical-group {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+}
+
 /* This class can be used to center content both vertically and horizontally within its parent */
 .full-center {
     display: flex;
