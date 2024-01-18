@@ -281,7 +281,6 @@ html, body, body * {
     /* Adjust the color as needed */
 }
 
-
 .close:hover {
     color: #333;
 }
@@ -317,6 +316,21 @@ html, body, body * {
 .modal-body p {
     word-wrap: break-word; /* This ensures that long words will wrap and not overflow */
     margin-bottom: 1rem; /* Adds some space below each paragraph if you have multiple */
+}
+
+.progress-bar {
+    width: 100%;
+    height: 35px;
+    background-color: #00CC9C;
+    border: 1px solid #ced4da;
+    border-radius: 5px;
+    margin-top: 10px;
+}
+
+.filler {
+    height: 30px;
+    border-radius: 10px;
+    background-color: #00CC9C;/* Green color for the filled portion */
 }
 
 /* Additional styles for responsiveness and aesthetics */

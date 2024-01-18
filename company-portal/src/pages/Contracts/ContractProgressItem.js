@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import './ContractProgressItem.css'; 
+import './ContractProgressItem.css';
 import UploadDocumentModal from '../../components/UploadDocumentModal';
 
 
@@ -21,10 +21,16 @@ const ContractProgressItem = ({ contract, onSelect, isSelected }) => {
             <div className='contract-header'>
                 <h3>{contract.name}</h3>
                 <div className='center-vertical-group'><strong>Total Funding:</strong>  ${contract.fundingCurrent ? `$${contract.fundingCurrent}` : '0.00'}</div>
+                <div className="progress-bar">
+                    <div className="filler" style={{ width: `${(contract.fundingCurrent / contract.fundingGoal) * 100}%` }}></div>
+                </div>
                 <div className='center-vertical-group'><strong>Funding Goal:</strong> {contract.fundingGoal ? `$${contract.fundingGoal.toLocaleString()}` : 'N/A'}</div>
                 <div className='center-vertical-group'><strong>Status:</strong> {contract.statusUpdates[0].status}</div>
+
+
                 <span className="toggle-arrow">{isSelected ? '▲' : '▼'}</span>
             </div>
+
 
 
             {isSelected && (
@@ -35,7 +41,7 @@ const ContractProgressItem = ({ contract, onSelect, isSelected }) => {
                             {contract.statusUpdates && contract.statusUpdates.length > 0 ? (
                                 contract.statusUpdates.map((status, index) => (
                                     <div className="status-update" key={index}>
-                                         <p><strong>Date:</strong> {formatDate(status.date)}</p>
+                                        <p><strong>Date:</strong> {formatDate(status.date)}</p>
                                         <p><strong>Status:</strong> {status.status}</p>
                                         <p><strong>Messages:</strong> {status.messages.join(', ')}</p>
                                         {status.actionsNeeded.length > 0 ? (
