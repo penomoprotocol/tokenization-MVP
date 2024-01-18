@@ -20,14 +20,14 @@ const ContractProgressItem = ({ contract, onSelect, isSelected }) => {
         <div className="section-container" onClick={onSelect}>
             <div className='contract-header'>
                 <h3>{contract.name}</h3>
-                <div className='center-vertical-group'><strong>Total Funding:</strong>  ${contract.fundingCurrent ? `$${contract.fundingCurrent}` : '0.00'}</div>
+                <div className='center-vertical-group'><strong>Total Financing:</strong>  ${contract.fundingCurrent ? `$${contract.fundingCurrent}` : '0.00'}</div>
                 <div className="progress-bar">
-                    <div className="filler" style={{ width: `${(contract.fundingCurrent / contract.fundingGoal) * 100}%` }}></div>
+                    <div className="filler" style={{ width: `${(contract.fundingCurrent / contract.fundingGoal) * 100 + 2}%` }}>
+                    </div>
+                    <div className="percentage-text">{((contract.fundingCurrent / contract.fundingGoal) * 100).toFixed(2)}% Financed</div>
                 </div>
-                <div className='center-vertical-group'><strong>Funding Goal:</strong> {contract.fundingGoal ? `$${contract.fundingGoal.toLocaleString()}` : 'N/A'}</div>
+                <div className='center-vertical-group'><strong>Financing Goal:</strong> {contract.fundingGoal ? `$${contract.fundingGoal.toLocaleString()}` : 'N/A'}</div>
                 <div className='center-vertical-group'><strong>Status:</strong> {contract.statusUpdates[0].status}</div>
-
-
                 <span className="toggle-arrow">{isSelected ? '▲' : '▼'}</span>
             </div>
 
@@ -36,7 +36,7 @@ const ContractProgressItem = ({ contract, onSelect, isSelected }) => {
             {isSelected && (
                 <div>
                     <div className={'section-container'}>
-                        <h4>Funding Status</h4>
+                        <h4>Financing Status</h4>
                         <div className={'section-container'}>
                             {contract.statusUpdates && contract.statusUpdates.length > 0 ? (
                                 contract.statusUpdates.map((status, index) => (
@@ -63,7 +63,7 @@ const ContractProgressItem = ({ contract, onSelect, isSelected }) => {
                     </div>
 
                     <div className='section-container'>
-                        <h4>Funding Info</h4>
+                        <h4>Financing Info</h4>
                         <p>
                             <strong>Contract Address: </strong>
                             {contract.tokenContractAddress ? (
@@ -76,13 +76,13 @@ const ContractProgressItem = ({ contract, onSelect, isSelected }) => {
                         </p>
                         <p><strong>Contract Term: </strong> {contract.contractTerm ? `${contract.contractTerm} months` : 'N/A'}</p>
                         <p><strong>Revenue Share: </strong> {contract.revenueShare ? `${contract.revenueShare}%` : 'N/A'}</p>
-                        <p><strong>Funding Goal:</strong> {contract.fundingGoal ? `$${contract.fundingGoal.toLocaleString()}` : 'N/A'}</p>
+                        <p><strong>Financing Goal:</strong> {contract.fundingGoal ? `$${contract.fundingGoal.toLocaleString()}` : 'N/A'}</p>
                         <p><strong>Share Supply: </strong>{contract.maxTokenSupply ? contract.maxTokenSupply : 'N/A'}</p>
                         <p><strong>Share Price: </strong> ${contract.tokenPrice ? contract.tokenPrice : 'N/A'}</p>
                     </div>
 
                     <div className='section-container'>
-                        <h4>Funding Usage</h4>
+                        <h4>Funds Usage</h4>
                         {contract.fundingUsage && contract.fundingUsage.length > 0 ? (
                             contract.fundingUsage.map((usage, index) => (
                                 <div className='section-container' key={index}>

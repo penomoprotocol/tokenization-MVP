@@ -321,16 +321,37 @@ html, body, body * {
 .progress-bar {
     width: 100%;
     height: 35px;
-    background-color: #00CC9C;
-    border: 1px solid #ced4da;
-    border-radius: 5px;
-    margin-top: 10px;
+    border: 1px solid #a09d9d;
+    /* border-radius: 5px; */
+    /* margin-top: 10px; */
+    /* display: flex; Remove this line */
+    /* align-items: center; Remove this line */
+    position: relative; /* Add this line */
+    border-radius: 8px;
+    padding: 1.2rem;
+    margin-block: 1rem;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
 }
 
 .filler {
-    height: 30px;
-    border-radius: 10px;
-    background-color: #00CC9C;/* Green color for the filled portion */
+    background-color: #00CC9C;
+    height: 100%;
+    /* display: flex;
+    align-items: center;
+    justify-content: center; */
+    position: absolute; /* Use absolute positioning */
+    left: 0; /* Align to the left */
+    top: 0; /* Align to the top */
+    bottom: 0; /* Align to the bottom */
+}
+
+.percentage-text {
+    color: #000000;
+    font-weight: bold;
+    position: absolute; /* Use absolute positioning */
+    left: 50%; /* Center horizontally */
+    top: 50%; /* Center vertically */
+    transform: translate(-50%, -50%); /* Center text precisely */
 }
 
 /* Additional styles for responsiveness and aesthetics */

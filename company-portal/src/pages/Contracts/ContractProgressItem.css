@@ -11,6 +11,9 @@
     background-color: #eef6ff;
 }
 
+.percentage-text {
+    color: #000000; /* Text color */
+}
 
 .contract-header {
     display: grid;
