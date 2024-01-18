@@ -101,7 +101,7 @@ const CompanyDashboard = () => {
 
 
 
-            <div style={{ display: 'flex', alignItems: 'stretch' }} className="horizontal-center equal-height">
+            <div style={{ height: '20rem', alignItems: 'stretch' }} className="horizontal-center equal-height">
                 {/* Company Card */}
                 <CompanyCard companyData={companyData} />
 
@@ -150,7 +150,7 @@ const CompanyDashboard = () => {
                                 <strong className="label">Available Funds</strong>
                                 <span className="value">${roundToDecimals(token.liquidityPoolBalance.usdcBalance, 2)}</span>
                             </div>
-                            <div className="btn-container" style={{ flex: '1 1 10%' }}>
+                            <div className="btn-container">
                                 <button className="btn-penomo">Withdraw</button>
                             </div>
                         </div>
