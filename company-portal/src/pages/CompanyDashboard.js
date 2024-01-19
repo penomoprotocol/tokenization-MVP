@@ -117,15 +117,14 @@ const CompanyDashboard = () => {
                         </div>
                     </div>
 
-                    <div className="wallet-balance">
+                    {/* <div className="wallet-balance">
                         <h2 className="section-header">Rewards</h2>
                         <strong className="balance-title">PENOMO</strong>
                         <span className="balance-amount">{roundToDecimals(companyData.balances.agungBalance, 2)}</span>
                         <div className="btn-container">
-                            {/* <button className="btn-penomo" onClick={() => setShowTopUp(true)}>Top Up</button> */}
                             <button className="btn-penomo-secondary" onClick={() => toggleWithdraw('ETH')}>Withdraw</button>
                         </div>
-                    </div>
+                    </div> */}
                 </div>
             </div>
 

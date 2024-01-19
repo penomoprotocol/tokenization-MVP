@@ -2,11 +2,12 @@ import React from 'react';
 
 const CompanyCard = ({ companyData }) => {
     return (
-        <div style={{ display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }} className="section-container">
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center',}}>
+        <div style={{ display: 'flex', flexDirection: 'column' }} className="section-container">
+            <div style={{ display: 'flex', alignItems: 'center' }}>
                 <h2>Your Company</h2>
-                <button className="btn-penomo" onClick={() => handleEditClick()}>Edit</button> 
+                <button className="btn-penomo" onClick={() => handleEditClick()} style={{ marginRight: '0rem' }}>Edit</button>
             </div>
+
             <p><strong>Business Name:</strong> {companyData.businessName}</p>
             <p><strong>Registration Number:</strong> {companyData.registrationNumber}</p>
             <p><strong>Email:</strong> {companyData.email}</p>
