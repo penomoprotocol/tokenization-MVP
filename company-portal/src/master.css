@@ -85,6 +85,7 @@ html, body, body * {
     margin-block: 1rem;
     margin-bottom: 4rem;
     box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    overflow: clip;
 }
 
 /* Common header for sections */
@@ -123,10 +124,22 @@ html, body, body * {
 
 /* Style for each individual card */
 .two-columns{
-    flex-basis: calc(50% - 20px); 
-    margin-bottom: 20px; /* Spacing between cards */
-    padding: 20px;
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between; /* Cards spaced evenly horizontally */
+    padding: 0rem;
+    margin-block: 1rem;
+    margin-bottom: 4rem;
 }
+
+.colored-box {
+    display: flex;
+    height: 15rem;
+    width: 15rem;
+    border-radius: 5px; /* Add rounded corners */
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
 
 .equal-height {
     display: flex;
@@ -321,7 +334,8 @@ html, body, body * {
 .progress-bar {
     width: 100%;
     height: 35px;
-    border: 1px solid #a09d9d;
+    border: 1px solid #9bbab6;
+    background-color: #9bbab6;
     /* border-radius: 5px; */
     /* margin-top: 10px; */
     /* display: flex; Remove this line */

@@ -2,13 +2,15 @@ import React from 'react';
 
 const CompanyCard = ({ companyData }) => {
     return (
-        <div style={{ display: 'flex', flexDirection: 'column' }} className="section-container">
+        <div style={{ marginRight: "1rem" }} className="section-container">
             <div style={{ display: 'flex', alignItems: 'center' }}>
-                <h2>Your Company</h2>
+                <h2>Profile</h2>
                 <button className="btn-penomo" onClick={() => handleEditClick()} style={{ marginRight: '0rem' }}>Edit</button>
             </div>
 
+            <p><strong>Name:</strong> {companyData.firstname} {companyData.surname}</p>
             <p><strong>Business Name:</strong> {companyData.businessName}</p>
+            <p><strong>Business Address:</strong> {companyData.businessAddress}</p>
             <p><strong>Registration Number:</strong> {companyData.registrationNumber}</p>
             <p><strong>Email:</strong> {companyData.email}</p>
             <p><strong>Business Phone:</strong> {companyData.businessPhone}</p>

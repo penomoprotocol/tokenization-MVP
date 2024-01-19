@@ -487,6 +487,122 @@ router.post('/token/deploy', verifyToken, async (req, res) => {
     }
 });
 
+/**
+ * @swagger
+ * /api/token/status/{tokenId}:
+ *   patch:
+ *     summary: Update the status of a token object.
+ *     tags:
+ *       - Token
+ *     description: Update the status, messages, and actions needed for a token.
+ *     parameters:
+ *       - in: path
+ *         name: tokenId
+ *         required: true
+ *         description: The ID of the token to update.
+ *         schema:
+ *           type: string
+ *       - in: body
+ *         name: tokenUpdate
+ *         required: true
+ *         description: The token status update object.
+ *         schema:
+ *           type: object
+ *           required:
+ *             - status
+ *           properties:
+ *             status:
+ *               type: string
+ *               description: The new status value for the token (pending, approved, denied, action needed).
+ *             messages:
+ *               type: array
+ *               description: An array of messages associated with the token status.
+ *               items:
+ *                 type: string
+ *             actionsNeeded:
+ *               type: array
+ *               description: An array of actions needed for the token.
+ *               items:
+ *                 type: string
+ *     responses:
+ *       200:
+ *         description: Token status updated successfully.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                   description: A success message.
+ *                 updatedToken:
+ *                   $ref: '#/components/schemas/Token'
+ *       400:
+ *         description: Invalid status value.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 error:
+ *                   type: string
+ *                   description: An error message.
+ *       404:
+ *         description: Token not found.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 error:
+ *                   type: string
+ *                   description: An error message.
+ *       500:
+ *         description: An error occurred while updating token status.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 error:
+ *                   type: string
+ *                   description: An error message.
+ * components:
+ *   schemas:
+ *     Token:
+ *       type: object
+ *       required:
+ *         - name
+ *         - symbol
+ *         - serviceContractAddress
+ *         - tokenContractAddress
+ *         - liquidityContractAddress
+ *         - revenueDistributionContractAddress
+ *         - companyId
+ *       properties:
+ *         name:
+ *           type: string
+ *           description: Name of the token.
+ *         symbol:
+ *           type: string
+ *           description: Symbol of the token.
+ *         serviceContractAddress:
+ *           type: string
+ *           description: Blockchain address of the service contract.
+ *         tokenContractAddress:
+ *           type: string
+ *           description: Blockchain address of the token contract.
+ *         liquidityContractAddress:
+ *           type: string
+ *           description: Blockchain address of the liquidity contract.
+ *         revenueDistributionContractAddress:
+ *           type: string
+ *           description: Blockchain address of the revenue distribution contract.
+ *         companyId:
+ *           type: string
+ *           description: ID of the company that owns the token.
+ */
+
 // PATCH endpoint to update the status of the token object
 router.patch('/token/status/:tokenId', async (req, res) => {
     try {
