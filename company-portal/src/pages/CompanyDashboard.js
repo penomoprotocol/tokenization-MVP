@@ -101,31 +101,10 @@ const CompanyDashboard = () => {
 
 
 
-            <div style={{ height: '20rem', alignItems: 'stretch' }} className="horizontal-center equal-height">
+            <div style={{ height: '20rem', alignItems: 'stretch' }}>
                 {/* Company Card */}
                 <CompanyCard companyData={companyData} />
-
-                {/* Balance Card */}
-                <div style={{ display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }} className="section-container">
-                    <div className="wallet-balance">
-                        <h2 className="section-header">Balance</h2>
-                        <strong className="balance-title">$</strong>
-                        <span className="balance-amount">{roundToDecimals(companyData.balances.usdcBalance, 2)}</span>
-                        <div className="btn-container">
-                            {/* <button className="btn-penomo" onClick={() => setShowTopUp(true)}>Top Up</button> */}
-                            <button className="btn-penomo-secondary" onClick={() => toggleWithdraw('USDC')}>Withdraw</button>
-                        </div>
-                    </div>
-
-                    {/* <div className="wallet-balance">
-                        <h2 className="section-header">Rewards</h2>
-                        <strong className="balance-title">PENOMO</strong>
-                        <span className="balance-amount">{roundToDecimals(companyData.balances.agungBalance, 2)}</span>
-                        <div className="btn-container">
-                            <button className="btn-penomo-secondary" onClick={() => toggleWithdraw('ETH')}>Withdraw</button>
-                        </div>
-                    </div> */}
-                </div>
+                <div style={{ width: '50%'}}></div>
             </div>
 
 
@@ -149,15 +128,27 @@ const CompanyDashboard = () => {
                                 <strong className="label">Available Funds</strong>
                                 <span className="value">${roundToDecimals(token.liquidityPoolBalance.usdcBalance, 2)}</span>
                             </div>
-                            <div className="btn-container">
-                                <button className="btn-penomo">Withdraw</button>
+                            <div style={{ flex: '1 1 33.3%' }} className="btn-container">
+                            <button className="btn-penomo-secondary"  onClick={() => toggleWithdraw('USDC')}>Withdraw</button>
                             </div>
                         </div>
+                        
                     ))
                 ) : (
                     <p>No Tokenized Assets.</p>
-                )}
-            </div>
+                )}     
+                    <div className="portfolio-item" style={{ backgroundColor: "##e1e1e1" }}>
+                        <div style={{ flex: '1 1 33.3%' }} className="label-value-horizontal">
+                        <h3 className="section-header">Total Balance</h3>
+                        </div>
+                        <div style={{ flex: '1 1 33.3%' }} className="label-value-horizontal">
+                            <strong className="balance-title">$</strong>
+                            <span className="balance-amount">{roundToDecimals(companyData.balances.usdcBalance, 2)}</span>
+                        </div>
+                        <div style={{ flex: '1 1 33.3%' }}></div>
+                    </div>
+                </div>
+
 
 
             <div className="recent-transactions section-container">

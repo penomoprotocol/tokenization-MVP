@@ -345,6 +345,14 @@ html, body, body * {
     bottom: 0; /* Align to the bottom */
 }
 
+.balance-display {
+    display: grid;
+    grid-template-columns: 2fr 1fr 1fr; /* Three columns with equal width */
+    gap: 10px; /* Adjust the gap as needed */
+    align-items: left; /* Center-align items vertically */
+    align-items: center;
+}
+
 .percentage-text {
     color: #000000;
     font-weight: bold;
