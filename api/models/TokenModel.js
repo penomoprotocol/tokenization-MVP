@@ -3,7 +3,6 @@ const mongoose = require('mongoose');
 const statusUpdateSchema = new mongoose.Schema({
     status: {
         type: String,
-        enum: ['approved', 'action needed', 'denied', 'pending'], // Add 'pending' if needed as an initial state
         required: true
     },
     messages: [{

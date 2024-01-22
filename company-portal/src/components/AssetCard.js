@@ -3,8 +3,8 @@ import React from 'react';
 const AssetCard = ({ companyData }) => {
     // Filter the tokens that have status "pending"
     const pendingTokens = companyData.tokens.filter(token => {
-        // Assuming statusUpdates is an array, you can check if any status is "pending"
-        return token.statusUpdates.some(statusUpdate => statusUpdate.status === "pending");
+        // Assuming statusUpdates is an array, you can check if any status is "Pending"
+        return token.statusUpdates.some(statusUpdate => statusUpdate.status === "Pending");
     });
 
     // Assign the total number of tokens to assetsInProgress
@@ -12,7 +12,7 @@ const AssetCard = ({ companyData }) => {
     const assetsListed = companyData.tokens.length-pendingTokens.length;
 
     return (
-        <div style={{ marginLeft: "1rem" }} className="section-container">
+        <div style={{ marginRight: "1rem" }} className="section-container">
             <h3>No. Of Assets</h3>
             <div className='two-columns'>
                 <div className="colored-box center" style={{backgroundColor: "#00CC9C"}}>

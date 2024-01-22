@@ -103,10 +103,10 @@ const CompanyDashboard = () => {
 
             <div className="two-columns">
                 <div style={{ flex: '45%' }}>
-                    <CompanyCard companyData={companyData} />
+                    <AssetCard companyData={companyData} />
                 </div>
                 <div style={{ flex: '45%' }}>
-                    <AssetCard companyData={companyData} />
+                    <CompanyCard companyData={companyData} />
                 </div>
             </div>
 
@@ -114,6 +114,16 @@ const CompanyDashboard = () => {
 
             <div className="section-container">
                 <h2 className="section-header">Your Financing Pools</h2>
+                <div className="portfolio-item" style={{ backgroundColor: "##e1e1e1" }}>
+                    <div style={{ flex: '1 1 33.3%' }} className="label-value-horizontal">
+                        <h3 className="section-header">Total Balance</h3>
+                    </div>
+                    <div style={{ flex: '1 1 33.3%' }} className="label-value-horizontal">
+                        <div className="balance-title" style={{fontSize: "2rem"}}>$</div>
+                        <span className="balance-amount" style={{fontSize: "2rem"}}>{roundToDecimals(companyData.balances.usdcBalance, 2)}</span>
+                    </div>
+                    <div style={{ flex: '1 1 33.3%' }}></div>
+                </div>
                 {isLoadingCompanyData ? (
                     <p>Loading...</p>
                 ) : companyData && companyData.tokens.length > 0 ? (
@@ -139,16 +149,6 @@ const CompanyDashboard = () => {
                 ) : (
                     <p>No Tokenized Assets.</p>
                 )}
-                <div className="portfolio-item" style={{ backgroundColor: "##e1e1e1" }}>
-                    <div style={{ flex: '1 1 33.3%' }} className="label-value-horizontal">
-                        <h3 className="section-header">Total Balance</h3>
-                    </div>
-                    <div style={{ flex: '1 1 33.3%' }} className="label-value-horizontal">
-                        <div className="balance-title" style={{fontSize: "2rem"}}>$</div>
-                        <span className="balance-amount" style={{fontSize: "2rem"}}>{roundToDecimals(companyData.balances.usdcBalance, 2)}</span>
-                    </div>
-                    <div style={{ flex: '1 1 33.3%' }}></div>
-                </div>
             </div>
 
 
