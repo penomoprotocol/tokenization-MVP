@@ -11,6 +11,10 @@ html, body, body * {
     align-items: center;
 }
 
+.flex-column {
+    flex-direction: column; /* Stack children vertically */
+  }
+  
 .content-center {
     display: flex;
     justify-content: center;

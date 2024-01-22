@@ -1,0 +1,102 @@
+import React, { useContext, useState, useEffect } from 'react';
+import axios from 'axios';
+import { Navbar, Nav, Container } from 'react-bootstrap';
+import { Link } from 'react-router-dom';
+import logo from '../assets/penomo_logo.svg';
+import { NavLink } from 'react-router-dom';
+
+import Logout from './Logout';
+import { AuthContext } from '../services/AuthContext';
+import LoginModal from './LoginModal';
+import RegisterModal from './RegisterModal';
+import VerifyModal from './VerifyModal'; // Import the VerifyModal component
+
+import './NavBar_vertical.css';
+
+const NavBar = () => {
+    const { authToken } = useContext(AuthContext);
+    const [showLoginModal, setShowLoginModal] = useState(false);
+    const [showRegisterModal, setShowRegisterModal] = useState(false);
+    const [showVerifyModal, setShowVerifyModal] = useState(false); // State for VerifyModal visibility
+    const [isVerified, setIsVerified] = useState(true);
+    const [companyId, setCompanyId] = useState(null);
+
+    const handleLoginModalClose = () => setShowLoginModal(false);
+    const handleLoginModalShow = () => setShowLoginModal(true);
+    const handleRegisterModalClose = () => setShowRegisterModal(false);
+    const handleRegisterModalShow = () => setShowRegisterModal(true);
+    const handleVerifyModalShow = () => setShowVerifyModal(true);
+    const handleVerifyModalClose = () => setShowVerifyModal(false);
+
+    useEffect(() => {
+        if (authToken) {
+            const fetchCompanyData = async () => {
+                try {
+                    const response = await axios.get(`${process.env.REACT_APP_PENOMO_API}/api/company/jwt`, {
+                        headers: { Authorization: `Bearer ${authToken}` }
+                    });
+                    console.log("Company Data: ", response);
+                    setIsVerified(response.data.isVerified);
+                    setCompanyId(response.data._id); // Store the company ID
+                } catch (error) {
+                    console.error('Error fetching company data:', error);
+                    // Handle error appropriately
+                }
+            };
+            fetchCompanyData();
+        }
+    }, [authToken]);
+
+
+    const navStyle = {
+        marginTop: '0', // Adjust this value as needed
+        marginBottom: '0'
+    };
+
+        return (
+        <Navbar bg="white" expand="lg" className="flex-column">
+            <Navbar.Brand style={navStyle} as={Link} to="/">
+                <img src={logo} className="navbar-logo" alt="Penomo logo" />
+            </Navbar.Brand>
+            <Navbar.Toggle aria-controls="basic-navbar-nav" />
+            <Navbar.Collapse id="basic-navbar-nav" style={navStyle}>
+                <Nav style={{flexDirection: 'column'}}>
+                    {authToken && (
+                        <>
+                            <Nav.Link as={NavLink} to="/dashboard" activeStyle={{ fontWeight: "bold" }}>Wallet</Nav.Link>
+                            <Nav.Link as={NavLink} to="/contracts" activeStyle={{ fontWeight: "bold" }}>Contracts</Nav.Link>
+                            <Nav.Link as={NavLink} to="/transaction-history" activeStyle={{ fontWeight: "bold" }}>Transaction History</Nav.Link>
+                            <Nav.Link as={NavLink} to="/settings" activeStyle={{ fontWeight: "bold" }}>Settings</Nav.Link> {/* Settings Link */}
+                        </>
+                    )}
+                    {!authToken && (
+                        <>
+                            <Nav.Link href="https://penomo.io">Home Page</Nav.Link>
+                            <Nav.Link href="https://penomo.notion.site">Docs</Nav.Link>
+                        </>
+                    )}
+                    {authToken ? (
+                        <>
+                            {!isVerified && (
+                                <Link onClick={handleVerifyModalShow} className="btn-secondary-navbar">Verify</Link>
+                            )}
+                            <Link to="#" className="btn-secondary-navbar">Contact Support</Link>
+                            <Logout />
+                        </>
+                    ) : (
+                        <>
+                            <Link onClick={handleLoginModalShow} className="btn-penomo-navbar">Login</Link>
+                            <Link onClick={handleRegisterModalShow} className="btn-secondary-navbar">Register</Link>
+                        </>
+                    )}
+                </Nav>
+            </Navbar.Collapse>
+            {/* Modals */}
+            <LoginModal show={showLoginModal} handleClose={handleLoginModalClose} />
+            <RegisterModal show={showRegisterModal} handleClose={handleRegisterModalClose} />
+            <VerifyModal show={showVerifyModal} handleClose={handleVerifyModalClose} companyId={companyId} authToken={authToken} />
+        </Navbar>
+    );
+};
+
+export default NavBar;

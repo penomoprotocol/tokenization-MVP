@@ -1,0 +1,40 @@
+.navbar {
+    min-height: 100vh; /* Full height */
+    padding: 1rem 0; /* Adjust vertical padding */
+    flex-direction: column; /* Stack items vertically */
+    margin-left: 1rem ;
+}
+
+.navbar-collapse {
+    flex-basis: 100%; /* Take full width */
+}
+
+.navbar-brand {
+    margin-bottom: 0; /* Reduce space below the logo if necessary */
+    max-height: 10vh; /* Full height */
+}
+
+.navbar-logo {
+    /* adjust the logo styles if needed */
+    max-height: 3vh; /* Full height */
+}
+
+.nav {
+    margin-top: 0; /* Reduce space above the nav links if necessary */
+}
+
+.nav-link {
+    text-align: left; /* Align text to the left */
+    padding: 10px 20px; /* Add some padding */
+    border-bottom: 1px solid #ddd; /* Separator between items */
+}
+
+/* Existing button styles */
+
+/* New styles for Settings link/button */
+.btn-settings-navbar {
+    background-color: #4B6587; /* Example color */
+    /* Rest of the button styles similar to .btn-penomo-navbar */
+}
+
+/* Add any additional styles as needed */

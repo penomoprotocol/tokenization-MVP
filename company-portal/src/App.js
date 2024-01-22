@@ -11,12 +11,12 @@ import Transactions from './pages/Transactions';
 import Contracts from './pages/Contracts/ContractsPage';
 
 // Importing common components
-import NavBar from './components/NavBar';
+import NavBar from './components/NavBar_vertical';
 import Footer from './components/Footer';
 
 // Importing auth services
-import { AuthProvider } from './services/AuthContext'; 
-import ProtectedRoute from './services/ProtectedRoute'; 
+import { AuthProvider } from './services/AuthContext';
+import ProtectedRoute from './services/ProtectedRoute';
 
 
 // Importing styling
@@ -27,46 +27,49 @@ import './components/Footer.css';
 // Set up HTTP headers for JWT requests
 axios.defaults.headers.common['Authorization'] = `Bearer ${localStorage.getItem('authToken')}`;
 
+const rootStyle = {
+  display: 'flex',        // Use flex layout
+  flexDirection: 'row',   // Arrange children in a row
+};
+
 function App() {
   return (
-    <AuthProvider> {/* Wrap your application with AuthProvider */}
+    <AuthProvider>
       <Router>
-        <div id="root">
-          <div className="footer-container">
-            <div className="content-wrap">
-              <NavBar />
-              <Routes>
-                <Route path="/" element={<Home />} />
-                <Route path="/register" element={<RegistrationPage />} />
-                <Route 
-                  path="/dashboard" 
-                  element={
-                    <ProtectedRoute>
-                      <CompanyDashboard />
-                    </ProtectedRoute>
-                  } 
-                />
-                <Route 
-                  path="/contracts" 
-                  element={
-                    <ProtectedRoute>
-                      <Contracts />
-                    </ProtectedRoute>
-                  } 
-                />
-                <Route 
-                  path="/transaction-history" 
-                  element={
-                    <ProtectedRoute>
-                      <Transactions />
-                    </ProtectedRoute>
-                  } 
-                />
-              </Routes>
-            </div>
-            <Footer />
+        <div id="root" style={rootStyle}>
+          <NavBar />
+          <div className="content-wrap">
+            <Routes>
+              <Route path="/" element={<Home />} />
+              <Route path="/register" element={<RegistrationPage />} />
+              <Route
+                path="/dashboard"
+                element={
+                  <ProtectedRoute>
+                    <CompanyDashboard />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/contracts"
+                element={
+                  <ProtectedRoute>
+                    <Contracts />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/transaction-history"
+                element={
+                  <ProtectedRoute>
+                    <Transactions />
+                  </ProtectedRoute>
+                }
+              />
+            </Routes>
           </div>
         </div>
+        <Footer />
       </Router>
     </AuthProvider>
   );
