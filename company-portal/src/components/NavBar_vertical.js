@@ -28,6 +28,7 @@ const NavBar = () => {
     const handleVerifyModalShow = () => setShowVerifyModal(true);
     const handleVerifyModalClose = () => setShowVerifyModal(false);
 
+
     useEffect(() => {
         if (authToken) {
             const fetchCompanyData = async () => {
@@ -53,19 +54,22 @@ const NavBar = () => {
         marginBottom: '0'
     };
 
-        // Inline style to remove the margin and padding
-        const navCollapseStyle = {
-            marginTop: '0', // Adjust this value as needed
-            paddingTop: '0', // Adjust this value as needed
-        };
-    
-        const firstNavLinkStyle = {
-            marginTop: '0', // Adjust this value as needed
-            paddingTop: '0', // Adjust this value as needed
-        };
-        const secondNavLinkStyle = {
-            alignElements: 'center'
-        };
+    // Inline style to remove the margin and padding
+    const navCollapseStyle = {
+        marginTop: '0', // Adjust this value as needed
+        paddingTop: '0', // Adjust this value as needed
+    };
+
+    const firstNavLinkStyle = {
+        marginTop: '0', // Adjust this value as needed
+        paddingTop: '0', // Adjust this value as needed
+        marginBottom: '2rem' /* Adjust the space as needed */
+    };
+    const secondNavLinkStyle = {
+        alignElements: 'center'
+    };
+
+ 
 
     return (
         <Navbar bg="white" expand="lg" className="flex-column">
@@ -74,36 +78,38 @@ const NavBar = () => {
             </Navbar.Brand>
             <Navbar.Toggle aria-controls="basic-navbar-nav" />
             {/* <Navbar.Collapse id="basic-navbar-nav" style={navCollapseStyle}> */}
-                <Nav className="flex-column">
-                    {authToken && (
-                        <>
-                            <Nav.Link as={NavLink} to="/dashboard" activeStyle={{ fontWeight: "bold" }}>Wallet</Nav.Link>
-                            <Nav.Link as={NavLink} to="/contracts" activeStyle={{ fontWeight: "bold" }}>Contracts</Nav.Link>
-                            <Nav.Link as={NavLink} to="/transaction-history" activeStyle={{ fontWeight: "bold" }}>Transaction History</Nav.Link>
-                            <Nav.Link as={NavLink} to="/settings" activeStyle={{ fontWeight: "bold" }}>Settings</Nav.Link> {/* Settings Link */}
-                        </>
-                    )}
-                    {!authToken && (
-                        <>
-                            <Nav.Link href="https://penomo.io">Home Page</Nav.Link>
-                            <Nav.Link href="https://penomo.notion.site">Docs</Nav.Link>
-                        </>
-                    )}
-                    {authToken ? (
-                        <>
-                            {!isVerified && (
-                                <Link onClick={handleVerifyModalShow} className="btn-secondary-navbar">Verify</Link>
-                            )}
-                            <Link to="#" className="btn-secondary-navbar">Contact Support</Link>
-                            <Logout />
-                        </>
-                    ) : (
-                        <>
-                            <Link onClick={handleLoginModalShow} style={secondNavLinkStyle} className="btn-penomo-navbar">Login</Link>
-                            <Link onClick={handleRegisterModalShow} style={secondNavLinkStyle}  className="btn-secondary-navbar">Register</Link>
-                        </>
-                    )}
-                </Nav>
+            <Nav className="flex-column">
+
+                {authToken && (
+                    <>
+                        <Link as={NavLink} to="/dashboard" className="btn-tertiary-navbar nav-button" style={{ marginTop: '1rem', alignItems: 'center' }}>Home</Link>
+                        <Link as={NavLink} to="/contracts" className="btn-tertiary-navbar nav-button" style={{ marginTop: '1rem', alignItems: 'center' }}>Contracts</Link>
+                        <Link as={NavLink} to="/transaction-history" className="btn-tertiary-navbar nav-button" style={{ marginTop: '1rem' }}>Transactions</Link>
+                        <Link as={NavLink} to="/settings" className="btn-tertiary-navbar nav-button" style={{ marginTop: '1rem' }}>Settings</Link>
+                    </>
+                )}
+                {!authToken && (
+                    <>
+                        <Link href="https://penomo.io" className="btn-tertiary-navbar nav-button" style={{ marginTop: '1rem' }}>Home Page</Link>
+                        <Link href="https://penomo.notion.site" className="btn-tertiary-navbar nav-button" style={{ marginTop: '1rem' }}>Docs</Link>
+                    </>
+                )}
+
+                {authToken ? (
+                    <>
+                        {!isVerified && (
+                            <Link onClick={handleVerifyModalShow} className="btn-secondary-navbar nav-button" style={{ marginTop: '2rem' }}>Verify</Link>
+                        )}
+                        <Link to="#" className="btn-tertiary-navbar nav-button" style={{ marginTop: '2rem' }} >Contact Support</Link>
+                        <Logout />
+                    </>
+                ) : (
+                    <>
+                        <Link onClick={handleLoginModalShow} style={{ marginTop: '2rem' }} className="btn-secondary-navbar nav-button">Login</Link>
+                        <Link onClick={handleRegisterModalShow} style={{ marginTop: '1rem' }} className="btn-secondary-navbar nav-button">Register</Link>
+                    </>
+                )}
+            </Nav>
             {/* </Navbar.Collapse> */}
             {/* Modals */}
             <LoginModal show={showLoginModal} handleClose={handleLoginModalClose} />

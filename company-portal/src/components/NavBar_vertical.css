@@ -38,3 +38,110 @@
 }
 
 /* Add any additional styles as needed */
+
+.btn-penomo-navbar {
+    background-color: #00CC9C;
+    /* Penomo color */
+    color: #000;
+    /* Text color set to black */
+    border: none;
+    /* Removes any default border */
+    padding: 10px 20px;
+    /* Padding for size */
+    border-radius: 5px;
+    /* Rounded corners */
+    font-weight: bold;
+    /* Bold font */
+    cursor: pointer;
+    /* Cursor indicates clickable button */
+    outline: none;
+    /* Removes outline on focus for some browsers */
+    transition: background-color 0.3s;
+    /* Smooth transition for hover effect */
+    /* margin-top: 0.5rem; */
+    margin: auto;
+    margin-left: 0.5rem;
+    text-decoration: none; /* Removes underline from links if it's an <a> element */
+    display: block; /* Makes the link behave like a block element */
+    justify-content: center;
+    align-items: center;
+}
+
+.btn-secondary-navbar {
+    background-color: #9bbab6;
+    /* Penomo color */
+    color: #000;
+    /* Text color set to black */
+    border: none;
+    /* Removes any default border */
+    padding: 10px 20px;
+    /* Padding for size */
+    border-radius: 5px;
+    /* Rounded corners */
+    font-weight: bold;
+    /* Bold font */
+    cursor: pointer;
+    /* Cursor indicates clickable button */
+    outline: none;
+    /* Removes outline on focus for some browsers */
+    transition: background-color 0.3s;
+    /* Smooth transition for hover effect */
+    /*margin-top: 0.5rem; */
+    margin: auto;
+    margin-left: 0.5rem;
+    text-decoration: none; /* Removes underline from links if it's an <a> element */
+    display: block; /* Makes the link behave like a block element */
+    justify-content: center;
+    align-items: center;
+}
+
+.btn-secondary-navbar:active{
+  background-color: #00CC9C; /* This will make the button green when clicked */
+  color: white; /* Optional: change text color to white when active/selected */
+  /* Any other styles you want to apply when the button is clicked */
+}
+
+.btn-secondary-navbar:hover {
+    background-color: #00CC9C; /* This will make the button green when clicked */
+    color: white; /* Optional: change text color to white when active/selected */
+    /* Any other styles you want to apply when the button is clicked */
+  }
+
+.btn-tertiary-navbar {
+  background-color: #d9edea;
+  /* Penomo color */
+  color: #000;
+  /* Text color set to black */
+  border: none;
+  /* Removes any default border */
+  padding: 10px 20px;
+  /* Padding for size */
+  border-radius: 5px;
+  /* Rounded corners */
+  font-weight: bold;
+  /* Bold font */
+  cursor: pointer;
+  /* Cursor indicates clickable button */
+  outline: none;
+  /* Removes outline on focus for some browsers */
+  transition: background-color 0.3s;
+  /* Smooth transition for hover effect */
+  margin-top: 0.5rem;
+  margin: auto;
+  margin-left: 0.5rem;
+  text-decoration: none; /* Removes underline from links if it's an <a> element */
+  display: block; /* Makes the link behave like a block element */
+  justify-content: center;
+  align-items: center;
+}
+.btn-tertiary-navbar:active{
+  background-color: #00CC9C; /* This will make the button green when clicked */
+  color: white; /* Optional: change text color to white when active/selected */
+  /* Any other styles you want to apply when the button is clicked */
+}
+
+.btn-tertiary-navbar:hover {
+    background-color: #00CC9C; /* This will make the button green when clicked */
+    color: white; /* Optional: change text color to white when active/selected */
+    /* Any other styles you want to apply when the button is clicked */
+  }

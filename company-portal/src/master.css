@@ -14,7 +14,7 @@ html, body, body * {
 .flex-column {
     flex-direction: column; /* Stack children vertically */
   }
-  
+
 .content-center {
     display: flex;
     justify-content: center;
@@ -235,6 +235,13 @@ html, body, body * {
     /* Change the background color for the disabled state */
     cursor: default;
     /* Disable the pointer cursor */
+}
+
+.nav-button {
+    display: flex;
+    width: 170px; 
+    /* height: 40px; Set a fixed height if needed */
+    margin-top: 1rem; /* This ensures there is space above the buttons */
 }
 
 /* Popup styles */
