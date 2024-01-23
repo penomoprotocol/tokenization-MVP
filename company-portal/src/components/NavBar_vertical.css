@@ -3,6 +3,8 @@
     padding: 1rem 0; /* Adjust vertical padding */
     flex-direction: column; /* Stack items vertically */
     margin-left: 1rem ;
+    justify-content: center;
+    align-items: center;
 }
 
 .navbar-collapse {
@@ -11,7 +13,10 @@
 
 .navbar-brand {
     margin-bottom: 0; /* Reduce space below the logo if necessary */
+    margin-left: 1.5rem;
     max-height: 10vh; /* Full height */
+    justify-content: center;
+    align-items: center;
 }
 
 .navbar-logo {

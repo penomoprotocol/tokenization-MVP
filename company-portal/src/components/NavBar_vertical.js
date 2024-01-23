@@ -82,7 +82,7 @@ const NavBar = () => {
 
                 {authToken && (
                     <>
-                        <Link as={NavLink} to="/dashboard" className="btn-tertiary-navbar nav-button" style={{ marginTop: '1rem', alignItems: 'center' }}>Home</Link>
+                        <Link as={NavLink} to="/dashboard" className="btn-tertiary-navbar nav-button" style={{ marginTop: '1rem', alignItems: 'center' }}>Dashboard</Link>
                         <Link as={NavLink} to="/contracts" className="btn-tertiary-navbar nav-button" style={{ marginTop: '1rem', alignItems: 'center' }}>Contracts</Link>
                         <Link as={NavLink} to="/transaction-history" className="btn-tertiary-navbar nav-button" style={{ marginTop: '1rem' }}>Transactions</Link>
                         <Link as={NavLink} to="/settings" className="btn-tertiary-navbar nav-button" style={{ marginTop: '1rem' }}>Settings</Link>
