@@ -53,14 +53,28 @@ const NavBar = () => {
         marginBottom: '0'
     };
 
-        return (
+        // Inline style to remove the margin and padding
+        const navCollapseStyle = {
+            marginTop: '0', // Adjust this value as needed
+            paddingTop: '0', // Adjust this value as needed
+        };
+    
+        const firstNavLinkStyle = {
+            marginTop: '0', // Adjust this value as needed
+            paddingTop: '0', // Adjust this value as needed
+        };
+        const secondNavLinkStyle = {
+            alignElements: 'center'
+        };
+
+    return (
         <Navbar bg="white" expand="lg" className="flex-column">
-            <Navbar.Brand style={navStyle} as={Link} to="/">
+            <Navbar.Brand as={Link} to="/">
                 <img src={logo} className="navbar-logo" alt="Penomo logo" />
             </Navbar.Brand>
             <Navbar.Toggle aria-controls="basic-navbar-nav" />
-            <Navbar.Collapse id="basic-navbar-nav" style={navStyle}>
-                <Nav style={{flexDirection: 'column'}}>
+            {/* <Navbar.Collapse id="basic-navbar-nav" style={navCollapseStyle}> */}
+                <Nav className="flex-column">
                     {authToken && (
                         <>
                             <Nav.Link as={NavLink} to="/dashboard" activeStyle={{ fontWeight: "bold" }}>Wallet</Nav.Link>
@@ -85,12 +99,12 @@ const NavBar = () => {
                         </>
                     ) : (
                         <>
-                            <Link onClick={handleLoginModalShow} className="btn-penomo-navbar">Login</Link>
-                            <Link onClick={handleRegisterModalShow} className="btn-secondary-navbar">Register</Link>
+                            <Link onClick={handleLoginModalShow} style={secondNavLinkStyle} className="btn-penomo-navbar">Login</Link>
+                            <Link onClick={handleRegisterModalShow} style={secondNavLinkStyle}  className="btn-secondary-navbar">Register</Link>
                         </>
                     )}
                 </Nav>
-            </Navbar.Collapse>
+            {/* </Navbar.Collapse> */}
             {/* Modals */}
             <LoginModal show={showLoginModal} handleClose={handleLoginModalClose} />
             <RegisterModal show={showRegisterModal} handleClose={handleRegisterModalClose} />
