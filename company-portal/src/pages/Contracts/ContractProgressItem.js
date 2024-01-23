@@ -20,11 +20,11 @@ const ContractProgressItem = ({ contract, onSelect, isSelected }) => {
         <div className="section-container" onClick={onSelect}>
             <div className='contract-header'>
                 <h3>{contract.name}</h3>
-                <div className='center-vertical-group'><strong>Total Financing:</strong>  ${contract.fundingCurrent ? `$${contract.fundingCurrent}` : '0.00'}</div>
+                <div className='center-vertical-group'><strong>Total Financing:</strong>  ${contract.liquidityPoolBalance.usdcBalance ? `${contract.liquidityPoolBalance.usdcBalance}` : '0.00'}</div>
                 <div className="progress-bar">
-                    <div className="filler" style={{ width: `${(contract.fundingCurrent / contract.fundingGoal) * 100 + 2}%` }}>
+                    <div className="filler" style={{ width: `${(contract.liquidityPoolBalance.usdcBalance / contract.fundingGoal) * 100 + 2}%` }}>
                     </div>
-                    <div className="percentage-text">{((contract.fundingCurrent / contract.fundingGoal) * 100).toFixed(2)}% Financed</div>
+                    <div className="percentage-text">{((contract.liquidityPoolBalance.usdcBalance / contract.fundingGoal) * 100).toFixed(2)}% Financed</div>
                 </div>
                 <div className='center-vertical-group'><strong>Financing Goal:</strong> {contract.fundingGoal ? `$${contract.fundingGoal.toLocaleString()}` : 'N/A'}</div>
                 <div className='center-vertical-group'><strong>Status:</strong> {contract.statusUpdates[0].status}</div>

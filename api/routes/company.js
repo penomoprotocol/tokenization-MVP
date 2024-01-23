@@ -1,6 +1,6 @@
 //const web3 = require('web3');
 const CryptoJS = require('crypto-js');
-const { web3, networkId, GSCAddress } = require('../config/web3Config_AGNG');
+const { web3, networkId, GSCAddress, USDCContractAddress } = require('../config/web3Config_AGNG');
 
 const fs = require('fs');
 const path = require('path');
@@ -171,6 +171,44 @@ async function fetchBalance(address) {
     }
 }
 
+// Function to fetch balance for a given address
+async function fetchContractBalance(address) {
+    const data = JSON.stringify({ "address": address });
+    const config = {
+        method: 'post',
+        url: `${BLOCKEXPLORER_API_URL}/api/scan/account/tokens`,
+        headers: {
+            'User-Agent': 'Apidog/1.0.0 (https://apidog.com)',
+            'Content-Type': 'application/json',
+            'X-API-Key': BLOCKEXPLORER_API_KEY
+        },
+        data: data
+    };
+
+    try {
+        const response = await axios(config);
+        console.log("response: ", response.data.ERC20);
+        let agungBalance = '0';
+        let usdcBalance = '0';
+
+        // Check if balance arrays exist
+        if (response.data.data.native) {
+            const nativeBalances = response.data.data.native;
+            const agungBalanceWei = nativeBalances.find(token => token.symbol === 'AGUNG')?.balance || '0';
+            agungBalance = web3.utils.fromWei(agungBalanceWei, 'ether');
+        }
+        if (response.data.data.ERC20) {
+            const erc20Balances = response.data.data.ERC20;
+            const usdcBalanceWei = erc20Balances.find(token => token.contract === USDCContractAddress)?.balance || '0';
+            usdcBalance = web3.utils.fromWei(usdcBalanceWei, 'ether');
+        }
+
+        return { agungBalance, usdcBalance };
+    } catch (error) {
+        console.error(`Error fetching balance for address ${address}:`, error);
+        return { agungBalance: '0', usdcBalance: '0' };
+    }
+}
 
 /**
  * @swagger
@@ -628,7 +666,7 @@ router.get('/company/jwt', verifyToken, async (req, res) => {
         const tokenData = await Promise.all(
             companyTokens.map(async (token) => {
                 // Fetch liquidity pool balance for each token
-                const liquidityPoolBalance = await fetchBalance(token.liquidityContractAddress);
+                const liquidityPoolBalance = await fetchContractBalance(token.liquidityContractAddress);
                 // Fetch associated assets for each token based on assetIds array
                 const associatedAssets = await Asset.find({ _id: { $in: token.assetIds } });
 
