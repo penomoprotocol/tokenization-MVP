@@ -154,8 +154,8 @@
 }
 
 .section-container {
-  /* margin-bottom: 2rem; */
-  /* Space between sections */
+  flex: 1;
+  display: flex;
 }
 
 .label-value {

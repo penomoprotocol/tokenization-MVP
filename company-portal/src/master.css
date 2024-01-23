@@ -1,20 +1,26 @@
 /* Master styles that can be used across the entire application */
 
 /* Global settings */
-html, body, body * {
+html,
+body,
+body * {
     font-family: 'Ubuntu', sans-serif !important;
 
 }
+
 .content-wrap {
-    flex: 1; /* Allows content to expand */
+    flex: 1;
+    /* Allows content to expand */
     /* Remove the comment syntax and ensure this is active */
-  }
+}
 
 #root {
     display: flex;
     flex-direction: column;
-    min-height: 100vh; /* Full viewport height */
-  }
+    min-height: 100vh;
+    /* Full viewport height */
+}
+
 /* Center Content */
 .center {
     justify-content: center;
@@ -22,8 +28,9 @@ html, body, body * {
 }
 
 .flex-column {
-    flex-direction: column; /* Stack children vertically */
-  }
+    flex-direction: column;
+    /* Stack children vertically */
+}
 
 .content-center {
     display: flex;
@@ -100,6 +107,9 @@ html, body, body * {
     margin-bottom: 1rem;
     box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
     overflow: clip;
+    flex: 1;
+    display: flex;
+
 }
 
 /* Common header for sections */
@@ -133,24 +143,28 @@ html, body, body * {
 .horizontal-center {
     display: flex;
     flex-wrap: wrap;
-    justify-content: space-between; /* Cards spaced evenly horizontally */
+    justify-content: space-between;
+    /* Cards spaced evenly horizontally */
 }
 
 /* Style for each individual card */
-.two-columns{
+.two-columns {
     display: flex;
     flex-wrap: wrap;
-    justify-content: space-between; /* Cards spaced evenly horizontally */
+    justify-content: space-between;
+    /* Cards spaced evenly horizontally */
     padding: 0rem;
     margin-block: 1rem;
-    margin-bottom: 4rem;
+    margin-bottom: 1rem;
+    align-items: stretch;
 }
 
 .colored-box {
     display: flex;
-    height: 15rem;
+    height: 5rem;
     width: 15rem;
-    border-radius: 5px; /* Add rounded corners */
+    border-radius: 5px;
+    /* Add rounded corners */
     box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
 }
 
@@ -160,9 +174,10 @@ html, body, body * {
     flex-wrap: wrap;
 }
 
-.equal-height> * {
+.equal-height>* {
     flex: 1;
-    margin: 0 10px; /* Add margin between cards as needed */
+    margin: 0 10px;
+    /* Add margin between cards as needed */
 }
 
 /* Common button styling */
@@ -208,7 +223,7 @@ html, body, body * {
     /* Removes outline on focus for some browsers */
     transition: background-color 0.3s;
     /* Smooth transition for hover effect */
-    display: block; 
+    display: block;
     margin: auto;
 }
 
@@ -231,7 +246,8 @@ html, body, body * {
     /* Removes outline on focus for some browsers */
     transition: background-color 0.3s;
     /* Smooth transition for hover effect */
-    display: block; /* Add this line */
+    display: block;
+    /* Add this line */
     margin: auto;
 }
 
@@ -249,9 +265,10 @@ html, body, body * {
 
 .nav-button {
     display: flex;
-    width: 170px; 
+    width: 170px;
     /* height: 40px; Set a fixed height if needed */
-    margin-top: 1rem; /* This ensures there is space above the buttons */
+    margin-top: 1rem;
+    /* This ensures there is space above the buttons */
 }
 
 /* Popup styles */
@@ -276,13 +293,17 @@ html, body, body * {
     left: 0;
     width: 100%;
     height: 100%;
-    background-color: rgba(0, 0, 0, 0.5); /* Semi-transparent background */
+    background-color: rgba(0, 0, 0, 0.5);
+    /* Semi-transparent background */
     display: flex;
     justify-content: center;
     align-items: center;
-    z-index: 1000; /* Ensure it's on top */
-    padding: 1rem; /* Add padding to ensure margin from the window borders */
-    box-sizing: border-box; /* Include padding in the width and height calculations */
+    z-index: 1000;
+    /* Ensure it's on top */
+    padding: 1rem;
+    /* Add padding to ensure margin from the window borders */
+    box-sizing: border-box;
+    /* Include padding in the width and height calculations */
 }
 
 .popup-content {
@@ -290,13 +311,19 @@ html, body, body * {
     padding: 2rem;
     border-radius: 10px;
     box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
-    width: calc(100% - 2rem); /* Adjust width to account for padding */
+    width: calc(100% - 2rem);
+    /* Adjust width to account for padding */
     max-width: 500px;
-    display: flex; /* Use flexbox to align children */
-    flex-direction: column; /* Stack children vertically */
-    justify-content: center; /* Center children vertically */
-    align-items: center; /* Center children horizontally */
-    box-sizing: border-box; /* Include padding in the width and height calculations */
+    display: flex;
+    /* Use flexbox to align children */
+    flex-direction: column;
+    /* Stack children vertically */
+    justify-content: center;
+    /* Center children vertically */
+    align-items: center;
+    /* Center children horizontally */
+    box-sizing: border-box;
+    /* Include padding in the width and height calculations */
 }
 
 /* Close button */
@@ -344,12 +371,15 @@ html, body, body * {
 }
 
 .modal-body {
-    padding: 20px; /* Adjust the padding as needed */
+    padding: 20px;
+    /* Adjust the padding as needed */
 }
 
 .modal-body p {
-    word-wrap: break-word; /* This ensures that long words will wrap and not overflow */
-    margin-bottom: 1rem; /* Adds some space below each paragraph if you have multiple */
+    word-wrap: break-word;
+    /* This ensures that long words will wrap and not overflow */
+    margin-bottom: 1rem;
+    /* Adds some space below each paragraph if you have multiple */
 }
 
 .progress-bar {
@@ -361,7 +391,8 @@ html, body, body * {
     /* margin-top: 10px; */
     /* display: flex; Remove this line */
     /* align-items: center; Remove this line */
-    position: relative; /* Add this line */
+    position: relative;
+    /* Add this line */
     border-radius: 8px;
     padding: 1.2rem;
     margin-block: 1rem;
@@ -374,27 +405,38 @@ html, body, body * {
     /* display: flex;
     align-items: center;
     justify-content: center; */
-    position: absolute; /* Use absolute positioning */
-    left: 0; /* Align to the left */
-    top: 0; /* Align to the top */
-    bottom: 0; /* Align to the bottom */
+    position: absolute;
+    /* Use absolute positioning */
+    left: 0;
+    /* Align to the left */
+    top: 0;
+    /* Align to the top */
+    bottom: 0;
+    /* Align to the bottom */
 }
 
 .balance-display {
     display: grid;
-    grid-template-columns: 2fr 1fr 1fr; /* Three columns with equal width */
-    gap: 10px; /* Adjust the gap as needed */
-    align-items: left; /* Center-align items vertically */
+    grid-template-columns: 2fr 1fr 1fr;
+    /* Three columns with equal width */
+    gap: 10px;
+    /* Adjust the gap as needed */
+    align-items: left;
+    /* Center-align items vertically */
     align-items: center;
 }
 
 .percentage-text {
     color: #000000;
     font-weight: bold;
-    position: absolute; /* Use absolute positioning */
-    left: 50%; /* Center horizontally */
-    top: 50%; /* Center vertically */
-    transform: translate(-50%, -50%); /* Center text precisely */
+    position: absolute;
+    /* Use absolute positioning */
+    left: 50%;
+    /* Center horizontally */
+    top: 50%;
+    /* Center vertically */
+    transform: translate(-50%, -50%);
+    /* Center text precisely */
 }
 
 /* Additional styles for responsiveness and aesthetics */

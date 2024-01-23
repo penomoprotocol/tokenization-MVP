@@ -3,7 +3,8 @@ import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import TopUpWallet from '../components/TopUpWallet';
 import WithdrawWallet from '../components/WithdrawWallet';
-import AssetCard from '../components/AssetCard'; // Import the AssetCard component
+import AssetCard from '../components/AssetCard';
+import BalanceCard from '../components/BalanceCard';
 import './CompanyDashboard.css';
 import CompanyCard from '../components/CompanyCard';
 
@@ -102,11 +103,17 @@ const CompanyDashboard = () => {
 
 
             <div className="two-columns">
-                <div style={{ flex: '45%' }}>
+                <div style={{ flex: '1' }}>
+                    <BalanceCard companyData={companyData} />
+                </div>
+                <div style={{ flex: '1' }}>
                     <AssetCard companyData={companyData} />
                 </div>
-                <div style={{ flex: '45%' }}>
-                    <div className="portfolio-item" style={{ backgroundColor: "##e1e1e1" }}>
+            </div>
+
+            {/* 
+                <div style={{ flex: '45%', marginLeft:'1rem' }}>
+                    <div className="section-container" style={{ backgroundColor: "##e1e1e1" }}>
                         <div className="label-value-horizontal">
                             <h3 className="section-header">Total Balance</h3>
                         </div>
@@ -116,8 +123,9 @@ const CompanyDashboard = () => {
                         </div>
                         <div ></div>
                     </div>
-                </div>
-            </div>
+                </div> */}
+
+
 
 
 
@@ -140,7 +148,9 @@ const CompanyDashboard = () => {
                                 <strong className="label">Available Funds</strong>
                                 <span className="value">${roundToDecimals(token.liquidityPoolBalance.usdcBalance, 2)}</span>
                             </div>
-                            <div style={{ flex: '1 1 33.3%' }} className="btn-container">
+                            <div style={{ flex: '1 1 23.30%' }} className="btn-container">
+                            </div>
+                            <div style={{ flex: '1 1 10%' }} className="btn-container">
                                 <button className="btn-penomo-secondary" onClick={() => toggleWithdraw('USDC')}>Withdraw</button>
                             </div>
                         </div>

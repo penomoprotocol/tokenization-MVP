@@ -12,7 +12,7 @@ const AssetCard = ({ companyData }) => {
     const assetsListed = companyData.tokens.length-pendingTokens.length;
 
     return (
-        <div style={{ marginRight: "1rem" }} className="section-container">
+        <div style={{ marginLeft: "1rem"}} className="section-container">
             <h3>No. Of Assets</h3>
             <div className='two-columns'>
                 <div className="colored-box center" style={{backgroundColor: "#00CC9C"}}>
