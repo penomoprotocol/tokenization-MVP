@@ -72,6 +72,18 @@
     align-items: center;
 }
 
+.btn-penomo-navbar:active{
+    background-color: #00CC9C; /* This will make the button green when clicked */
+    color: white; /* Optional: change text color to white when active/selected */
+    /* Any other styles you want to apply when the button is clicked */
+  }
+  
+  .btn-penomo-navbar:hover {
+      background-color: #00CC9C; /* This will make the button green when clicked */
+      color: white; /* Optional: change text color to white when active/selected */
+      /* Any other styles you want to apply when the button is clicked */
+    }
+
 .btn-secondary-navbar {
     background-color: #9bbab6;
     /* Penomo color */

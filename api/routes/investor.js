@@ -80,6 +80,43 @@ async function getCurrentGasPrice() {
     return gasPrice;
 }
 
+// Function to fetch balance for a given address
+async function fetchBalance(address) {
+    const data = JSON.stringify({ "address": address });
+    const config = {
+        method: 'post',
+        url: `${BLOCKEXPLORER_API_URL}/api/scan/account/tokens`,
+        headers: {
+            'User-Agent': 'Apidog/1.0.0 (https://apidog.com)',
+            'Content-Type': 'application/json',
+            'X-API-Key': BLOCKEXPLORER_API_KEY
+        },
+        data: data
+    };
+
+    try {
+        const response = await axios(config);
+        let agungBalance = '0';
+        let usdcBalance = '0';
+
+        // Check if balance arrays exist
+        if (response.data.data.native) {
+            const nativeBalances = response.data.data.native;
+            const agungBalanceWei = nativeBalances.find(token => token.symbol === 'AGUNG')?.balance || '0';
+            agungBalance = web3.utils.fromWei(agungBalanceWei, 'ether');
+        }
+        if (response.data.data.ERC20) {
+            const erc20Balances = response.data.data.ERC20;
+            const usdcBalanceWei = erc20Balances.find(token => token.contract === USDCContractAddress)?.balance || '0';
+            usdcBalance = web3.utils.fromWei(usdcBalanceWei, 'ether');
+        }
+
+        return { agungBalance, usdcBalance };
+    } catch (error) {
+        console.error(`Error fetching balance for address ${address}:`, error);
+        return { agungBalance: '0', usdcBalance: '0' };
+    }
+}
 
 async function estimateAndSend(transaction, fromAddress, fromPrivateKey, toAddress, amountInWei = null) {
     // Fetch the current nonce
@@ -204,7 +241,7 @@ router.post('/investor/register', async (req, res) => {
         console.log("Added investor instance: ", investor);
 
         // Fund the new wallet with 1000000000000000 wei
-        const fundingAmount = '10000000000000000'; 
+        const fundingAmount = '10000000000000000';
 
         // Create a raw transaction object
         const transaction = {
@@ -440,7 +477,7 @@ router.post('/investor/buyToken', verifyToken, async (req, res) => {
         const tokenAmountWei = web3.utils.toWei(tokenAmountBigInt.toString(), 'ether')
         const tokenPriceBigInt = BigInt(tokenPrice);
         const requiredAmount = tokenPriceBigInt * tokenAmountBigInt;
-        const requiredAmountReal = requiredAmount / BigInt(10**18);
+        const requiredAmountReal = requiredAmount / BigInt(10 ** 18);
 
         let receipt;
         let transaction;
@@ -450,11 +487,11 @@ router.post('/investor/buyToken', verifyToken, async (req, res) => {
         } else if (acceptedCurrency === 'USDC') {
             const usdcTokenAddress = await tokenContractInstance.methods.usdcTokenAddress().call();
             const USDCContractInstance = new web3.eth.Contract(USDCABI, usdcTokenAddress);
-            
+
             // Approve the Service Contract to spend USDC
             const approveTransaction = USDCContractInstance.methods.approve(serviceContractAddress, requiredAmount.toString());
             await estimateAndSend(approveTransaction, investor.ethereumPublicKey, decryptPrivateKey(investor.ethereumPrivateKey, SECRET_KEY), usdcTokenAddress);
-            
+
             // Execute buyTokens function
             transaction = ServiceContract.methods.buyTokens(tokenAmountWei.toString());
 
@@ -765,31 +802,42 @@ router.get('/investor/jwt', verifyToken, async (req, res) => {
 
         let walletAddress = investor.ethereumPublicKey;
 
-        const data = JSON.stringify({"address": walletAddress});
-        const config = {
-            method: 'post',
-            url: `${BLOCKEXPLORER_API_URL}/api/scan/account/tokens`,
-            headers: { 
-                'User-Agent': 'Apidog/1.0.0 (https://apidog.com)', 
-                'Content-Type': 'application/json',
-                'X-API-Key': BLOCKEXPLORER_API_KEY 
-            },
-            data: data
-        };
+        // Fetch company's general balance information
+        const generalBalance = await fetchBalance(walletAddress);
 
-        const balances = await axios(config);
+        // Safely access the native and ERC20 balances using optional chaining
+        const agungBalance = generalBalance.agungBalance;
+        const usdcBalance = generalBalance.usdcBalance;
 
-        // FOR DEBUGGING
+        // const data = JSON.stringify({ "address": walletAddress });
+        // const config = {
+        //     method: 'post',
+        //     url: `${BLOCKEXPLORER_API_URL}/api/scan/account/tokens`,
+        //     headers: {
+        //         'User-Agent': 'Apidog/1.0.0 (https://apidog.com)',
+        //         'Content-Type': 'application/json',
+        //         'X-API-Key': BLOCKEXPLORER_API_KEY
+        //     },
+        //     data: data
+        // };
+
+        // const balances = await axios(config);
+
+        // // FOR DEBUGGING
         // console.log(JSON.stringify(balances.data, null, 2));
 
-        const nativeBalances = balances.data.data.native;
-        const erc20Balances = balances.data.data.ERC20;
-        
-        const agungBalanceWei = nativeBalances.find(token => token.symbol === 'AGUNG')?.balance || '0';
-        const usdcBalanceWei = erc20Balances.find(token => token.contract === USDCContractAddress)?.balance || '0';
+        // // Check if balances.data or balances.data.data is null or undefined
+        // if (!balances.data || !balances.data.data) {
+        //     throw new Error('Error retrieving balance data');
+        // }
 
-        const agungBalance = web3.utils.fromWei(agungBalanceWei, 'ether');
-        const usdcBalance = web3.utils.fromWei(usdcBalanceWei, 'ether');
+
+
+        // const agungBalanceWei = nativeBalances.find(token => token.symbol === 'AGUNG')?.balance || '0';
+        // const usdcBalanceWei = erc20Balances.find(token => token.contract === USDCContractAddress)?.balance || '0';
+
+        // const agungBalance = web3.utils.fromWei(agungBalanceWei, 'ether');
+        // const usdcBalance = web3.utils.fromWei(usdcBalanceWei, 'ether');
 
         // // Add the balances to the investor object that will be returned
         const investorDataWithBalances = {

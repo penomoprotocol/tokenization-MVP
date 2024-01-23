@@ -100,12 +100,12 @@ const NavBar = () => {
                         {!isVerified && (
                             <Link onClick={handleVerifyModalShow} className="btn-secondary-navbar nav-button" style={{ marginTop: '2rem' }}>Verify</Link>
                         )}
-                        <Link to="#" className="btn-tertiary-navbar nav-button" style={{ marginTop: '2rem' }} >Contact Support</Link>
+                        <Link to="#" className="btn-secondary-navbar nav-button" style={{ marginTop: '2rem' }} >Contact Support</Link>
                         <Logout />
                     </>
                 ) : (
                     <>
-                        <Link onClick={handleLoginModalShow} style={{ marginTop: '2rem' }} className="btn-secondary-navbar nav-button">Login</Link>
+                        <Link onClick={handleLoginModalShow} style={{ marginTop: '2rem' }} className="btn-penomo-navbar nav-button">Login</Link>
                         <Link onClick={handleRegisterModalShow} style={{ marginTop: '1rem' }} className="btn-secondary-navbar nav-button">Register</Link>
                     </>
                 )}

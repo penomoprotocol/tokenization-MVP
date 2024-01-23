@@ -86,7 +86,7 @@ const Marketplace = () => {
                                     </div>
                                     <div className="token-detail">
                                         <div className="detail-name">Revenue Share:</div>
-                                        <div className="detail-value">{token.revenueShare *100}%</div>
+                                        <div className="detail-value">{token.revenueShare}%</div>
                                     </div>
                                     <div className="token-detail">
                                         <div className="detail-name">Contract Term:</div>

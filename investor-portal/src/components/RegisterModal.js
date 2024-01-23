@@ -17,7 +17,7 @@ const RegisterModal = ({ show, handleClose }) => {
     event.preventDefault();
     setIsRegistering(true); // Start the registration process
     try {
-      await axios.post(`${process.env.REACT_APP_PENOMO_API}/api/company/register`, {
+      await axios.post(`${process.env.REACT_APP_PENOMO_API}/api/investor/register`, {
         surname,
         firstname,
         email,

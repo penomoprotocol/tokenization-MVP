@@ -19,7 +19,7 @@ const NavBar = () => {
     const [showRegisterModal, setShowRegisterModal] = useState(false);
     const [showVerifyModal, setShowVerifyModal] = useState(false); // State for VerifyModal visibility
     const [isVerified, setIsVerified] = useState(true);
-    const [companyId, setCompanyId] = useState(null);
+    const [investorId, setInvestorId] = useState(null);
 
     const handleLoginModalClose = () => setShowLoginModal(false);
     const handleLoginModalShow = () => setShowLoginModal(true);
@@ -30,20 +30,20 @@ const NavBar = () => {
 
     useEffect(() => {
         if (authToken) {
-            const fetchCompanyData = async () => {
+            const fetchInvestorData = async () => {
                 try {
-                    const response = await axios.get(`${process.env.REACT_APP_PENOMO_API}/api/company/jwt`, {
+                    const response = await axios.get(`${process.env.REACT_APP_PENOMO_API}/api/investor/jwt`, {
                         headers: { Authorization: `Bearer ${authToken}` }
                     });
-                    console.log("Company Data: ", response);
+                    console.log("Investor Data: ", response);
                     setIsVerified(response.data.isVerified);
-                    setCompanyId(response.data._id); // Store the company ID
+                    setInvestorId(response.data._id); // Store the investor ID
                 } catch (error) {
-                    console.error('Error fetching company data:', error);
+                    console.error('Error fetching investor data:', error);
                     // Handle error appropriately
                 }
             };
-            fetchCompanyData();
+            fetchInvestorData();
         }
     }, [authToken]);
 
@@ -94,7 +94,7 @@ const NavBar = () => {
             <VerifyModal
                 show={showVerifyModal}
                 handleClose={handleVerifyModalClose}
-                companyId={companyId}
+                investorId={investorId}
                 authToken={authToken}
             />
         </Navbar>
