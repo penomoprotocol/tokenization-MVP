@@ -6,15 +6,15 @@
     display: flex;
     flex-direction: column;
     justify-content: space-between;
-    height: 100%;
+    /* height: 100%; */
   }
-  
+
   /* Card content styling */
   .card-content {
     word-wrap: break-word; /* Ensures long text doesn't overflow */
     flex: 1; /* Pushes the button to the bottom */
   }
-  
+
   .button-container{
     display: flex;
     grid-template-columns:  0.1fr; /* Three columns with equal width */
@@ -27,7 +27,7 @@
     text-align: center;
     margin-bottom: 1rem;
   }
-  
+
   /* Token details layout */
   .token-details {
     display: flex;
@@ -40,13 +40,13 @@
     align-items: center; /* Align items vertically */
     margin-bottom: 0.5rem; /* Optional: space between token details */
   }
-  
+
   .detail-name,
   .detail-value {
     /* Display these as inline-block so they don't take full width */
     display: inline-block;
   }
-  
+
 
 
   /* Link styling */
@@ -54,24 +54,24 @@
     color: #007bff; /* Style for links */
     text-decoration: none;
   }
-  
+
   .card-content a:hover {
     text-decoration: underline;
   }
-  
+
   /* Button styling */
   .btn-penomo {
     align-self: center;
     margin-top: 20px;
   }
-  
+
   /* Responsive adjustments */
   @media (max-width: 768px) {
     .card-content {
       font-size: smaller; /* Reduce font size on smaller screens */
     }
   }
-  
+
 
   .modal-navigation {
     display: flex;
@@ -79,7 +79,7 @@
     justify-content: space-between;
   }
 
-  
+
 
   .form-group {
     display: flex;

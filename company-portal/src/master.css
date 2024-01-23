@@ -3,8 +3,18 @@
 /* Global settings */
 html, body, body * {
     font-family: 'Ubuntu', sans-serif !important;
-}
 
+}
+.content-wrap {
+    flex: 1; /* Allows content to expand */
+    /* Remove the comment syntax and ensure this is active */
+  }
+
+#root {
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh; /* Full viewport height */
+  }
 /* Center Content */
 .center {
     justify-content: center;
@@ -87,7 +97,7 @@ html, body, body * {
     border-radius: 8px;
     padding: 2rem;
     margin-block: 1rem;
-    margin-bottom: 4rem;
+    margin-bottom: 1rem;
     box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
     overflow: clip;
 }

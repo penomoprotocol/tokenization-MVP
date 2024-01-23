@@ -1,7 +1,8 @@
 /* Footer container */
 .footer-container {
-    display: flex;
-    flex-direction: column;
+    margin-top: auto; /* Push the footer to the bottom */
+    /* display: flex; */
+    /* flex-direction: column; */
     min-height: 5rem; /* Full height of the viewport */
   }
   
@@ -19,7 +20,7 @@
     /* position: relative; */
     width: 100%;
     color: white;
-    margin-top: 4rem;
+    margin-top: 100rem;
     /* font-size: 0.8rem; */
     /* line-height: 1.2; */
   }
