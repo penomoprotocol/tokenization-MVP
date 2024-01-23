@@ -226,6 +226,24 @@ body * {
     display: block;
     margin: auto;
 }
+.btn-penomo:hover {
+    background-color: #00CC9C; /* This will make the button green when clicked */
+    color: white; /* Optional: change text color to white when active/selected */
+    /* Any other styles you want to apply when the button is clicked */
+  }
+
+.btn-penomo.btn-disabled {
+    background-color: grey;
+    /* Change the background color for the disabled state */
+    cursor: default;
+    /* Disable the pointer cursor */
+}
+
+.btn-penomo:active{
+    background-color: #00CC9C; /* This will make the button green when clicked */
+    color: white; /* Optional: change text color to white when active/selected */
+    /* Any other styles you want to apply when the button is clicked */
+  }
 
 .btn-penomo-secondary {
     background-color: #9bbab6;
@@ -250,18 +268,18 @@ body * {
     /* Add this line */
     margin: auto;
 }
+.btn-penomo-secondary:active{
+    background-color: #00CC9C; /* This will make the button green when clicked */
+    color: white; /* Optional: change text color to white when active/selected */
+    /* Any other styles you want to apply when the button is clicked */
+  }
 
-.btn-penomo:hover {
-    background-color: #00CC9C;
-    /* Darker shade of Penomo color for hover state */
-}
+  .btn-penomo-secondary:hover {
+    background-color: #00CC9C; /* This will make the button green when clicked */
+    color: white; /* Optional: change text color to white when active/selected */
+    /* Any other styles you want to apply when the button is clicked */
+  }
 
-.btn-penomo.btn-disabled {
-    background-color: grey;
-    /* Change the background color for the disabled state */
-    cursor: default;
-    /* Disable the pointer cursor */
-}
 
 .nav-button {
     display: flex;
