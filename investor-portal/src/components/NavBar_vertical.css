@@ -1,0 +1,164 @@
+.navbar {
+    min-height: 100vh; /* Full height */
+    padding: 1rem 0; /* Adjust vertical padding */
+    flex-direction: column; /* Stack items vertically */
+    margin-left: 1rem ;
+    justify-content: center;
+    align-items: center;
+}
+
+.navbar-collapse {
+    flex-basis: 100%; /* Take full width */
+}
+
+.navbar-brand {
+    margin-bottom: 0; /* Reduce space below the logo if necessary */
+    margin-left: 1.5rem;
+    max-height: 10vh; /* Full height */
+    justify-content: center;
+    align-items: center;
+}
+
+.navbar-logo {
+    /* adjust the logo styles if needed */
+    max-height: 3vh; /* Full height */
+}
+
+.nav {
+    margin-top: 0; /* Reduce space above the nav links if necessary */
+}
+
+.nav-link {
+    text-align: left; /* Align text to the left */
+    padding: 10px 20px; /* Add some padding */
+    border-bottom: 1px solid #ddd; /* Separator between items */
+}
+
+/* Existing button styles */
+
+/* New styles for Settings link/button */
+.btn-settings-navbar {
+    background-color: #4B6587; /* Example color */
+    /* Rest of the button styles similar to .btn-penomo-navbar */
+}
+
+/* Add any additional styles as needed */
+
+.btn-penomo-navbar {
+    background-color: #00CC9C;
+    /* Penomo color */
+    color: #000;
+    /* Text color set to black */
+    border: none;
+    /* Removes any default border */
+    padding: 10px 20px;
+    /* Padding for size */
+    border-radius: 5px;
+    /* Rounded corners */
+    font-weight: bold;
+    /* Bold font */
+    cursor: pointer;
+    /* Cursor indicates clickable button */
+    outline: none;
+    /* Removes outline on focus for some browsers */
+    transition: background-color 0.3s;
+    /* Smooth transition for hover effect */
+    /* margin-top: 0.5rem; */
+    margin: auto;
+    margin-left: 0.5rem;
+    text-decoration: none; /* Removes underline from links if it's an <a> element */
+    display: block; /* Makes the link behave like a block element */
+    justify-content: center;
+    align-items: center;
+}
+
+.btn-penomo-navbar:active{
+    background-color: #00CC9C; /* This will make the button green when clicked */
+    color: white; /* Optional: change text color to white when active/selected */
+    /* Any other styles you want to apply when the button is clicked */
+  }
+  
+  .btn-penomo-navbar:hover {
+      background-color: #00CC9C; /* This will make the button green when clicked */
+      color: white; /* Optional: change text color to white when active/selected */
+      /* Any other styles you want to apply when the button is clicked */
+    }
+
+.btn-secondary-navbar {
+    background-color: #9bbab6;
+    /* Penomo color */
+    color: #000;
+    /* Text color set to black */
+    border: none;
+    /* Removes any default border */
+    padding: 10px 20px;
+    /* Padding for size */
+    border-radius: 5px;
+    /* Rounded corners */
+    font-weight: bold;
+    /* Bold font */
+    cursor: pointer;
+    /* Cursor indicates clickable button */
+    outline: none;
+    /* Removes outline on focus for some browsers */
+    transition: background-color 0.3s;
+    /* Smooth transition for hover effect */
+    /*margin-top: 0.5rem; */
+    margin: auto;
+    margin-left: 0.5rem;
+    text-decoration: none; /* Removes underline from links if it's an <a> element */
+    display: block; /* Makes the link behave like a block element */
+    justify-content: center;
+    align-items: center;
+}
+
+.btn-secondary-navbar:active{
+  background-color: #00CC9C; /* This will make the button green when clicked */
+  color: white; /* Optional: change text color to white when active/selected */
+  /* Any other styles you want to apply when the button is clicked */
+}
+
+.btn-secondary-navbar:hover {
+    background-color: #00CC9C; /* This will make the button green when clicked */
+    color: white; /* Optional: change text color to white when active/selected */
+    /* Any other styles you want to apply when the button is clicked */
+  }
+
+.btn-tertiary-navbar {
+  background-color: #d9edea;
+  /* Penomo color */
+  color: #000;
+  /* Text color set to black */
+  border: none;
+  /* Removes any default border */
+  padding: 10px 20px;
+  /* Padding for size */
+  border-radius: 5px;
+  /* Rounded corners */
+  font-weight: bold;
+  /* Bold font */
+  cursor: pointer;
+  /* Cursor indicates clickable button */
+  outline: none;
+  /* Removes outline on focus for some browsers */
+  transition: background-color 0.3s;
+  /* Smooth transition for hover effect */
+  margin-top: 0.5rem;
+  margin: auto;
+  margin-left: 0.5rem;
+  text-decoration: none; /* Removes underline from links if it's an <a> element */
+  display: block; /* Makes the link behave like a block element */
+  justify-content: center;
+  align-items: center;
+}
+.btn-tertiary-navbar:active{
+  background-color: #00CC9C; /* This will make the button green when clicked */
+  color: white; /* Optional: change text color to white when active/selected */
+  /* Any other styles you want to apply when the button is clicked */
+}
+
+.btn-tertiary-navbar:hover {
+    background-color: #00CC9C; /* This will make the button green when clicked */
+    color: white; /* Optional: change text color to white when active/selected */
+    /* Any other styles you want to apply when the button is clicked */
+  }
