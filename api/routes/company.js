@@ -16,10 +16,17 @@ const RSCBuild = path.join(__dirname, '..', '..', 'evm-erc20', 'artifacts', 'con
 const GSCPath = path.join(GSCBuild);
 const GSCJSON = JSON.parse(fs.readFileSync(GSCPath, 'utf8'));
 const GSCABI = GSCJSON.abi;
+
+// Get TC ABI
+const TCPath = path.join(TCBuild);
+const TCJSON = JSON.parse(fs.readFileSync(TCPath, 'utf8'));
+const TCABI = TCJSON.abi;
+
 // Get LC ABI
 const LCPath = path.join(LCBuild);
 const LCJSON = JSON.parse(fs.readFileSync(LCPath, 'utf8'));
 const LCABI = LCJSON.abi;
+
 
 const verifyToken = require('../middleware/jwtCheck');
 
@@ -665,19 +672,44 @@ router.get('/company/jwt', verifyToken, async (req, res) => {
         // Fetch balance for each serviceContractAddress and add it to the token object
         const tokenData = await Promise.all(
             companyTokens.map(async (token) => {
-                // Fetch liquidity pool balance for each token
+                // Fetch liquidity pool balance and associated assets as before
                 const liquidityPoolBalance = await fetchContractBalance(token.liquidityContractAddress);
-                // Fetch associated assets for each token based on assetIds array
                 const associatedAssets = await Asset.find({ _id: { $in: token.assetIds } });
-
+        
+                // Initialize the contract instance for the token
+                const contract = new web3.eth.Contract(TCABI, token.tokenContractAddress);
+                const tokenHolders = await contract.methods.getTokenHolders().call();
+        
+                // Fetch the maxTokenSupply for the token - assuming this is available in the token object
+                const maxTokenSupply = token.maxTokenSupply;
+        
+                const holdersData = await Promise.all(tokenHolders.map(async (holderAddress) => {
+                    // Fetch token balance for the holder and immediately convert it to a string
+                    const tokenBalance = (await contract.methods.balanceOf(holderAddress).call()).toString();
+                
+                    // Since tokenBalance is now a string, parsing it to a float should be safe
+                    const holdingPercentage = (parseFloat(tokenBalance) / parseFloat(maxTokenSupply)) * 100;
+                
+                    // Fetch investor instance from the database
+                    const investorInstance = await Investor.findOne({ ethereumPublicKey: holderAddress });
+                
+                    return {
+                        address: holderAddress,
+                        tokenBalance, // Already a string, safe for JSON serialization
+                        holdingPercentage, // A float, also safe
+                        data: investorInstance // Ensure investorInstance doesn't contain BigInts; if it does, convert those as well
+                    };
+                }));
+                
+        
                 return {
                     ...token.toObject(),
                     liquidityPoolBalance,
-                    associatedAssets
+                    associatedAssets,
+                    tokenHolders: holdersData // Replace the simple list with detailed holders data
                 };
             })
         );
-
 
         // Add the balances and tokens with their liquidity pools to the company object
         const companyDataWithBalancesAndTokenData = {
