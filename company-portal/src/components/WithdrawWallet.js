@@ -26,13 +26,13 @@ const WithdrawWallet = ({ currency, closeModal, show, bankAccount }) => {
       const payload = {
         amount,
         currency,
-        walletAddress: process.env.REACT_APP_BURNING_ADDRESS,
+        walletAddress:process.env.REACT_APP_BURNING_ADDRESS,
       };
 
       await axios.post(`${process.env.REACT_APP_PENOMO_API}/api/company/transfer`, payload, {
         headers: { Authorization: `Bearer ${userToken}` }
       });
-      
+
     } else {
       // Proceed with the transfer process for "To Wallet" transfers
       try {
