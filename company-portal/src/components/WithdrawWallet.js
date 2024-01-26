@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import axios from 'axios';
 import { Modal } from 'react-bootstrap';
 
-const WithdrawWallet = ({ currency, closeModal, show, bankAccount }) => {
+const WithdrawWallet = ({ currency, closeModal, show, bankAccount, liquidityContractAddress }) => {
   const [amount, setAmount] = useState('');
   const [walletAddress, setWalletAddress] = useState('');
   const [withdrawalMethod, setWithdrawalMethod] = useState('bank');
@@ -22,16 +22,16 @@ const WithdrawWallet = ({ currency, closeModal, show, bankAccount }) => {
       setTransferSuccess(true);
       setStatus('idle'); // Reset the status
 
-      // Transfer funds to burning contract / treasury
-      const payload = {
-        amount,
-        currency,
-        walletAddress:process.env.REACT_APP_BURNING_ADDRESS,
-      };
+      // TODO: IMPLEMENT WITHDRAWAL FROM LC
+      // // Transfer funds to burning contract / treasury
+      // const payload = {
+      //   amount,
+      //   liquidityContractAddress
+      // };
 
-      await axios.post(`${process.env.REACT_APP_PENOMO_API}/api/company/transfer`, payload, {
-        headers: { Authorization: `Bearer ${userToken}` }
-      });
+      // await axios.post(`${process.env.REACT_APP_PENOMO_API}/api/company/withdrawFunds`, payload, {
+      //   headers: { Authorization: `Bearer ${userToken}` }
+      // });
 
     } else {
       // Proceed with the transfer process for "To Wallet" transfers

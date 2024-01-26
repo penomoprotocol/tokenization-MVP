@@ -15,6 +15,8 @@ const CompanyDashboard = () => {
     const [isLoadingCompanyData, setIsLoadingTokenContracts] = useState(true);
     const [showWithdraw, setShowWithdraw] = useState(false);
     const [selectedCurrency, setSelectedCurrency] = useState('ETH');
+    const [liquidityContract, setLiquidityContract] = useState(null);
+    
 
     useEffect(() => {
         const fetchCompanyData = async () => {
@@ -49,8 +51,9 @@ const CompanyDashboard = () => {
         fetchTransactions();
     }, [companyData?.ethereumPublicKey]);
 
-    const toggleWithdraw = (currency) => {
+    const toggleWithdraw = (currency, liquidityContractAddress) => {
         setSelectedCurrency(currency);
+        setLiquidityContract(liquidityContractAddress);
         setShowWithdraw(!showWithdraw);
     };
 
@@ -151,7 +154,7 @@ const CompanyDashboard = () => {
                             <div style={{ flex: '1 1 23.30%' }} className="btn-container">
                             </div>
                             <div style={{ flex: '1 1 10%' }} className="btn-container">
-                                <button className="btn-penomo" onClick={() => toggleWithdraw('USDC')}>Withdraw</button>
+                                <button className="btn-penomo" onClick={() => toggleWithdraw('USDC', token.liquidityContractAddress)}>Withdraw</button>
                             </div>
                         </div>
 
@@ -193,6 +196,7 @@ const CompanyDashboard = () => {
                     closeModal={() => setShowWithdraw(false)}
                     show={showWithdraw}
                     bankAccount={companyData.bank}
+                    liquidityContractAddress={liquidityContract}
                 />
             }
 

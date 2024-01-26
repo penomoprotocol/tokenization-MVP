@@ -520,11 +520,11 @@ router.post('/company/verify', async (req, res) => {
 *         description: Invalid input or operation failed
 */
 
-router.post('/company/withdrawFunds', async (req, res) => {
+router.post('/company/withdrawFunds', verifyToken, async (req, res) => {
     try {
-        const { companyId, password, amount, liquidityContractAddress } = req.body;
+        const {amount, liquidityContractAddress } = req.body;
 
-        // Authenticate the company
+        const companyId = req.user.id;
         const company = await Company.findById(companyId);
         if (!company) {
             return res.status(404).send('Company not found');
@@ -635,6 +635,10 @@ router.post('/company/transfer', verifyToken, async (req, res) => {
                 };
             } else if (currency === 'USDC') {
                 gasPrice = await web3.eth.getGasPrice(); // Get current gas price
+                console.log("Gas price:", gasPrice);
+                console.log("Wallet address:", walletAddress);
+                console.log("Amount:", amount);
+
                 const usdcContract = new web3.eth.Contract(USDCABI, USDCContractAddress);
                 const tokenAmount = web3.utils.toWei(amount, 'ether');
                 const data = usdcContract.methods.transfer(walletAddress, tokenAmount).encodeABI();
@@ -645,6 +649,9 @@ router.post('/company/transfer', verifyToken, async (req, res) => {
                     gas: 2000000,
                     gasPrice: gasPrice
                 };
+                console.log("Raw transaction:", rawTransaction);
+
+
             }
 
             else {
@@ -800,25 +807,25 @@ router.get('/company/jwt', verifyToken, async (req, res) => {
                 // Fetch liquidity pool balance and associated assets as before
                 const liquidityPoolBalance = await fetchContractBalance(token.liquidityContractAddress);
                 const associatedAssets = await Asset.find({ _id: { $in: token.assetIds } });
-        
+
                 // Initialize the contract instance for the token
                 const contract = new web3.eth.Contract(TCABI, token.tokenContractAddress);
                 const tokenHolders = await contract.methods.getTokenHolders().call();
-        
+
                 // Fetch the maxTokenSupply for the token - assuming this is available in the token object
                 const maxTokenSupply = token.maxTokenSupply;
-        
+
                 const holdersData = await Promise.all(tokenHolders.map(async (holderAddress) => {
                     // Fetch token balance for the holder and immediately convert it to a string
                     const tokenBalanceWei = (await contract.methods.balanceOf(holderAddress).call()).toString();
                     const tokenBalance = web3.utils.fromWei(tokenBalanceWei, 'ether');
-                
+
                     // Since tokenBalance is now a string, parsing it to a float should be safe
                     const holdingPercentage = (parseFloat(tokenBalance) / parseFloat(maxTokenSupply)) * 100;
-                
+
                     // Fetch investor instance from the database
                     const investorInstance = await Investor.findOne({ ethereumPublicKey: holderAddress });
-                
+
                     return {
                         address: holderAddress,
                         tokenBalance, // Already a string, safe for JSON serialization
@@ -826,8 +833,8 @@ router.get('/company/jwt', verifyToken, async (req, res) => {
                         data: investorInstance // Ensure investorInstance doesn't contain BigInts; if it does, convert those as well
                     };
                 }));
-                
-        
+
+
                 return {
                     ...token.toObject(),
                     liquidityPoolBalance,
