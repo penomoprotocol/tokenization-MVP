@@ -46,7 +46,7 @@ const ContractsPage = () => {
                 </button>
             </div>
             <div className="contracts-list-container">
-                {contracts.map((contract) => (
+                {[...contracts].reverse().map((contract) => (
                     <div key={contract.tokenContractAddress} className="contract-item">
                         <ContractProgressItem
                             contract={contract}

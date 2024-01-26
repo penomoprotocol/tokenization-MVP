@@ -43,7 +43,7 @@ const CompanyDashboard = () => {
                     const transactionsRequests = companyData.tokens.map(token => {
                         const address = token.liquidityContractAddress;
                         return axios.get(`${process.env.REACT_APP_PENOMO_API}/api/transactions/liquidityContract/${address}`);
-                        
+
                     });
 
                     // Use Promise.all to handle all requests concurrently
@@ -182,23 +182,22 @@ const CompanyDashboard = () => {
 
             <div className="transactions-section section-container">
                 <h2>Recent Transactions</h2>
-                {Object.entries(companyTransactions).map(([liquidityContractAddress, transactions]) => (
-                    <div key={liquidityContractAddress}>
-                        <ul className="section-list">
-                            {transactions.map((transaction, index) => (
-                        <li className="section-list-item" key={index} onClick={() => window.open(`https://agung-testnet.subscan.io/tx/${transaction.hash}`, '_blank')}>
-                                    <strong>Date:</strong> {transaction.date}<br />
-                                    <strong>Type:</strong> {transaction.transactionType}<br />
-                                    <strong>Project:</strong> {transaction.project}<br />
-                                    {/* <strong>From:</strong> {transaction.from}<br />
-                                    <strong>To:</strong> {transaction.to}<br /> */}
-                                    <strong>Amount:</strong> {transaction.payableAmount} {transaction.currency}<br />
-                                </li>
-                            ))}
-                        </ul>
-                    </div>
-                ))}
+                <ul className="section-list">
+                    {Object.values(companyTransactions) // Get all transactions arrays
+                        .flat() // Flatten them into a single array
+                        .sort((a, b) => new Date(b.date) - new Date(a.date)) // Sort by date descending
+                        .map((transaction, index) => (
+                            <li className="section-list-item" key={index} onClick={() => window.open(`https://agung-testnet.subscan.io/tx/${transaction.hash}`, '_blank')}>
+                                <strong>Date:</strong> {transaction.date}<br />
+                                <strong>Type:</strong> {transaction.transactionType}<br />
+                                <strong>Project:</strong> {transaction.project}<br />
+                                <strong>Amount:</strong> {transaction.payableAmount} {transaction.currency}<br />
+                            </li>
+                        ))}
+                </ul>
             </div>
+
+
 
 
 

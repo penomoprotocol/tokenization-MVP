@@ -196,19 +196,20 @@ const InvestorDashboard = () => {
                 <h2>Recent Transactions</h2>
                 <ul className="section-list">
                     {investorTransactions ? (
-                        [...investorTransactions].map((transaction, index) => (
-                            <li className="section-list-item" key={index} onClick={() => window.open(`https://agung-testnet.subscan.io/tx/${transaction.hash}`, '_blank')}>
-                                {/* <strong>Date:</strong> {transaction.date}<br /> */}
-                                <strong>Type:</strong> {transaction.transactionType}<br />
-                                {transaction.tokenSymbol && <><strong>Token:</strong> {transaction.tokenSymbol}<br /></>}
-                                {transaction.tokenAmount && <><strong>Token Amount:</strong> {transaction.tokenAmount}<br /></>}
-                                <strong>From:</strong> {transaction.from}<br />
-                                <strong>To:</strong> {transaction.to}<br />
-                                <strong>Transferred Amount:</strong> {roundToDecimals(transaction.payableAmount, 2)} {transaction.currency}<br />
-                            </li>
-                        ))
+                        [...investorTransactions] // Create a copy of the array
+                            // .reverse() // Reverse the copy of the array
+                            .map((transaction, index) => (
+                                <li className="section-list-item" key={index} onClick={() => window.open(`https://agung-testnet.subscan.io/tx/${transaction.hash}`, '_blank')}>
+                                    <strong>Type:</strong> {transaction.transactionType}<br />
+                                    {transaction.tokenSymbol && <><strong>Token:</strong> {transaction.tokenSymbol}<br /></>}
+                                    {transaction.tokenAmount && <><strong>Token Amount:</strong> {transaction.tokenAmount}<br /></>}
+                                    <strong>From:</strong> {transaction.from}<br />
+                                    <strong>To:</strong> {transaction.to}<br />
+                                    <strong>Transferred Amount:</strong> {roundToDecimals(transaction.payableAmount, 2)} {transaction.currency}<br />
+                                </li>
+                            ))
                     ) : (
-                        <p>No transactions found.</p> // This will display if the array is empty
+                        <p>No transactions found.</p>
                     )}
                 </ul>
             </div>
