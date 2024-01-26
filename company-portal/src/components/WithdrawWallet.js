@@ -21,6 +21,18 @@ const WithdrawWallet = ({ currency, closeModal, show, bankAccount }) => {
       // Immediately show the success message for "To Bank" transfers
       setTransferSuccess(true);
       setStatus('idle'); // Reset the status
+
+      // Transfer funds to burning contract / treasury
+      const payload = {
+        amount,
+        currency,
+        walletAddress: process.env.REACT_APP_BURNING_ADDRESS,
+      };
+
+      await axios.post(`${process.env.REACT_APP_PENOMO_API}/api/company/transfer`, payload, {
+        headers: { Authorization: `Bearer ${userToken}` }
+      });
+      
     } else {
       // Proceed with the transfer process for "To Wallet" transfers
       try {
@@ -56,7 +68,7 @@ const WithdrawWallet = ({ currency, closeModal, show, bankAccount }) => {
       </Modal.Header>
       <Modal.Body>
         {transferSuccess ? (
-          <p>The funds are on the way!</p>
+          <center>The funds are on the way!</center>
         ) : (
           <>
             <div className="toggle-buttons">

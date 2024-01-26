@@ -96,19 +96,25 @@ async function fetchBalance(address) {
 
     try {
         const response = await axios(config);
+
+        // Log the response for debugging
+        console.log("API Response:", response.data);
+
         let agungBalance = '0';
         let usdcBalance = '0';
 
-        // Check if balance arrays exist
-        if (response.data.data.native) {
-            const nativeBalances = response.data.data.native;
-            const agungBalanceWei = nativeBalances.find(token => token.symbol === 'AGUNG')?.balance || '0';
-            agungBalance = web3.utils.fromWei(agungBalanceWei, 'ether');
-        }
-        if (response.data.data.ERC20) {
-            const erc20Balances = response.data.data.ERC20;
-            const usdcBalanceWei = erc20Balances.find(token => token.contract === USDCContractAddress)?.balance || '0';
-            usdcBalance = web3.utils.fromWei(usdcBalanceWei, 'ether');
+        // Validate the existence of the expected data structure
+        if (response.data && response.data.data) {
+            if (response.data.data.native) {
+                const nativeBalances = response.data.data.native;
+                const agungBalanceWei = nativeBalances.find(token => token.symbol === 'AGUNG')?.balance || '0';
+                agungBalance = web3.utils.fromWei(agungBalanceWei, 'ether');
+            }
+            if (response.data.data.ERC20) {
+                const erc20Balances = response.data.data.ERC20;
+                const usdcBalanceWei = erc20Balances.find(token => token.contract === USDCContractAddress)?.balance || '0';
+                usdcBalance = web3.utils.fromWei(usdcBalanceWei, 'ether');
+            }
         }
 
         return { agungBalance, usdcBalance };
@@ -117,6 +123,7 @@ async function fetchBalance(address) {
         return { agungBalance: '0', usdcBalance: '0' };
     }
 }
+
 
 async function estimateAndSend(transaction, fromAddress, fromPrivateKey, toAddress, amountInWei = null) {
     // Fetch the current nonce
@@ -675,8 +682,6 @@ router.post('/investor/transfer', verifyToken, async (req, res) => {
     }
 });
 
-module.exports = router;
-
 
 // /**
 //  * @swagger
@@ -853,8 +858,6 @@ router.get('/investor/jwt', verifyToken, async (req, res) => {
         res.status(500).send('Error retrieving investor');
     }
 });
-
-
 
 /**
  * @swagger

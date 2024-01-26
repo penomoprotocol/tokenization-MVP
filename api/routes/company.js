@@ -27,6 +27,10 @@ const LCPath = path.join(LCBuild);
 const LCJSON = JSON.parse(fs.readFileSync(LCPath, 'utf8'));
 const LCABI = LCJSON.abi;
 
+// Get USDC ABI
+const USDCContractPath = path.join(USDCBuild);
+const USDCContractJSON = JSON.parse(fs.readFileSync(USDCContractPath, 'utf8'));
+const USDCABI = USDCContractJSON.abi;
 
 const verifyToken = require('../middleware/jwtCheck');
 
@@ -476,8 +480,6 @@ router.post('/company/verify', async (req, res) => {
     }
 });
 
-
-
 /**
 * @swagger
 * /api/company/withdrawFunds:
@@ -553,6 +555,129 @@ router.post('/company/withdrawFunds', async (req, res) => {
         res.status(500).send('Error withdrawing funds');
     }
 });
+
+/**
+ * @swagger
+ * /api/company/transfer:
+ *   post:
+ *     summary: Transfer funds (ETH or USDC) from company's wallet to another address
+ *     tags: 
+ *       - Company
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - amount
+ *               - currency
+ *               - walletAddress
+ *             properties:
+ *               amount:
+ *                 type: string
+ *                 description: The amount of currency to be transferred
+ *               currency:
+ *                 type: string
+ *                 description: The type of currency to transfer ('ETH' or 'USDC')
+ *               walletAddress:
+ *                 type: string
+ *                 description: The destination wallet address
+ *     responses:
+ *       200:
+ *         description: Transfer successful. Returns transaction receipt.
+ *       400:
+ *         description: Bad request if invalid currency or insufficient parameters.
+ *       404:
+ *         description: Company not found.
+ *       500:
+ *         description: Internal Server Error or transfer failed.
+ */
+
+router.post('/company/transfer', verifyToken, async (req, res) => {
+    try {
+        const { amount, currency, walletAddress } = req.body;
+        const companyId = req.user.id;
+        const company = await Company.findById(companyId);
+
+        if (!company) {
+            return res.status(404).send('Company not found');
+        }
+
+        try {
+            const decryptedPrivateKey = decryptPrivateKey(company.ethereumPrivateKey, SECRET_KEY);
+            console.log("Decrypted Private Key: ", decryptedPrivateKey); // Log to check the format
+
+            if (!decryptedPrivateKey.startsWith('0x')) {
+                throw new Error("Private key does not start with '0x'");
+            }
+
+            const account = web3.eth.accounts.privateKeyToAccount(decryptedPrivateKey);
+            web3.eth.accounts.wallet.add(account);
+
+            let rawTransaction;
+            let gasPrice;
+            let receipt;
+
+            console.log("Currency: ", currency);
+
+            if (currency === 'ETH') {
+                gasPrice = await web3.eth.getGasPrice(); // Get current gas price
+                rawTransaction = {
+                    from: account.address,
+                    to: walletAddress,
+                    value: web3.utils.toWei(amount, 'ether'),
+                    gas: 2000000,
+                    gasPrice: gasPrice
+                };
+            } else if (currency === 'USDC') {
+                gasPrice = await web3.eth.getGasPrice(); // Get current gas price
+                const usdcContract = new web3.eth.Contract(USDCABI, USDCContractAddress);
+                const tokenAmount = web3.utils.toWei(amount, 'ether');
+                const data = usdcContract.methods.transfer(walletAddress, tokenAmount).encodeABI();
+                rawTransaction = {
+                    from: account.address,
+                    to: USDCContractAddress,
+                    data: data,
+                    gas: 2000000,
+                    gasPrice: gasPrice
+                };
+            }
+
+            else {
+                return res.status(400).send('Invalid currency');
+            }
+
+            const signedTransaction = await web3.eth.accounts.signTransaction(rawTransaction, account.privateKey);
+            receipt = await web3.eth.sendSignedTransaction(signedTransaction.rawTransaction);
+            if (receipt.status) {
+                const transactionRecord = new Transaction({
+                    transactionType: 'Withdraw',
+                    fromAddress: company.ethereumPublicKey,
+                    toAddress: walletAddress,
+                    payableAmount: amount,
+                    currency: currency,
+                    transactionHash: receipt.transactionHash,
+                    status: 'confirmed'
+                });
+                await transactionRecord.save();
+                res.status(200).json({ message: "Transfer successful", receipt: serializeBigIntInObject(receipt) });
+            } else {
+                res.status(500).send('Transfer failed');
+            }
+        } catch (error) {
+            console.error('Error in transaction processing:', error);
+            return res.status(500).send('Internal Server Error');
+        }
+
+    } catch (error) {
+        console.error('Error:', error);
+        res.status(500).send('Internal Server Error');
+    }
+});
+
 
 /**
  * @swagger
@@ -650,7 +775,6 @@ router.post('/company/withdrawFunds', async (req, res) => {
  *       500:
  *         description: Error retrieving company details and liquidity pool information.
  */
-
 // Get company details by JWT token
 router.get('/company/jwt', verifyToken, async (req, res) => {
     try {
