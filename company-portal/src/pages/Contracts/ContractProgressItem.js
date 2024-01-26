@@ -7,8 +7,15 @@ const ContractProgressItem = ({ contract, onSelect, isSelected }) => {
     const [showUploadDocumentModal, setShowUploadDocumentModal] = useState(false);
 
     const renderStakeholdersList = () => {
-        return contract.tokenHolders.map((holder, index) => (
-            <tr key={index}> {/* Use index as key for simplicity */}
+        // Sort token holders by holding percentage in descending order
+        const sortedTokenHolders = contract.tokenHolders.sort((a, b) => {
+            const percentageA = (parseFloat(a.tokenBalance) / parseFloat(contract.maxTokenSupply)) * 100;
+            const percentageB = (parseFloat(b.tokenBalance) / parseFloat(contract.maxTokenSupply)) * 100;
+            return percentageB - percentageA; // For descending order
+        });
+    
+        return sortedTokenHolders.map((holder, index) => (
+            <tr key={index}> {/* It's better to use unique IDs instead of index if available */}
                 <td>{holder.data.firstname}</td>
                 <td>{holder.data.surname}</td>
                 <td>{holder.address}</td>
@@ -17,7 +24,6 @@ const ContractProgressItem = ({ contract, onSelect, isSelected }) => {
             </tr>
         ));
     };
-
 
     const shortenDID = (did) => {
         // Implement your logic to shorten the DID here
@@ -35,9 +41,9 @@ const ContractProgressItem = ({ contract, onSelect, isSelected }) => {
                 <h3>{contract.name}</h3>
                 <div className='center-vertical-group'><strong>Total Financing:</strong>  ${contract.liquidityPoolBalance.usdcBalance ? `${contract.liquidityPoolBalance.usdcBalance}` : '0.00'}</div>
                 <div className="progress-bar">
-                    <div className="filler" style={{ width: `${(contract.liquidityPoolBalance.usdcBalance / contract.fundingGoal) * 100 + 2}%` }}>
+                    <div className="filler" style={{ width: `${(contract.liquidityPoolBalance.usdcBalance / contract.fundingGoal) * 102.04}%` }}>
                     </div>
-                    <div className="percentage-text">{((contract.liquidityPoolBalance.usdcBalance / contract.fundingGoal) * 100).toFixed(2)}% Financed</div>
+                    <div className="percentage-text">{((contract.liquidityPoolBalance.usdcBalance / contract.fundingGoal) * 102.04).toFixed(2)}% Financed</div>
                 </div>
                 <div className='center-vertical-group'><strong>Financing Goal:</strong> {contract.fundingGoal ? `$${contract.fundingGoal.toLocaleString()}` : 'N/A'}</div>
                 <div className='center-vertical-group'><strong>Status:</strong> {contract.statusUpdates[0].status}</div>
@@ -92,6 +98,7 @@ const ContractProgressItem = ({ contract, onSelect, isSelected }) => {
                             </tbody>
                         </table>
                     </div>
+
 
 
                     <h4 style={{ marginTop: '2rem', marginBottom: '1rem' }}>Financing Info</h4>
