@@ -19,7 +19,7 @@ const Logout = () => {
   };
 
   return (
-    <button onClick={handleLogout} className="btn-penomo-navbar">Logout</button>
+    <button onClick={handleLogout} className="btn-penomo-navbar nav-button" style={{marginTop: '1rem'}}>Logout</button>
   );
 };
 

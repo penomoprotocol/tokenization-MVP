@@ -41,9 +41,9 @@ const InvestorDashboard = () => {
             if (investorData?.ethereumPublicKey) {
                 try {
                     const address = investorData.ethereumPublicKey; // Assuming this is your address variable
-                    console.log("address:", address);    
+                    console.log("address:", address);
                     const response = await axios.get(`${process.env.REACT_APP_PENOMO_API}/api/transactions/user/${address}`);
-                    
+
                     setInvestorTransactions(response.data.slice(0, 5)); // Store the first 5 transactions
                     // TODO: Calculate revenues from tokens and insert to setter function
                     // DEBUG
@@ -67,26 +67,26 @@ const InvestorDashboard = () => {
     //     return (wei / 1e18).toString();
     // };
 
-function roundToDecimals(str, x) {
-    let num = parseFloat(str);
-    if (isNaN(num)) {
-        return 'Invalid input'; // Handle the error as needed
-    }
-    // Check if the number is less than 1 and not an integer
-    if (num < 1 && num % 1 !== 0) {
-        let num_mul = num;
-        let decimalPlaces = 0;
-        while (num_mul < 1) {
-            num_mul = num_mul*10
-            decimalPlaces = decimalPlaces+1
+    function roundToDecimals(str, x) {
+        let num = parseFloat(str);
+        if (isNaN(num)) {
+            return 'Invalid input'; // Handle the error as needed
         }
-        // Ensure at least two significant digits after zeros
-        const totalDigits = decimalPlaces + 1;
-        return num.toFixed(Math.max(totalDigits, x));
-    } else {
-        return num.toFixed(x); // Round to x decimal places
+        // Check if the number is less than 1 and not an integer
+        if (num < 1 && num % 1 !== 0) {
+            let num_mul = num;
+            let decimalPlaces = 0;
+            while (num_mul < 1) {
+                num_mul = num_mul * 10
+                decimalPlaces = decimalPlaces + 1
+            }
+            // Ensure at least two significant digits after zeros
+            const totalDigits = decimalPlaces + 1;
+            return num.toFixed(Math.max(totalDigits, x));
+        } else {
+            return num.toFixed(x); // Round to x decimal places
+        }
     }
-}
 
     const formatTokenPrice = (price, currency) => currency === 'USDC' ? `${price} USDC` : `${price} ETH`;
 
@@ -195,19 +195,24 @@ function roundToDecimals(str, x) {
             <div className="recent-transactions section-container">
                 <h2>Recent Transactions</h2>
                 <ul className="section-list">
-                    {[...investorTransactions].map((transaction, index) => (
-                        <li className="section-list-item" key={index} onClick={() => window.open(`https://agung-testnet.subscan.io/tx/${transaction.hash}`, '_blank')}>
-                            {/* <strong>Date:</strong> {transaction.date}<br /> */}
-                            <strong>Type:</strong> {transaction.transactionType}<br />
-                            {transaction.tokenSymbol && <><strong>Token:</strong> {transaction.tokenSymbol}<br /></>}
-                            {transaction.tokenAmount && <><strong>Token Amount:</strong> {transaction.tokenAmount}<br /></>}
-                            <strong>From:</strong> {transaction.from}<br />
-                            <strong>To:</strong> {transaction.to}<br />
-                            <strong>Transfered Amount:</strong> {roundToDecimals(transaction.payableAmount, 2)} {transaction.currency}<br />
-                        </li>
-                    ))}
+                    {investorTransactions ? (
+                        [...investorTransactions].map((transaction, index) => (
+                            <li className="section-list-item" key={index} onClick={() => window.open(`https://agung-testnet.subscan.io/tx/${transaction.hash}`, '_blank')}>
+                                {/* <strong>Date:</strong> {transaction.date}<br /> */}
+                                <strong>Type:</strong> {transaction.transactionType}<br />
+                                {transaction.tokenSymbol && <><strong>Token:</strong> {transaction.tokenSymbol}<br /></>}
+                                {transaction.tokenAmount && <><strong>Token Amount:</strong> {transaction.tokenAmount}<br /></>}
+                                <strong>From:</strong> {transaction.from}<br />
+                                <strong>To:</strong> {transaction.to}<br />
+                                <strong>Transferred Amount:</strong> {roundToDecimals(transaction.payableAmount, 2)} {transaction.currency}<br />
+                            </li>
+                        ))
+                    ) : (
+                        <p>No transactions found.</p> // This will display if the array is empty
+                    )}
                 </ul>
             </div>
+
 
 
 
@@ -220,7 +225,7 @@ function roundToDecimals(str, x) {
                 />
             }
 
-{
+            {
                 showWithdraw &&
                 <WithdrawWallet
                     currency={selectedCurrency}

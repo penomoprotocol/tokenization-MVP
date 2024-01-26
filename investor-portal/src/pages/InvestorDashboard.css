@@ -8,9 +8,7 @@
   box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
   display: flex;
   align-items: center;
-  /* Center vertically */
   justify-content: space-between;
-  /* Center horizontally */
 }
 
 /* For the wallet balance section */
@@ -156,13 +154,24 @@
 }
 
 .section-container {
-  margin-bottom: 2rem;
-  /* Space between sections */
+  flex: 1;
+  display: flex;
 }
 
 .label-value {
   display: flex;
   flex-direction: column;
+  /* Stacks items vertically */
+  align-items: center;
+  /* Centers items horizontally */
+  justify-content: center;
+  /* Centers items vertically */
+  text-align: center;
+  /* Centers text */
+}
+
+.label-value-horizontal {
+  display: flex;
   /* Stacks items vertically */
   align-items: center;
   /* Centers items horizontally */

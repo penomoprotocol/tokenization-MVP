@@ -19,7 +19,7 @@ const NavBar = () => {
     const [showRegisterModal, setShowRegisterModal] = useState(false);
     const [showVerifyModal, setShowVerifyModal] = useState(false); // State for VerifyModal visibility
     const [isVerified, setIsVerified] = useState(true);
-    const [companyId, setCompanyId] = useState(null);
+    const [investorId, setInvestorId] = useState(null);
 
     const handleLoginModalClose = () => setShowLoginModal(false);
     const handleLoginModalShow = () => setShowLoginModal(true);
@@ -31,20 +31,20 @@ const NavBar = () => {
 
     useEffect(() => {
         if (authToken) {
-            const fetchCompanyData = async () => {
+            const fetchInvestorData = async () => {
                 try {
-                    const response = await axios.get(`${process.env.REACT_APP_PENOMO_API}/api/company/jwt`, {
+                    const response = await axios.get(`${process.env.REACT_APP_PENOMO_API}/api/investor/jwt`, {
                         headers: { Authorization: `Bearer ${authToken}` }
                     });
-                    console.log("Company Data: ", response);
+                    console.log("Investor Data: ", response);
                     setIsVerified(response.data.isVerified);
-                    setCompanyId(response.data._id); // Store the company ID
+                    setInvestorId(response.data._id); // Store the investor ID
                 } catch (error) {
-                    console.error('Error fetching company data:', error);
+                    console.error('Error fetching investor data:', error);
                     // Handle error appropriately
                 }
             };
-            fetchCompanyData();
+            fetchInvestorData();
         }
     }, [authToken]);
 
@@ -83,7 +83,7 @@ const NavBar = () => {
                 {authToken && (
                     <>
                         <Link as={NavLink} to="/dashboard" className="btn-tertiary-navbar nav-button" style={{ marginTop: '1rem', alignItems: 'center' }}>Dashboard</Link>
-                        <Link as={NavLink} to="/contracts" className="btn-tertiary-navbar nav-button" style={{ marginTop: '1rem', alignItems: 'center' }}>Contracts</Link>
+                        <Link as={NavLink} to="/marketplace" className="btn-tertiary-navbar nav-button" style={{ marginTop: '1rem', alignItems: 'center' }}>Marketplace</Link>
                         <Link as={NavLink} to="/transaction-history" className="btn-tertiary-navbar nav-button" style={{ marginTop: '1rem' }}>Transactions</Link>
                         <Link as={NavLink} to="/settings" className="btn-tertiary-navbar nav-button" style={{ marginTop: '1rem' }}>Settings</Link>
                     </>
@@ -105,7 +105,7 @@ const NavBar = () => {
                     </>
                 ) : (
                     <>
-                        <Link onClick={handleLoginModalShow} style={{ marginTop: '2rem' }} className="btn-penomo-navbar nav-button">Login</Link>
+                        <Link onClick={handleLoginModalShow} style={{ marginTop: '2rem' }} className="nav-button btn-penomo-navbar">Login</Link>
                         <Link onClick={handleRegisterModalShow} style={{ marginTop: '1rem' }} className="btn-secondary-navbar nav-button">Register</Link>
                     </>
                 )}
@@ -114,7 +114,7 @@ const NavBar = () => {
             {/* Modals */}
             <LoginModal show={showLoginModal} handleClose={handleLoginModalClose} />
             <RegisterModal show={showRegisterModal} handleClose={handleRegisterModalClose} />
-            <VerifyModal show={showVerifyModal} handleClose={handleVerifyModalClose} companyId={companyId} authToken={authToken} />
+            <VerifyModal show={showVerifyModal} handleClose={handleVerifyModalClose} investorId={investorId} authToken={authToken} />
         </Navbar>
     );
 };

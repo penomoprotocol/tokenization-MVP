@@ -64,7 +64,7 @@
     transition: background-color 0.3s;
     /* Smooth transition for hover effect */
     /* margin-top: 0.5rem; */
-    margin: auto;
+    margin-top: 1rem;
     margin-left: 0.5rem;
     text-decoration: none; /* Removes underline from links if it's an <a> element */
     display: block; /* Makes the link behave like a block element */

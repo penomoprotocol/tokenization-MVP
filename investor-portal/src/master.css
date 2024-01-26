@@ -1,14 +1,35 @@
 /* Master styles that can be used across the entire application */
 
 /* Global settings */
-html, body, body * {
+html,
+body,
+body * {
     font-family: 'Ubuntu', sans-serif !important;
+
+}
+
+.content-wrap {
+    flex: 1;
+    /* Allows content to expand */
+    /* Remove the comment syntax and ensure this is active */
+}
+
+#root {
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+    /* Full viewport height */
 }
 
 /* Center Content */
 .center {
     justify-content: center;
     align-items: center;
+}
+
+.flex-column {
+    flex-direction: column;
+    /* Stack children vertically */
 }
 
 .content-center {
@@ -27,6 +48,13 @@ html, body, body * {
 .vertical-center {
     display: flex;
     align-items: center;
+}
+
+.center-vertical-group {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
 }
 
 /* This class can be used to center content both vertically and horizontally within its parent */
@@ -76,8 +104,12 @@ html, body, body * {
     border-radius: 8px;
     padding: 2rem;
     margin-block: 1rem;
-    margin-bottom: 4rem;
+    margin-bottom: 1rem;
     box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    overflow: clip;
+    flex: 1;
+    display: flex;
+
 }
 
 /* Common header for sections */
@@ -106,6 +138,46 @@ html, body, body * {
 
 .section-list-item:hover {
     background-color: #eef6ff;
+}
+
+.horizontal-center {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    /* Cards spaced evenly horizontally */
+}
+
+/* Style for each individual card */
+.two-columns {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    /* Cards spaced evenly horizontally */
+    padding: 0rem;
+    margin-block: 1rem;
+    margin-bottom: 1rem;
+    align-items: stretch;
+}
+
+.colored-box {
+    display: flex;
+    height: 5rem;
+    width: 15rem;
+    border-radius: 5px;
+    /* Add rounded corners */
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+
+.equal-height {
+    display: flex;
+    flex-wrap: wrap;
+}
+
+.equal-height>* {
+    flex: 1;
+    margin: 0 10px;
+    /* Add margin between cards as needed */
 }
 
 /* Common button styling */
@@ -151,9 +223,27 @@ html, body, body * {
     /* Removes outline on focus for some browsers */
     transition: background-color 0.3s;
     /* Smooth transition for hover effect */
-    display: block; /* Add this line */
+    display: block;
     margin: auto;
 }
+.btn-penomo:hover {
+    background-color: #00CC9C; /* This will make the button green when clicked */
+    color: white; /* Optional: change text color to white when active/selected */
+    /* Any other styles you want to apply when the button is clicked */
+  }
+
+.btn-penomo.btn-disabled {
+    background-color: grey;
+    /* Change the background color for the disabled state */
+    cursor: default;
+    /* Disable the pointer cursor */
+}
+
+.btn-penomo:active{
+    background-color: #00CC9C; /* This will make the button green when clicked */
+    color: white; /* Optional: change text color to white when active/selected */
+    /* Any other styles you want to apply when the button is clicked */
+  }
 
 .btn-penomo-secondary {
     background-color: #9bbab6;
@@ -174,21 +264,60 @@ html, body, body * {
     /* Removes outline on focus for some browsers */
     transition: background-color 0.3s;
     /* Smooth transition for hover effect */
-    display: block; /* Add this line */
+    display: block;
+    /* Add this line */
     margin: auto;
 }
+.btn-penomo-secondary:active{
+    background-color: #00CC9C; /* This will make the button green when clicked */
+    color: white; /* Optional: change text color to white when active/selected */
+    /* Any other styles you want to apply when the button is clicked */
+  }
 
-.btn-penomo:hover {
-    background-color: #00CC9C;
-    /* Darker shade of Penomo color for hover state */
+  .btn-penomo-secondary:hover {
+    background-color: #00CC9C; /* This will make the button green when clicked */
+    color: white; /* Optional: change text color to white when active/selected */
+    /* Any other styles you want to apply when the button is clicked */
+  }
+
+
+.nav-button {
+    display: flex;
+    width: 170px;
+    /* height: 40px; Set a fixed height if needed */
+    margin-top: 1rem;
+    /* This ensures there is space above the buttons */
 }
 
-.btn-penomo.btn-disabled {
-    background-color: grey;
-    /* Change the background color for the disabled state */
-    cursor: default;
-    /* Disable the pointer cursor */
-}
+.toggle-buttons {
+    display: flex;
+    justify-content: center;
+    margin-bottom: 1rem;
+  }
+  
+  .toggle-button {
+    background-color: #f0f0f0; /* Light grey background for the non-active button */
+    color: #333; /* Dark text for contrast */
+    border: 1px solid #ccc; /* Light grey border for non-active buttons */
+    padding: 10px 15px;
+    border-radius: 5px;
+    font-weight: bold;
+    cursor: pointer;
+    outline: none;
+    transition: background-color 0.3s;
+    margin-right: 5px; /* Space between buttons */
+  }
+  
+  .toggle-button:last-child {
+    margin-right: 0; /* Remove margin for the last button */
+  }
+  
+  .toggle-button.active, .toggle-button:hover {
+    background-color: #00CC9C; /* Penomo color for active/hover state */
+    color: #000; /* Text color set to black for active/hover state */
+    border: 1px solid #00CC9C; /* Penomo color border for active/hover state */
+  }
+  
 
 /* Popup styles */
 .popup-header {
@@ -212,13 +341,17 @@ html, body, body * {
     left: 0;
     width: 100%;
     height: 100%;
-    background-color: rgba(0, 0, 0, 0.5); /* Semi-transparent background */
+    background-color: rgba(0, 0, 0, 0.5);
+    /* Semi-transparent background */
     display: flex;
     justify-content: center;
     align-items: center;
-    z-index: 1000; /* Ensure it's on top */
-    padding: 1rem; /* Add padding to ensure margin from the window borders */
-    box-sizing: border-box; /* Include padding in the width and height calculations */
+    z-index: 1000;
+    /* Ensure it's on top */
+    padding: 1rem;
+    /* Add padding to ensure margin from the window borders */
+    box-sizing: border-box;
+    /* Include padding in the width and height calculations */
 }
 
 .popup-content {
@@ -226,13 +359,19 @@ html, body, body * {
     padding: 2rem;
     border-radius: 10px;
     box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
-    width: calc(100% - 2rem); /* Adjust width to account for padding */
+    width: calc(100% - 2rem);
+    /* Adjust width to account for padding */
     max-width: 500px;
-    display: flex; /* Use flexbox to align children */
-    flex-direction: column; /* Stack children vertically */
-    justify-content: center; /* Center children vertically */
-    align-items: center; /* Center children horizontally */
-    box-sizing: border-box; /* Include padding in the width and height calculations */
+    display: flex;
+    /* Use flexbox to align children */
+    flex-direction: column;
+    /* Stack children vertically */
+    justify-content: center;
+    /* Center children vertically */
+    align-items: center;
+    /* Center children horizontally */
+    box-sizing: border-box;
+    /* Include padding in the width and height calculations */
 }
 
 /* Close button */
@@ -251,7 +390,6 @@ html, body, body * {
     /* Adjust the color as needed */
 }
 
-
 .close:hover {
     color: #333;
 }
@@ -261,6 +399,7 @@ html, body, body * {
     display: flex;
     justify-content: space-between;
     align-items: center;
+    margin-top: 2rem;
     margin-bottom: 1rem;
     margin-right: 2rem;
 }
@@ -279,7 +418,74 @@ html, body, body * {
     margin-right: 2rem;
 }
 
+.modal-body {
+    padding: 20px;
+    /* Adjust the padding as needed */
+}
 
+.modal-body p {
+    word-wrap: break-word;
+    /* This ensures that long words will wrap and not overflow */
+    margin-bottom: 1rem;
+    /* Adds some space below each paragraph if you have multiple */
+}
+
+.progress-bar {
+    width: 100%;
+    height: 35px;
+    border: 1px solid #9bbab6;
+    background-color: #9bbab6;
+    /* border-radius: 5px; */
+    /* margin-top: 10px; */
+    /* display: flex; Remove this line */
+    /* align-items: center; Remove this line */
+    position: relative;
+    /* Add this line */
+    border-radius: 8px;
+    padding: 1.2rem;
+    margin-block: 1rem;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.filler {
+    background-color: #00CC9C;
+    height: 100%;
+    /* display: flex;
+    align-items: center;
+    justify-content: center; */
+    position: absolute;
+    /* Use absolute positioning */
+    left: 0;
+    /* Align to the left */
+    top: 0;
+    /* Align to the top */
+    bottom: 0;
+    /* Align to the bottom */
+}
+
+.balance-display {
+    display: grid;
+    grid-template-columns: 2fr 1fr 1fr;
+    /* Three columns with equal width */
+    gap: 10px;
+    /* Adjust the gap as needed */
+    align-items: left;
+    /* Center-align items vertically */
+    align-items: center;
+}
+
+.percentage-text {
+    color: #000000;
+    font-weight: bold;
+    position: absolute;
+    /* Use absolute positioning */
+    left: 50%;
+    /* Center horizontally */
+    top: 50%;
+    /* Center vertically */
+    transform: translate(-50%, -50%);
+    /* Center text precisely */
+}
 
 /* Additional styles for responsiveness and aesthetics */
 @media (max-width: 768px) {
