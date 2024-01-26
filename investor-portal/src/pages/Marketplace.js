@@ -53,8 +53,8 @@ const Marketplace = () => {
             let num_mul = num;
             let decimalPlaces = 0;
             while (num_mul < 1) {
-                num_mul = num_mul*10
-                decimalPlaces = decimalPlaces+1
+                num_mul = num_mul * 10
+                decimalPlaces = decimalPlaces + 1
             }
             // Ensure at least two significant digits after zeros
             const totalDigits = decimalPlaces + 1;
@@ -63,17 +63,23 @@ const Marketplace = () => {
             return num.toFixed(x); // Round to x decimal places
         }
     }
-    
+
 
     return (
         <div className="page-container">
-            <h1 className="page-header">Platform</h1>
+            <h1 className="page-header">Marketplace</h1>
             <div className="row">
                 {tokens.map((token) => (
                     <div key={token._id} className="col-12 col-md-6 col-lg-4 mb-4">
                         <div className="section-container h-100">
+
                             <div className="card-content">
-                                <h2>{token.name}</h2>
+                                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                                    <h4>{token.name}</h4>
+                                    <button className="info-btn" onClick={() => { /* Your info button click handler */ }}>
+                                        i
+                                    </button>
+                                </div>
                                 <div className="token-details">
                                     <div className="token-detail">
                                         <div className="detail-name">Token Contract:</div>
@@ -104,19 +110,22 @@ const Marketplace = () => {
                                 </div>
                             </div>
                             <button className="btn-penomo" onClick={() => handleBuyTokensClick(token)}>Buy Tokens</button>
+
                         </div>
                     </div>
                 ))}
             </div>
 
-            {selectedToken && (
-                <BuyTokens
-                    token={selectedToken}
-                    closeModal={handleCloseModal}
-                    show={isModalOpen}
-                />
-            )}
-        </div>
+            {
+                selectedToken && (
+                    <BuyTokens
+                        token={selectedToken}
+                        closeModal={handleCloseModal}
+                        show={isModalOpen}
+                    />
+                )
+            }
+        </div >
     );
 }
 

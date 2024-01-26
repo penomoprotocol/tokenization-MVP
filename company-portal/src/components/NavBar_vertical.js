@@ -20,6 +20,7 @@ const NavBar = () => {
     const [showVerifyModal, setShowVerifyModal] = useState(false); // State for VerifyModal visibility
     const [isVerified, setIsVerified] = useState(true);
     const [companyId, setCompanyId] = useState(null);
+    const [companyEmail, setCompanyEmail] = useState(null);
 
     const handleLoginModalClose = () => setShowLoginModal(false);
     const handleLoginModalShow = () => setShowLoginModal(true);
@@ -36,9 +37,10 @@ const NavBar = () => {
                     const response = await axios.get(`${process.env.REACT_APP_PENOMO_API}/api/company/jwt`, {
                         headers: { Authorization: `Bearer ${authToken}` }
                     });
-                    console.log("Company Data: ", response);
+                    // console.log("Company Data: ", response);
                     setIsVerified(response.data.isVerified);
                     setCompanyId(response.data._id); // Store the company ID
+                    setCompanyEmail(response.data.email);
                 } catch (error) {
                     console.error('Error fetching company data:', error);
                     // Handle error appropriately
@@ -69,17 +71,17 @@ const NavBar = () => {
         alignElements: 'center'
     };
 
- 
+
 
     return (
         <Navbar bg="white" expand="lg" className="flex-column">
             <Navbar.Brand as={Link} to="/">
                 <img src={logo} className="navbar-logo" alt="Penomo logo" />
+
             </Navbar.Brand>
             <Navbar.Toggle aria-controls="basic-navbar-nav" />
             {/* <Navbar.Collapse id="basic-navbar-nav" style={navCollapseStyle}> */}
             <Nav className="flex-column">
-
                 {authToken && (
                     <>
                         <Link as={NavLink} to="/dashboard" className="btn-tertiary-navbar nav-button" style={{ marginTop: '1rem', alignItems: 'center' }}>Dashboard</Link>
@@ -101,6 +103,8 @@ const NavBar = () => {
                             <Link onClick={handleVerifyModalShow} className="btn-secondary-navbar nav-button" style={{ marginTop: '2rem' }}>Verify</Link>
                         )}
                         <Link to="#" className="btn-secondary-navbar nav-button" style={{ marginTop: '2rem' }} >Contact Support</Link>
+                        <center style={{marginTop:'3rem'}}><strong>Logged in as:</strong></center>
+                        <center><strong>{companyEmail}</strong></center>
                         <Logout />
                     </>
                 ) : (

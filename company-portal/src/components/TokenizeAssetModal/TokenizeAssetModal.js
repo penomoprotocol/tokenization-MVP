@@ -122,7 +122,18 @@ const TokenizeAssetModal = ({ show, handleClose }) => {
             const tokenResponse = await axios.post(`${process.env.REACT_APP_PENOMO_API}/api/token/deploy`, tokenData, config);
 
             // Set response message
-            setResponseMessage(`Your asset has been registered under the following DID: ${newAsset.DID.document.id}. Your Security Contract has been deployed under the following address: ${tokenResponse.data.newTokenEntry.tokenContractAddress}.`);
+            setResponseMessage(
+                <div>
+                  <center>
+                    Your asset has been registered under the following DID: 
+                    <strong>{newAsset.DID.document.id}</strong>
+                  </center>
+                  <center>
+                    Your Security Contract has been deployed under the following address: 
+                    <strong>{tokenResponse.data.newTokenEntry.tokenContractAddress}</strong>
+                  </center>
+                </div>
+              );
         } catch (error) {
             console.error('Error in process:', error);
             setResponseMessage('An error occurred during the process.');

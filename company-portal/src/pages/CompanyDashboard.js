@@ -75,23 +75,16 @@ const CompanyDashboard = () => {
 
     const fullTokenAddressLink = (address) => `https://agung-testnet.subscan.io/token/${address}`;
 
-    function roundToDecimals(str, x) {
-        let num = parseFloat(str);
+    function roundToDecimals(numStr, decimals) {
+        let num = parseFloat(numStr);
         if (isNaN(num)) {
             return 'Invalid input';
         }
-        if (num < 1 && num % 1 !== 0) {
-            let num_mul = num;
-            let decimalPlaces = 0;
-            while (num_mul < 1) {
-                num_mul = num_mul * 10;
-                decimalPlaces = decimalPlaces + 1;
-            }
-            const totalDigits = decimalPlaces + 1;
-            return num.toFixed(Math.max(totalDigits, x));
-        } else {
-            return num.toFixed(x);
-        }
+    
+        return num.toLocaleString(undefined, {
+            minimumFractionDigits: decimals,
+            maximumFractionDigits: decimals,
+        });
     }
 
     const calculateAssetsInProgress = (tokens) => {

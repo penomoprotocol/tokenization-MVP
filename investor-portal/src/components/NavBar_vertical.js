@@ -20,6 +20,7 @@ const NavBar = () => {
     const [showVerifyModal, setShowVerifyModal] = useState(false); // State for VerifyModal visibility
     const [isVerified, setIsVerified] = useState(true);
     const [investorId, setInvestorId] = useState(null);
+    const [investorEmail, setInvestorEmail] = useState(null);
 
     const handleLoginModalClose = () => setShowLoginModal(false);
     const handleLoginModalShow = () => setShowLoginModal(true);
@@ -39,6 +40,7 @@ const NavBar = () => {
                     console.log("Investor Data: ", response);
                     setIsVerified(response.data.isVerified);
                     setInvestorId(response.data._id); // Store the investor ID
+                    setInvestorEmail(response.data.email);
                 } catch (error) {
                     console.error('Error fetching investor data:', error);
                     // Handle error appropriately
@@ -101,6 +103,8 @@ const NavBar = () => {
                             <Link onClick={handleVerifyModalShow} className="btn-secondary-navbar nav-button" style={{ marginTop: '2rem' }}>Verify</Link>
                         )}
                         <Link to="#" className="btn-secondary-navbar nav-button" style={{ marginTop: '2rem' }} >Contact Support</Link>
+                        <center style={{marginTop:'3rem'}}><strong>Logged in as:</strong></center>
+                        <center><strong>{investorEmail}</strong></center>
                         <Logout />
                     </>
                 ) : (
