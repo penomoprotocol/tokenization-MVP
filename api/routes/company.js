@@ -685,7 +685,8 @@ router.get('/company/jwt', verifyToken, async (req, res) => {
         
                 const holdersData = await Promise.all(tokenHolders.map(async (holderAddress) => {
                     // Fetch token balance for the holder and immediately convert it to a string
-                    const tokenBalance = (await contract.methods.balanceOf(holderAddress).call()).toString();
+                    const tokenBalanceWei = (await contract.methods.balanceOf(holderAddress).call()).toString();
+                    const tokenBalance = web3.utils.fromWei(tokenBalanceWei, 'ether');
                 
                     // Since tokenBalance is now a string, parsing it to a float should be safe
                     const holdingPercentage = (parseFloat(tokenBalance) / parseFloat(maxTokenSupply)) * 100;

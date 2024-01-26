@@ -28,6 +28,9 @@ const companySchema = new mongoose.Schema({
         required: true,
         unique: true
     },
+    bank: {
+        type: String,
+    },
     password: {
         type: String,
         required: true

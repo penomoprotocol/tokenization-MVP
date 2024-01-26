@@ -6,6 +6,19 @@ import UploadDocumentModal from '../../components/UploadDocumentModal';
 const ContractProgressItem = ({ contract, onSelect, isSelected }) => {
     const [showUploadDocumentModal, setShowUploadDocumentModal] = useState(false);
 
+    const renderStakeholdersList = () => {
+        return contract.tokenHolders.map((holder, index) => (
+            <tr key={index}> {/* Use index as key for simplicity */}
+                <td>{holder.data.firstname}</td>
+                <td>{holder.data.surname}</td>
+                <td>{holder.address}</td>
+                <td>{holder.tokenBalance}</td>
+                <td>{((parseFloat(holder.tokenBalance) / parseFloat(contract.maxTokenSupply)) * 100).toFixed(2)}%</td>
+            </tr>
+        ));
+    };
+
+
     const shortenDID = (did) => {
         // Implement your logic to shorten the DID here
         // For example, you can keep the first and last few characters
@@ -35,7 +48,7 @@ const ContractProgressItem = ({ contract, onSelect, isSelected }) => {
 
             {isSelected && (
                 <div>
-                    <h4 style={{marginTop:'2rem', marginBottom:'1rem'}}>Financing Status</h4>
+                    <h4 style={{ marginTop: '2rem', marginBottom: '1rem' }}>Financing Status</h4>
                     <div className={'section-container'}>
                         {contract.statusUpdates && contract.statusUpdates.length > 0 ? (
                             contract.statusUpdates.map((status, index) => (
@@ -62,7 +75,26 @@ const ContractProgressItem = ({ contract, onSelect, isSelected }) => {
                     </div>
 
 
-                    <h4 style={{marginTop:'2rem', marginBottom:'1rem'}}>Financing Info</h4>
+                    <h4 style={{ marginTop: '2rem', marginBottom: '1rem' }}>Stakeholders List</h4>
+                    <div className={'section-container'}>
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>First Name</th>
+                                    <th>Surname</th>
+                                    <th>Ethereum Address</th>
+                                    <th>Token Balance</th>
+                                    <th>Holding Percentage</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {renderStakeholdersList()}
+                            </tbody>
+                        </table>
+                    </div>
+
+
+                    <h4 style={{ marginTop: '2rem', marginBottom: '1rem' }}>Financing Info</h4>
                     <div className='section-container'>
                         <p>
                             <strong>Contract Address: </strong>
@@ -82,7 +114,7 @@ const ContractProgressItem = ({ contract, onSelect, isSelected }) => {
                     </div>
 
 
-                    <h4 style={{marginTop:'2rem', marginBottom:'1rem'}}>Funds Usage</h4>
+                    <h4 style={{ marginTop: '2rem', marginBottom: '1rem' }}>Funds Usage</h4>
 
                     {contract.fundingUsage && contract.fundingUsage.length > 0 ? (
                         contract.fundingUsage.map((usage, index) => (
@@ -97,7 +129,7 @@ const ContractProgressItem = ({ contract, onSelect, isSelected }) => {
                     )}
 
 
-                    <h4  style={{marginTop:'2rem', marginBottom:'1rem'}} className={'section-header'}>Projected Revenue</h4>
+                    <h4 style={{ marginTop: '2rem', marginBottom: '1rem' }} className={'section-header'}>Projected Revenue</h4>
 
                     {contract.revenueStreams && contract.revenueStreams.length > 0 ? (
                         contract.revenueStreams.map((stream, index) => (
@@ -112,7 +144,7 @@ const ContractProgressItem = ({ contract, onSelect, isSelected }) => {
                     )}
 
 
-                    <h4 style={{marginTop:'2rem', marginBottom:'1rem'}}>Associated Assets</h4>
+                    <h4 style={{ marginTop: '2rem', marginBottom: '1rem' }}>Associated Assets</h4>
 
                     {contract.associatedAssets && contract.associatedAssets.length > 0 ? (
                         contract.associatedAssets.map((asset, index) => (
@@ -133,18 +165,21 @@ const ContractProgressItem = ({ contract, onSelect, isSelected }) => {
                     )}
 
 
-                    <h4 style={{marginTop:'2rem', marginBottom:'1rem'}}>General Info</h4>
+                    <h4 style={{ marginTop: '2rem', marginBottom: '1rem' }}>General Info</h4>
                     <div className={'section-container'}>
                         <p>{contract.projectDescription}</p>
                     </div>
 
-                    <h4 style={{marginTop:'2rem', marginBottom:'1rem'}}>Documents</h4>
+                    <h4 style={{ marginTop: '2rem', marginBottom: '1rem' }}>Documents</h4>
                     <div className={'section-container'}>
                         <label href="/path/to/prospectus_template.pdf" download className="btn-link">Prospectus</label>
                         <label href="/path/to/prospectus_template.pdf" download className="btn-link">penomo Terms & Conditions</label>
                         <label href="/path/to/prospectus_template.pdf" download className="btn-link">Cost Informations</label>
                         <label href="/path/to/prospectus_template.pdf" download className="btn-link">Transfer of Future Revenues Agreement</label>
                     </div>
+
+
+
                 </div>
             )}
             {showUploadDocumentModal && (

@@ -192,6 +192,7 @@ const CompanyDashboard = () => {
                     currency={selectedCurrency}
                     closeModal={() => setShowWithdraw(false)}
                     show={showWithdraw}
+                    bankAccount={companyData.bank}
                 />
             }
 

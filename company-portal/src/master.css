@@ -289,6 +289,36 @@ body * {
     /* This ensures there is space above the buttons */
 }
 
+.toggle-buttons {
+    display: flex;
+    justify-content: center;
+    margin-bottom: 1rem;
+  }
+  
+  .toggle-button {
+    background-color: #f0f0f0; /* Light grey background for the non-active button */
+    color: #333; /* Dark text for contrast */
+    border: 1px solid #ccc; /* Light grey border for non-active buttons */
+    padding: 10px 15px;
+    border-radius: 5px;
+    font-weight: bold;
+    cursor: pointer;
+    outline: none;
+    transition: background-color 0.3s;
+    margin-right: 5px; /* Space between buttons */
+  }
+  
+  .toggle-button:last-child {
+    margin-right: 0; /* Remove margin for the last button */
+  }
+  
+  .toggle-button.active, .toggle-button:hover {
+    background-color: #00CC9C; /* Penomo color for active/hover state */
+    color: #000; /* Text color set to black for active/hover state */
+    border: 1px solid #00CC9C; /* Penomo color border for active/hover state */
+  }
+  
+
 /* Popup styles */
 .popup-header {
     position: relative;
