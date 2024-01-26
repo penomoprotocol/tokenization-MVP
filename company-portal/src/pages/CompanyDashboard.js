@@ -16,7 +16,7 @@ const CompanyDashboard = () => {
     const [showWithdraw, setShowWithdraw] = useState(false);
     const [selectedCurrency, setSelectedCurrency] = useState('ETH');
     const [liquidityContract, setLiquidityContract] = useState(null);
-    
+
 
     useEffect(() => {
         const fetchCompanyData = async () => {
@@ -37,11 +37,27 @@ const CompanyDashboard = () => {
 
     useEffect(() => {
         const fetchTransactions = async () => {
-            if (companyData?.ethereumPublicKey) {
+            if (companyData?.tokens && companyData.tokens.length > 0) {
                 try {
-                    const address = companyData.ethereumPublicKey;
-                    const response = await axios.get(`${process.env.REACT_APP_PENOMO_API}/api/transactions/user/${address}`);
-                    setCompanyTransactions(response.data.slice(0, 5));
+                    // Map each token to a request to fetch its transactions
+                    const transactionsRequests = companyData.tokens.map(token => {
+                        const address = token.liquidityContractAddress;
+                        return axios.get(`${process.env.REACT_APP_PENOMO_API}/api/transactions/liquidityContract/${address}`);
+                        
+                    });
+
+                    // Use Promise.all to handle all requests concurrently
+                    const transactionsResponses = await Promise.all(transactionsRequests);
+                    console.log("transactionsResponses: ", transactionsResponses);
+                    // Process responses to extract data
+                    const transactionsData = transactionsResponses.reduce((acc, response, index) => {
+                        const token = companyData.tokens[index];
+                        acc[token.liquidityContractAddress] = response.data.slice(0, 5); // Store the first 5 transactions for each token
+                        return acc;
+                    }, {});
+
+                    setCompanyTransactions(transactionsData);
+                    console.log("transactionsData: ", transactionsData);
                 } catch (error) {
                     console.error('Error fetching transactions:', error);
                 }
@@ -49,7 +65,7 @@ const CompanyDashboard = () => {
         };
 
         fetchTransactions();
-    }, [companyData?.ethereumPublicKey]);
+    }, [companyData?.tokens]);
 
     const toggleWithdraw = (currency, liquidityContractAddress) => {
         setSelectedCurrency(currency);
@@ -164,23 +180,28 @@ const CompanyDashboard = () => {
                 )}
             </div>
 
-
-
-            <div className="recent-transactions section-container">
+            <div className="transactions-section section-container">
                 <h2>Recent Transactions</h2>
-                <ul className="section-list">
-                    {[...companyTransactions].map((transaction, index) => (
+                {Object.entries(companyTransactions).map(([liquidityContractAddress, transactions]) => (
+                    <div key={liquidityContractAddress}>
+                        <ul className="section-list">
+                            {transactions.map((transaction, index) => (
                         <li className="section-list-item" key={index} onClick={() => window.open(`https://agung-testnet.subscan.io/tx/${transaction.hash}`, '_blank')}>
-                            <strong>Type:</strong> {transaction.transactionType}<br />
-                            {transaction.tokenSymbol && <><strong>Token:</strong> {transaction.tokenSymbol}<br /></>}
-                            {transaction.tokenAmount && <><strong>Token Amount:</strong> {transaction.tokenAmount}<br /></>}
-                            <strong>From:</strong> {transaction.from}<br />
-                            <strong>To:</strong> {transaction.to}<br />
-                            <strong>Transferred Amount:</strong> {roundToDecimals(transaction.payableAmount, 2)} {transaction.currency}<br />
-                        </li>
-                    ))}
-                </ul>
+                                    <strong>Date:</strong> {transaction.date}<br />
+                                    <strong>Type:</strong> {transaction.transactionType}<br />
+                                    <strong>Project:</strong> {transaction.project}<br />
+                                    {/* <strong>From:</strong> {transaction.from}<br />
+                                    <strong>To:</strong> {transaction.to}<br /> */}
+                                    <strong>Amount:</strong> {transaction.payableAmount} {transaction.currency}<br />
+                                </li>
+                            ))}
+                        </ul>
+                    </div>
+                ))}
             </div>
+
+
+
 
             {showTopUp &&
                 <TopUpWallet
