@@ -13,6 +13,9 @@ const companySchema = new mongoose.Schema({
         type: String,
         required: true
     },
+    ticker: {
+        type: String,
+    },
     registrationNumber: {
         type: String,
         unique: true

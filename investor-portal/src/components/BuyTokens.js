@@ -81,7 +81,7 @@ const BuyTokens = ({ token, closeModal, show }) => {
         {!responseMessage ? (
           <form onSubmit={handleSubmit} className="token-purchase-form">
             <div className="form-group">
-              <label htmlFor="tokenAmount" className="form-label"><strong>Amount to buy</strong></label>
+              <label htmlFor="tokenAmount" className="form-label"><strong>Token Amount to Buy</strong></label>
               <input
                 type="number"
                 id="tokenAmount"

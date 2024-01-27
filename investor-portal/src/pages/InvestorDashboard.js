@@ -67,25 +67,16 @@ const InvestorDashboard = () => {
     //     return (wei / 1e18).toString();
     // };
 
-    function roundToDecimals(str, x) {
-        let num = parseFloat(str);
+    function roundToDecimals(numStr, decimals) {
+        let num = parseFloat(numStr);
         if (isNaN(num)) {
-            return 'Invalid input'; // Handle the error as needed
+            return 'Invalid input';
         }
-        // Check if the number is less than 1 and not an integer
-        if (num < 1 && num % 1 !== 0) {
-            let num_mul = num;
-            let decimalPlaces = 0;
-            while (num_mul < 1) {
-                num_mul = num_mul * 10
-                decimalPlaces = decimalPlaces + 1
-            }
-            // Ensure at least two significant digits after zeros
-            const totalDigits = decimalPlaces + 1;
-            return num.toFixed(Math.max(totalDigits, x));
-        } else {
-            return num.toFixed(x); // Round to x decimal places
-        }
+    
+        return num.toLocaleString(undefined, {
+            minimumFractionDigits: decimals,
+            maximumFractionDigits: decimals,
+        });
     }
 
     const formatTokenPrice = (price, currency) => currency === 'USDC' ? `${price} USDC` : `${price} ETH`;
@@ -124,18 +115,10 @@ const InvestorDashboard = () => {
             </div> */}
 
             <div className="section-container">
-                <h2 className="section-header">Cryptocurrencies</h2>
+                <h2 className="section-header">Your Payment Tokens</h2>
                 <div className="balances-container">
                     <div className="wallet-balances-container">
-                        <div className="wallet-balance">
-                            <strong className="balance-title">AGUNG</strong>
-                            <span className="balance-amount">{roundToDecimals(investorData.agungBalance, 2)}</span>
-                            <div className="btn-container">
-                                <button className="btn-penomo" onClick={() => setShowTopUp(true)}>Top Up</button>
-                                <button className="btn-penomo-secondary" onClick={() => toggleWithdraw('ETH')}>Withdraw</button>
-                            </div>
-                        </div>
-                        <div className="wallet-balance">
+                    <div className="wallet-balance">
                             <strong className="balance-title">USDC</strong>
                             <span className="balance-amount">{roundToDecimals(investorData.usdcBalance, 2)}</span>
                             <div className="btn-container">
@@ -143,12 +126,21 @@ const InvestorDashboard = () => {
                                 <button className="btn-penomo-secondary" onClick={() => toggleWithdraw('USDC')}>Withdraw</button>
                             </div>
                         </div>
+                        <div className="wallet-balance">
+                            <strong className="balance-title">PENOMO</strong>
+                            <span className="balance-amount">{roundToDecimals(investorData.agungBalance, 2)}</span>
+                            <div className="btn-container">
+                                <button className="btn-penomo" onClick={() => setShowTopUp(true)}>Top Up</button>
+                                <button className="btn-penomo-secondary" onClick={() => toggleWithdraw('ETH')}>Withdraw</button>
+                            </div>
+                        </div>
+
                     </div>
                 </div>
             </div>
 
             <div className="section-container">
-                <h2 className="section-header">RWA Tokens</h2>
+                <h2 className="section-header">Your Asset Tokens</h2>
                 {isLoadingTokenHoldings ? (
                     <p>Loading...</p> // Display loading message while data is being fetched
                 ) : investorTokenHoldings && investorTokenHoldings.length > 0 ? (
@@ -161,17 +153,17 @@ const InvestorDashboard = () => {
                                     {<><span>({token.symbol})</span></>}
                                 </a>
                             </div>
-                            <div style={{ flex: '1 1 16.6%' }} className="label-value">
+                            {/* <div style={{ flex: '1 1 16.6%' }} className="label-value">
                                 <strong className="label">Max Supply</strong>
                                 <span className="value">{token.maxTokenSupply}</span>
-                            </div>
+                            </div> */}
                             <div style={{ flex: '1 1 16.6%' }} className="label-value">
-                                <strong className="label">Balance</strong>
+                                <strong className="label">Holdings</strong>
                                 <span className="value">{token.balance}</span>
                             </div>
                             <div style={{ flex: '1 1 16.6%' }} className="label-value">
-                                <strong className="label">Current Price</strong>
-                                <span className="value">{formatTokenPrice(token.tokenPrice, token.currency)}</span>
+                                <strong className="label">Holdings Value</strong>
+                                <span className="value">{formatTokenPrice(roundToDecimals(token.balance*token.tokenPrice,2), token.currency)}</span>
                             </div>
                             <div style={{ flex: '1 1 16.6%' }} className="label-value">
                                 <strong className="label">Rem. Contract Term</strong>
@@ -179,11 +171,11 @@ const InvestorDashboard = () => {
                             </div>
                             {/* <div style={{ flex: '1 1 16.6%' }} className="label-value">
                                 <strong className="label">Total Revenue</strong>
-                                <span className="value">USDC {"0.00"}</span>
+                                <span className="value">{formatTokenPrice(roundToDecimals(token.balance*token.tokenPrice*0.21234,2), token.currency)}</span>
                             </div> */}
-                            {/* <div className="btn-container" style={{ flex: '1 1 16.6%' }}>
+                            <div className="btn-container" style={{ flex: '1 1 6.6%'}}>
                                 <button className="btn-penomo">Sell</button>
-                            </div> */}
+                            </div>
                         </div>
                     ))
                 ) : (

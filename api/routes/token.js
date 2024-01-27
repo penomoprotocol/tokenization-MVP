@@ -1,6 +1,6 @@
 //const web3 = require('web3');
 const CryptoJS = require('crypto-js');
-const { web3, networkId, GSCAddress, USDCAddress } = require('../config/web3Config_AGNG');
+const { web3, networkId, GSCAddress, USDCContractAddress } = require('../config/web3Config_AGNG');
 
 const crypto = require('crypto');
 
@@ -43,6 +43,10 @@ const USDCContractPath = path.join(USDCBuild);
 const USDCContractJSON = JSON.parse(fs.readFileSync(USDCContractPath, 'utf8'));
 const USDCABI = USDCContractJSON.abi;
 
+
+const BLOCKEXPLORER_API_URL = process.env.BLOCKEXPLORER_API_URL
+const BLOCKEXPLORER_API_KEY = process.env.BLOCKEXPLORER_API_KEY
+
 const passport = require('passport');
 const JwtStrategy = require('passport-jwt').Strategy;
 const ExtractJwt = require('passport-jwt').ExtractJwt;
@@ -57,6 +61,7 @@ const swaggerUi = require('swagger-ui-express');
 
 const express = require('express');
 const router = express.Router();
+const axios = require('axios');
 
 // const ipfsClient = require('ipfs-http-client');
 // const ipfs = ipfsClient({ host: 'localhost', port: '5001', protocol: 'http' }); // adjust if you're connecting to a different IPFS node
@@ -98,7 +103,6 @@ async function getCurrentGasPrice() {
     gasPrice = BigInt(gasPrice) * 200n / 100n;
     return gasPrice;
 }
-
 
 // Helper function to estimate gas and send a transaction
 async function estimateAndSend(transaction, fromAddress, fromPrivateKey, toAddress) {
@@ -154,6 +158,45 @@ const decryptPrivateKey = (encryptedKey, SECRET_KEY) => {
     const decrypted = CryptoJS.AES.decrypt(encryptedKey, SECRET_KEY).toString(CryptoJS.enc.Utf8);
     return decrypted;
 };
+
+// Function to fetch balance for a given address
+async function fetchContractBalance(address) {
+    const data = JSON.stringify({ "address": address });
+    const config = {
+        method: 'post',
+        url: `${BLOCKEXPLORER_API_URL}/api/scan/account/tokens`,
+        headers: {
+            'User-Agent': 'Apidog/1.0.0 (https://apidog.com)',
+            'Content-Type': 'application/json',
+            'X-API-Key': BLOCKEXPLORER_API_KEY
+        },
+        data: data
+    };
+
+    try {
+        const response = await axios(config);
+        console.log("response: ", response.data.ERC20);
+        let agungBalance = '0';
+        let usdcBalance = '0';
+
+        // Check if balance arrays exist
+        if (response.data.data.native) {
+            const nativeBalances = response.data.data.native;
+            const agungBalanceWei = nativeBalances.find(token => token.symbol === 'AGUNG')?.balance || '0';
+            agungBalance = web3.utils.fromWei(agungBalanceWei, 'ether');
+        }
+        if (response.data.data.ERC20) {
+            const erc20Balances = response.data.data.ERC20;
+            const usdcBalanceWei = erc20Balances.find(token => token.contract === USDCContractAddress)?.balance || '0';
+            usdcBalance = web3.utils.fromWei(usdcBalanceWei, 'ether');
+        }
+
+        return { agungBalance, usdcBalance };
+    } catch (error) {
+        console.error(`Error fetching balance for address ${address}:`, error);
+        return { agungBalance: '0', usdcBalance: '0' };
+    }
+}
 
 
 // // // DEPLOYMENT SCRIPTS // TODO: Refactor into separate file and import
@@ -699,13 +742,22 @@ router.patch('/token/status/:tokenId', async (req, res) => {
  *           type: string
  *           description: ID of the company that owns the token.
  */
-// Get all tokens
+// Get all tokens along with associated company and asset objects
 router.get('/token/all', async (req, res) => {
     try {
-        // Assuming Token is your Mongoose model for the token contracts
-        const tokens = await Token.find({});
+        // Find all tokens and populate company and asset fields
+        const tokens = await Token.find({})
+            .populate('companyId') // Populate the company object
+            .populate('assetIds'); // Populate the asset objects
 
-        // Respond with an array of all token contracts
+            for (const token of tokens) {
+                token.fundingCurrent = (await fetchContractBalance(token.liquidityContractAddress)).usdcBalance;
+            }
+
+        // DEBUG
+        console.log("tokens: ", tokens[0].liquidityPoolBalance);
+        
+        // Respond with an array of all token contracts along with their associated company and assets
         res.status(200).json(tokens);
     } catch (error) {
         console.error('Error retrieving tokens:', error);

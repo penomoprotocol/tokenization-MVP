@@ -25,7 +25,7 @@ const StepTwoForm = ({
         <div>
             <h3>Asset Valuation</h3>
             <div className="form-group">
-                <label htmlFor="assetValue">Purchase Value</label>
+                <label htmlFor="assetValue">Project Costs</label>
                 <input
                     id="assetValue"
                     type="text" // Change input type to text

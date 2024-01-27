@@ -32,7 +32,7 @@ const StepFourForm = ({
                     placeholder="Enter a short description of your project."
                 />
             </div>
-            <div className="form-group">
+            {/* <div className="form-group">
                 <label htmlFor="tokenSymbol">Token Symbol</label>
                 <input
                     id="tokenSymbol"
@@ -42,7 +42,7 @@ const StepFourForm = ({
                     onChange={(e) => setTokenSymbol(e.target.value)}
                     placeholder="Set Symbol"
                 />
-            </div>
+            </div> */}
             <div className="form-group">
                 <label htmlFor="contractStartDate">Contract Start Date</label>
                 <input

@@ -6,6 +6,7 @@ import { useNavigate, Link } from 'react-router-dom';
 
 const RegisterModal = ({ show, handleClose }) => {
   const [businessName, setName] = useState('');
+  const [ticker, setTicker] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
@@ -18,6 +19,7 @@ const RegisterModal = ({ show, handleClose }) => {
     try {
       await axios.post(`${process.env.REACT_APP_PENOMO_API}/api/company/register`, {
         businessName,
+        ticker,
         email,
         password,
       });
@@ -46,6 +48,17 @@ const RegisterModal = ({ show, handleClose }) => {
               className="form-control"
               value={businessName}
               onChange={(e) => setName(e.target.value)}
+              required
+            />
+          </div>
+          <div className="form-group">
+            <label htmlFor="ticker" className="form-label">Company Ticker (Your unique symbol on penomo):</label>
+            <input
+              type="text"
+              id="ticker"
+              className="form-control"
+              value={ticker}
+              onChange={(e) => setTicker(e.target.value)}
               required
             />
           </div>

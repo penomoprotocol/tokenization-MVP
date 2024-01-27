@@ -94,9 +94,47 @@ const TokenizeAssetModal = ({ show, handleClose }) => {
             // Register asset
             const assetResponse = await axios.post(`${process.env.REACT_APP_PENOMO_API}/api/asset/register`, assetData, config);
             const newAsset = assetResponse.data.newAsset;
-            
+
             //DEBUG
             console.log("registered newAsset: ", newAsset);
+
+            companyId = newAsset.companyId;
+
+            // Define 'tokenSymbol' 
+            let tokenSymbol;
+
+            // Retrieve the company object based on companyId
+            Company.findById(companyId, async (err, company) => {
+                if (err) {
+                    console.error('Error retrieving company:', err);
+                    // Handle the error as needed
+                } else {
+                    if (company) {
+                        // Now, 'company' contains the retrieved company object
+                        const companyTicker = company.ticker;
+
+                        try {
+                            // Calculate the index by counting the number of tokens with the same companyId
+                            const tokensWithSameCompanyId = await Token.find({ companyId }).exec();
+                            const index = tokensWithSameCompanyId.length + 1;
+
+                            // Construct 'tokenSymbol'
+                            tokenSymbol = `${companyTicker}-${index}`;
+
+                            // Continue with the logic for constructing 'tokenSymbol'
+
+                            // Use 'company' and 'tokenSymbol' as needed in your code
+                        } catch (error) {
+                            console.error('Error counting tokens:', error);
+                            // Handle the error when counting tokens
+                        }
+                    } else {
+                        console.error('Company not found.');
+                        // Handle the case where the company is not found
+                    }
+                }
+            });
+
 
             // Token deployment data
             const tokenData = {
@@ -111,10 +149,10 @@ const TokenizeAssetModal = ({ show, handleClose }) => {
                 revenueShare,
                 //TODO: Enable multiple asset Ids
                 assetIds: [newAsset._id],
-                assetValue, 
-                revenueStreams, 
-                fundingGoal, 
-                fundingUsage, 
+                assetValue,
+                revenueStreams,
+                fundingGoal,
+                fundingUsage,
                 projectDescription
             };
 
@@ -124,16 +162,16 @@ const TokenizeAssetModal = ({ show, handleClose }) => {
             // Set response message
             setResponseMessage(
                 <div>
-                  <center>
-                    Your asset has been registered under the following DID: 
-                    <strong>{newAsset.DID.document.id}</strong>
-                  </center>
-                  <center>
-                    Your Security Contract has been deployed under the following address: 
-                    <strong>{tokenResponse.data.newTokenEntry.tokenContractAddress}</strong>
-                  </center>
+                    <center>
+                        Your asset has been registered under the following DID:
+                        <strong>{newAsset.DID.document.id}</strong>
+                    </center>
+                    <center>
+                        Your Security Contract has been deployed under the following address:
+                        <strong>{tokenResponse.data.newTokenEntry.tokenContractAddress}</strong>
+                    </center>
                 </div>
-              );
+            );
         } catch (error) {
             console.error('Error in process:', error);
             setResponseMessage('An error occurred during the process.');
@@ -150,11 +188,11 @@ const TokenizeAssetModal = ({ show, handleClose }) => {
             <Modal.Body>
                 {!responseMessage ? (
                     <>
-                        {step === 1 && <StepFourForm {...{ contractName, setContractName, projectDescription, setProjectDescription, tokenSymbol, setTokenSymbol, contractStartDate, setContractStartDate, contractTerm, setContractTerm, revenueShare, setRevenueShare }} />}  
+                        {step === 1 && <StepFourForm {...{ contractName, setContractName, projectDescription, setProjectDescription, tokenSymbol, setTokenSymbol, contractStartDate, setContractStartDate, contractTerm, setContractTerm, revenueShare, setRevenueShare }} />}
                         {step === 2 && <StepThreeForm {...{ fundingGoal, setFundingGoal, fundingUsage, setFundingUsage, tokenAmount, setTokenAmount, tokenPrice, setTokenPrice, handleFundingUsageChange, addFundingUsageItem }} />}
                         {step === 3 && <StepOneForm {...{ assetType, setAssetType, brand, setBrand, model, setModel, serialNumber, setSerialNumber, capacity, setCapacity, power, setPower, location, setLocation }} />}
                         {step === 4 && <StepTwoForm {...{ assetValue, setAssetValue, revenueStreams, setRevenueStreams, addRevenueStream, deleteRevenueStream, handleRevenueStreamChange }} />}
-                        {step === 5 && <StepFiveForm {...{ }} />}
+                        {step === 5 && <StepFiveForm {...{}} />}
                     </>
                 ) : (
                     <div style={{ padding: '20px', wordWrap: 'break-word' }}>{responseMessage}</div>

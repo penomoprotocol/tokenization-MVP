@@ -274,7 +274,7 @@ async function fetchContractBalance(address) {
 // Company Registration
 router.post('/company/register', async (req, res) => {
     try {
-        const { businessName, email, password } = req.body;
+        const { businessName, ticker, email, password } = req.body;
         const hashedPassword = await bcrypt.hash(password, 10);
 
         // Create a new Ethereum wallet and get the private key
@@ -287,6 +287,7 @@ router.post('/company/register', async (req, res) => {
 
         const company = new Company({
             businessName,
+            ticker,
             email,
             password: hashedPassword,
             ethereumPrivateKey: encryptedPrivateKey, // Store the encrypted private key
@@ -804,7 +805,7 @@ router.get('/company/jwt', verifyToken, async (req, res) => {
         // Fetch balance for each serviceContractAddress and add it to the token object
         const tokenData = await Promise.all(
             companyTokens.map(async (token) => {
-                // Fetch liquidity pool balance and associated assets as before
+                // Fetch liquidity pool balance and associated assets
                 const liquidityPoolBalance = await fetchContractBalance(token.liquidityContractAddress);
                 const associatedAssets = await Asset.find({ _id: { $in: token.assetIds } });
 

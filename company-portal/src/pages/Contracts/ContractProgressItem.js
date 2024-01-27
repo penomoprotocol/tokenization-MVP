@@ -39,7 +39,7 @@ const ContractProgressItem = ({ contract, onSelect, isSelected }) => {
         <div className="section-container" onClick={onSelect}>
             <div className='contract-header'>
                 <h3>{contract.name}</h3>
-                <div className='center-vertical-group'><strong>Total Financing:</strong>  ${contract.liquidityPoolBalance.usdcBalance ? `${contract.liquidityPoolBalance.usdcBalance}` : '0.00'}</div>
+                <div className='center-vertical-group'><strong>Total Received:</strong>  ${contract.liquidityPoolBalance.usdcBalance ? `${contract.liquidityPoolBalance.usdcBalance}` : '0.00'}</div>
                 <div className="progress-bar">
                     <div className="filler" style={{ width: `${(contract.liquidityPoolBalance.usdcBalance / contract.fundingGoal) * 102.04}%` }}>
                     </div>

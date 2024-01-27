@@ -86,7 +86,7 @@ const StepOneForm = ({
 
             {assetType && (
                 <div className="form-group">
-                    <label htmlFor="power">Power (kW)</label>
+                    <label htmlFor="power">Power (MW)</label>
                     <input
                         id="power"
                         type="text"

@@ -232,7 +232,7 @@ body * {
     /* Any other styles you want to apply when the button is clicked */
   }
 
-.btn-penomo.btn-disabled {
+.btn-penomo:disabled {
     background-color: grey;
     /* Change the background color for the disabled state */
     cursor: default;
@@ -410,7 +410,7 @@ body * {
     margin-bottom: 1rem;
   }
 
-/* Form styling */
+/* Form styling
 .form-group {
     display: flex;
     justify-content: space-between;
@@ -426,12 +426,35 @@ body * {
 }
 
 .form-control {
-    flex-basis: 70%;
+    flex-basis: 60%;
     padding: 0.5rem;
     border: 1px solid #ced4da;
     border-radius: 0.25rem;
     margin-bottom: 1rem;
     margin-right: 2rem;
+    margin-left: 5rem;
+} */
+
+.form-group {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    width: 100%;
+    margin-bottom: 1rem;
+}
+
+.form-label {
+    text-align: left;
+    width: 50%;
+    margin-right: 0.5rem; /* Adjust as needed for spacing */
+}
+
+.form-control {
+    text-align: right;
+    width: 50%;
+    padding: 0.5rem;
+    border: 1px solid #ccc; /* Example border, adjust as needed */
+    border-radius: 4px; /* Example border radius */
 }
 
 .modal-body {

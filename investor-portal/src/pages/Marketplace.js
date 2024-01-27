@@ -35,7 +35,7 @@ const Marketplace = () => {
 
     const shortAddress = (address) => `${address.slice(0, 6)}...${address.slice(-4)}`;
     const fullTokenAddressLink = (address) => `https://agung-testnet.subscan.io/token/${address}`;
-    const formatTokenPrice = (price, currency) => currency === 'USDC' ? `${price} USDC` : `${price} ETH`;
+    const formatTokenPrice = (price, currency) => currency === 'USDC' ? `${price} USDC` : `${price} PENOMO`;
 
     // const weiToEth = (wei) => {
     //     const eth = wei / 1e18;
@@ -43,31 +43,22 @@ const Marketplace = () => {
     // };
 
 
-    function roundToDecimals(str, x) {
-        let num = parseFloat(str);
+    function roundToDecimals(numStr, decimals) {
+        let num = parseFloat(numStr);
         if (isNaN(num)) {
-            return 'Invalid input'; // Handle the error as needed
+            return 'Invalid input';
         }
-        // Check if the number is less than 1 and not an integer
-        if (num < 1 && num % 1 !== 0) {
-            let num_mul = num;
-            let decimalPlaces = 0;
-            while (num_mul < 1) {
-                num_mul = num_mul * 10
-                decimalPlaces = decimalPlaces + 1
-            }
-            // Ensure at least two significant digits after zeros
-            const totalDigits = decimalPlaces + 1;
-            return num.toFixed(Math.max(totalDigits, x));
-        } else {
-            return num.toFixed(x); // Round to x decimal places
-        }
+
+        return num.toLocaleString(undefined, {
+            minimumFractionDigits: decimals,
+            maximumFractionDigits: decimals,
+        });
     }
 
 
     return (
         <div className="page-container">
-            <h1 className="page-header">Marketplace</h1>
+            <h1 className="page-header">Discover Assets</h1>
             <div className="row">
                 {tokens.map((token) => (
                     <div key={token._id} className="col-12 col-md-6 col-lg-4 mb-4">
@@ -81,7 +72,7 @@ const Marketplace = () => {
                                     </button>
                                 </div>
                                 <div className="token-details">
-                                    <div className="token-detail">
+                                    {/* <div className="token-detail">
                                         <div className="detail-name">Token Contract:</div>
                                         <div className="detail-value">
                                             <a href={fullTokenAddressLink(token.tokenContractAddress)}
@@ -89,27 +80,57 @@ const Marketplace = () => {
                                                 {shortAddress(token.tokenContractAddress)}
                                             </a>
                                         </div>
-                                    </div>
-                                    <div className="token-detail">
+                                    </div> */}
+                                    {/* <div className="token-detail">
                                         <div className="detail-name">Revenue Share:</div>
                                         <div className="detail-value">{token.revenueShare}%</div>
+                                    </div> */}
+
+                                    <div className="token-detail">
+                                        <div className="detail-name">Project Type:</div>
+                                        <div className="detail-value">{token.assetIds[0].assetType}</div>
+                                    </div>
+                                    <div className="token-detail">
+                                        <div className="detail-name">Project Size:</div>
+                                        <div className="detail-value">${roundToDecimals(token.fundingGoal, 2)}</div>
+                                    </div>
+                                    <div className="token-detail">
+                                        <div className="detail-name">Issuer:</div>
+                                        <div className="detail-value">{token.companyId.businessName}</div>
                                     </div>
                                     <div className="token-detail">
                                         <div className="detail-name">Contract Term:</div>
                                         <div className="detail-value">{token.contractTerm} months</div>
                                     </div>
                                     <div className="token-detail">
-                                        <div className="detail-name">Max Supply:</div>
-                                        <div className="detail-value">{token.maxTokenSupply}</div>
+                                        <div className="detail-name">Projected Revenue:</div>
+                                        <div className="detail-value">
+                                            {roundToDecimals(token.revenueStreams[0].amount / token.fundingGoal * 100 - 100, 2)}%
+                                        </div>
                                     </div>
                                     <div className="token-detail">
-                                        <div className="detail-name">Price:</div>
+                                        {/* <div className="detail-name">Financing Status:</div> */}
+                                        <div className="progress-bar">
+                                            <div className="filler" style={{ width: `${(token.fundingCurrent / token.fundingGoal) * 102.04}%` }}>
+                                            </div>
+                                            <div className="percentage-text">{((token.fundingCurrent / token.fundingGoal) * 102.04).toFixed(2)}% Financed</div>
+                                        </div>
+                                        {/* <div className="detail-value">{roundToDecimals(token.fundingCurrent / token.fundingGoal / 0.98 * 100, 2)}%</div> */}
+                                    </div>
+                                    <div className="token-detail">
+                                        <div className="detail-name">Token Price:</div>
                                         <div className="detail-value">{formatTokenPrice(roundToDecimals(token.tokenPrice, 2), token.currency)}</div>
                                     </div>
                                     {/* Add more details as needed */}
                                 </div>
                             </div>
-                            <button className="btn-penomo" onClick={() => handleBuyTokensClick(token)}>Buy Tokens</button>
+                            <button 
+                                className= {"btn-penomo"}
+                                onClick={() => handleBuyTokensClick(token)}
+                                disabled={token.fundingCurrent / token.fundingGoal >= 0.98}
+                            >
+                                {token.fundingCurrent / token.fundingGoal >= 0.98 ? 'Sold Out' : 'Buy Tokens'}
+                            </button>
 
                         </div>
                     </div>
