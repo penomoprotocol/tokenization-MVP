@@ -325,8 +325,9 @@ body * {
     /* This ensures that absolute positioning is relative to this container */
     display: flex;
     align-items: center;
-    justify-content: center;
+    justify-content: space-between;
     margin-bottom: 2rem;
+    width:100%;
 }
 
 /* Make sure the title does not overlap with the close button */
@@ -445,7 +446,7 @@ body * {
 
 .form-label {
     text-align: left;
-    width: 50%;
+    width: 200%;
     margin-right: 0.5rem; /* Adjust as needed for spacing */
 }
 

@@ -3,6 +3,7 @@
 .token-purchase-form {
   display: flex;
   flex-direction: column;
+  width: 100%; /* Set width to 100% of the parent container */
 }
 
 .price-display {
@@ -10,5 +11,20 @@
 }
 
 
+.terms-container {
+  margin-top: 1rem;
+}
 
+.terms-text {
+  height: 150px; /* Adjust as needed */
+  overflow-y: scroll; /* Enable scrolling */
+  border: 1px solid #ccc; /* Add border for the container */
+  padding: 10px;
+  margin-bottom: 10px;
+}
+
+.accept-terms {
+  display: flex;
+  align-items: center;
+}
 

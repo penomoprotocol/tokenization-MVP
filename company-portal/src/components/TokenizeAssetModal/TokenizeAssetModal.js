@@ -100,7 +100,7 @@ const TokenizeAssetModal = ({ show, handleClose }) => {
 
             let companyId = newAsset.companyId;
 
-            
+
 
 
             // Token deployment data
@@ -130,12 +130,12 @@ const TokenizeAssetModal = ({ show, handleClose }) => {
             setResponseMessage(
                 <div>
                     <center>
-                        Your asset has been registered under the following DID:
-                        <strong>{newAsset.DID.document.id}</strong>
+                    <br><p>Your asset has been registered under the following DID:</p></br>
+                        <p><strong>{newAsset.DID.document.id}</strong></p>
                     </center>
                     <center>
-                        Your Security Contract has been deployed under the following address:
-                        <strong>{tokenResponse.data.newTokenEntry.tokenContractAddress}</strong>
+                    <br><p>Your Security Contract has been deployed under the following address:</p></br>
+                        <p><strong>{tokenResponse.data.newTokenEntry.tokenContractAddress}</strong></p>
                     </center>
                 </div>
             );
