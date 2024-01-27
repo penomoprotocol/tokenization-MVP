@@ -81,7 +81,7 @@ const BuyTokens = ({ token, closeModal, show }) => {
         {!responseMessage ? (
           <form onSubmit={handleSubmit} className="token-purchase-form">
             <div className="form-group">
-              <label htmlFor="tokenAmount" className="form-label"><strong>Token Amount to Buy</strong></label>
+              <label htmlFor="tokenAmount" className="form-label"><strong>Token Amount:</strong></label>
               <input
                 type="number"
                 id="tokenAmount"
@@ -93,6 +93,9 @@ const BuyTokens = ({ token, closeModal, show }) => {
             </div>
             <div className="horizontal-center price-display margin-bottom-2rem">
               <strong>Token Price:&nbsp;</strong><span>{tokenPriceDisplay}</span>
+            </div>
+            <div className="horizontal-center price-display margin-bottom-2rem">
+              <strong>Transferable Amount:&nbsp;</strong><span>{roundToDecimals(tokenAmount*tokenPriceDisplay,2)}</span>
             </div>
             <div className='horizontal-center'>
               <button type="submit" className={buyButtonClasses} disabled={isSubmitting}>

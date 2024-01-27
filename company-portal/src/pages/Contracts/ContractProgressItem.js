@@ -25,6 +25,18 @@ const ContractProgressItem = ({ contract, onSelect, isSelected }) => {
         ));
     };
 
+    function roundToDecimals(numStr, decimals) {
+        let num = parseFloat(numStr);
+        if (isNaN(num)) {
+            return 'Invalid input';
+        }
+    
+        return num.toLocaleString(undefined, {
+            minimumFractionDigits: decimals,
+            maximumFractionDigits: decimals,
+        });
+    }
+
     const shortenDID = (did) => {
         // Implement your logic to shorten the DID here
         // For example, you can keep the first and last few characters
@@ -39,13 +51,13 @@ const ContractProgressItem = ({ contract, onSelect, isSelected }) => {
         <div className="section-container" onClick={onSelect}>
             <div className='contract-header'>
                 <h3>{contract.name}</h3>
-                <div className='center-vertical-group'><strong>Total Received:</strong>  ${contract.liquidityPoolBalance.usdcBalance ? `${contract.liquidityPoolBalance.usdcBalance}` : '0.00'}</div>
+                <div className='center-vertical-group'><strong>Total Received:</strong>  ${contract.liquidityPoolBalance.usdcBalance ? `${roundToDecimals(contract.liquidityPoolBalance.usdcBalance,2)}` : '0.00'}</div>
                 <div className="progress-bar">
                     <div className="filler" style={{ width: `${(contract.liquidityPoolBalance.usdcBalance / contract.fundingGoal) * 102.04}%` }}>
                     </div>
                     <div className="percentage-text">{((contract.liquidityPoolBalance.usdcBalance / contract.fundingGoal) * 102.04).toFixed(2)}% Financed</div>
                 </div>
-                <div className='center-vertical-group'><strong>Financing Goal:</strong> {contract.fundingGoal ? `$${contract.fundingGoal.toLocaleString()}` : 'N/A'}</div>
+                <div className='center-vertical-group'><strong>Financing Goal:</strong> {contract.fundingGoal ? `$${roundToDecimals(contract.fundingGoal,2)}` : 'N/A'}</div>
                 <div className='center-vertical-group'><strong>Status:</strong> {contract.statusUpdates[0].status}</div>
                 <span className="toggle-arrow">{isSelected ? '▲' : '▼'}</span>
             </div>

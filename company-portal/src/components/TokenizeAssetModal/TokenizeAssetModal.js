@@ -98,49 +98,16 @@ const TokenizeAssetModal = ({ show, handleClose }) => {
             //DEBUG
             console.log("registered newAsset: ", newAsset);
 
-            companyId = newAsset.companyId;
+            let companyId = newAsset.companyId;
 
-            // Define 'tokenSymbol' 
-            let tokenSymbol;
-
-            // Retrieve the company object based on companyId
-            Company.findById(companyId, async (err, company) => {
-                if (err) {
-                    console.error('Error retrieving company:', err);
-                    // Handle the error as needed
-                } else {
-                    if (company) {
-                        // Now, 'company' contains the retrieved company object
-                        const companyTicker = company.ticker;
-
-                        try {
-                            // Calculate the index by counting the number of tokens with the same companyId
-                            const tokensWithSameCompanyId = await Token.find({ companyId }).exec();
-                            const index = tokensWithSameCompanyId.length + 1;
-
-                            // Construct 'tokenSymbol'
-                            tokenSymbol = `${companyTicker}-${index}`;
-
-                            // Continue with the logic for constructing 'tokenSymbol'
-
-                            // Use 'company' and 'tokenSymbol' as needed in your code
-                        } catch (error) {
-                            console.error('Error counting tokens:', error);
-                            // Handle the error when counting tokens
-                        }
-                    } else {
-                        console.error('Company not found.');
-                        // Handle the case where the company is not found
-                    }
-                }
-            });
+            
 
 
             // Token deployment data
             const tokenData = {
                 tokenName: contractName,
                 // TODO: Automate Token Symbol: Must be eg TESLA-BAT-3 (fetch existing tokens from company and then determine index)
-                tokenSymbol: tokenSymbol,
+                // tokenSymbol: tokenSymbol,
                 tokenSupply: tokenAmount,
                 tokenPrice,
                 // TODO: Add functionality to choose currency (Optional)

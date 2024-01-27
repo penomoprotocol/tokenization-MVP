@@ -422,7 +422,6 @@ router.post('/token/deploy', verifyToken, async (req, res) => {
 
         const {
             tokenName,
-            tokenSymbol,
             tokenSupply,
             tokenPrice,
             paymentCurrency,
@@ -436,7 +435,7 @@ router.post('/token/deploy', verifyToken, async (req, res) => {
             projectDescription
         } = req.body;
 
-        console.log("/token/deploy req.body: ", req.body); 
+        // console.log("/token/deploy req.body: ", req.body); 
 
         // Validate the required parameters
         if (!tokenSupply || !tokenPrice || !tokenName || !contractTerm || !revenueShare) {
@@ -449,6 +448,25 @@ router.post('/token/deploy', verifyToken, async (req, res) => {
             return res.status(401).send('Company not found');
         }
         console.log("company.ethereumPublicKey: ", company.ethereumPublicKey);
+
+        // Define 'tokenSymbol' 
+        let tokenSymbol;
+
+        const companyTicker = company.ticker;
+
+        try {
+            // Calculate the index by counting the number of tokens with the same companyId
+            const tokensWithSameCompanyId = await Token.find({ companyId }).exec();
+            const index = tokensWithSameCompanyId.length + 1;
+
+            // Construct 'tokenSymbol'
+            tokenSymbol = `${companyTicker}-${index}`;
+
+        } catch (error) {
+            console.error('Error counting tokens:', error);
+            // Handle the error when counting tokens
+        }
+
 
         BBWalletAddress = company.ethereumPublicKey;
         maxTokenSupply = tokenSupply;
@@ -750,13 +768,13 @@ router.get('/token/all', async (req, res) => {
             .populate('companyId') // Populate the company object
             .populate('assetIds'); // Populate the asset objects
 
-            for (const token of tokens) {
-                token.fundingCurrent = (await fetchContractBalance(token.liquidityContractAddress)).usdcBalance;
-            }
+        for (const token of tokens) {
+            token.fundingCurrent = (await fetchContractBalance(token.liquidityContractAddress)).usdcBalance;
+        }
 
         // DEBUG
         console.log("tokens: ", tokens[0].liquidityPoolBalance);
-        
+
         // Respond with an array of all token contracts along with their associated company and assets
         res.status(200).json(tokens);
     } catch (error) {
