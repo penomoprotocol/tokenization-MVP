@@ -67,6 +67,9 @@ const BuyTokens = ({ token, closeModal, show }) => {
         </div>
         {!responseMessage ? (
           <form onSubmit={handleSubmit} className="token-purchase-form">
+            <div className="horizontal-center price-display margin-bottom-2rem">
+              <strong>Tokens Available:&nbsp;</strong><span>{token.tokenContractBalance}</span>
+            </div>
             <div className="form-group">
               <label htmlFor="tokenAmount" className="form-label"><strong>Token Amount:</strong></label>
               <input

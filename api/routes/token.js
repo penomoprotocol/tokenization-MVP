@@ -770,6 +770,10 @@ router.get('/token/all', async (req, res) => {
 
         for (const token of tokens) {
             token.fundingCurrent = (await fetchContractBalance(token.liquidityContractAddress)).usdcBalance;
+            
+            const tokenContract = new web3.eth.Contract(TCABI, token.tokenContractAddress);
+            token.tokenContractBalance = await tokenContract.methods.balanceOf(token.tokenContractAddress).call();
+
         }
 
         // DEBUG

@@ -461,6 +461,9 @@ body * {
 .modal-body {
     padding: 20px;
     /* Adjust the padding as needed */
+    margin-top:1rem;
+    margin-left: 2rem;
+    margin-right: 2rem;
 }
 
 .modal-body p {
