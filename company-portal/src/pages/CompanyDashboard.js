@@ -151,9 +151,9 @@ const CompanyDashboard = () => {
                         <div className="portfolio-item" key={token.name}>
                             <div style={{ flex: '1 1 33.3%' }} className="label-value">
                                 <strong>{token.name} </strong>
-                                <a href={fullTokenAddressLink(token.tokenContractAddress)}
+                                <a href={fullTokenAddressLink(token.liquidityContractAddress+'?tab=erc20_transfer')}
                                     target="_blank" rel="noopener noreferrer">
-                                    <span>({token.symbol})</span>
+                                    <span>{`${token.liquidityContractAddress.substring(0, 6)}...${token.liquidityContractAddress.substring(token.liquidityContractAddress.length - 6)}`}</span>
                                 </a>
                             </div>
                             <div style={{ flex: '1 1 33.3%' }} className="label-value">
