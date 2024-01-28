@@ -77,6 +77,9 @@ const tokenSchema = new mongoose.Schema({
         type: String,
         required: true
     },
+    tokenContractBalance: {
+        type: Number
+    },
     liquidityContractAddress: {
         type: String,
         required: true

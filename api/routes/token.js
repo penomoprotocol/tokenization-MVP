@@ -777,7 +777,7 @@ router.get('/token/all', async (req, res) => {
         }
 
         // DEBUG
-        console.log("tokens: ", tokens[0].liquidityPoolBalance);
+        // console.log("tokens: ", tokens[0].liquidityPoolBalance);
 
         // Respond with an array of all token contracts along with their associated company and assets
         res.status(200).json(tokens);

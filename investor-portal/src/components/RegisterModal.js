@@ -41,17 +41,6 @@ const RegisterModal = ({ show, handleClose }) => {
       <Modal.Body>
         <form onSubmit={handleRegister}>
           <div className="form-group">
-            <label htmlFor="surname" className="form-label">Surname:</label>
-            <input
-              type="text"
-              id="surname"
-              className="form-control"
-              value={surname}
-              onChange={(e) => setSurname(e.target.value)}
-              required
-            />
-          </div>
-          <div className="form-group">
             <label htmlFor="firstname" className="form-label">First Name:</label>
             <input
               type="text"
@@ -59,6 +48,17 @@ const RegisterModal = ({ show, handleClose }) => {
               className="form-control"
               value={firstname}
               onChange={(e) => setFirstname(e.target.value)}
+              required
+            />
+          </div>
+          <div className="form-group">
+            <label htmlFor="surname" className="form-label">Surname:</label>
+            <input
+              type="text"
+              id="surname"
+              className="form-control"
+              value={surname}
+              onChange={(e) => setSurname(e.target.value)}
               required
             />
           </div>

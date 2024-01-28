@@ -44,11 +44,19 @@ const BuyTokens = ({ token, closeModal, show }) => {
   function roundToDecimals(numStr, decimals) {
     let num = parseFloat(numStr);
     if (isNaN(num)) return 'Invalid input';
-    return num.toLocaleString(undefined, {
-      minimumFractionDigits: decimals,
-      maximumFractionDigits: decimals,
-    });
-  }
+
+    if (decimals === 0) {
+        // If zero decimals, round to the nearest integer and format
+        return Math.round(num);
+    } else {
+        // For non-zero decimals, format with specified number of decimal places
+        return num.toLocaleString(undefined, {
+            minimumFractionDigits: decimals,
+            maximumFractionDigits: decimals,
+        });
+    }
+}
+
 
   const tokenPriceDisplay = `${roundToDecimals(token.tokenPrice, 2)} ${token.currency}`;
   const transferableAmount = tokenAmount * token.tokenPrice;
@@ -68,7 +76,7 @@ const BuyTokens = ({ token, closeModal, show }) => {
         {!responseMessage ? (
           <form onSubmit={handleSubmit} className="token-purchase-form">
             <div className="horizontal-center price-display margin-bottom-2rem">
-              <strong>Tokens Available:&nbsp;</strong><span>{token.tokenContractBalance}</span>
+              <strong>Tokens Available:&nbsp;</strong><span>{roundToDecimals((token.fundingGoal-token.fundingCurrent)/token.tokenPrice, 0)}</span>
             </div>
             <div className="form-group">
               <label htmlFor="tokenAmount" className="form-label"><strong>Token Amount:</strong></label>
