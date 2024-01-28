@@ -60,95 +60,109 @@ const Marketplace = () => {
         <div className="page-container">
             <h1 className="page-header">Discover Assets</h1>
             <div className="row">
-                {tokens.map((token) => (
-                    <div key={token._id} className="col-12 col-md-6 col-lg-4 mb-4">
-                        <div className="section-container h-100">
+                {tokens
+                    .sort((a, b) => {
+                        // Calculate funding percentages
+                        const fundingA = a.fundingCurrent / a.fundingGoal;
+                        const fundingB = b.fundingCurrent / b.fundingGoal;
 
-                            <div className="card-content">
-                                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                                    <h4>{token.name}</h4>
-                                    <button className="info-btn" onClick={() => { /* Your info button click handler */ }}>
-                                        i
-                                    </button>
-                                </div>
-                                <div className="token-details">
-                                    {/* <div className="token-detail">
-                                        <div className="detail-name">Token Contract:</div>
-                                        <div className="detail-value">
-                                            <a href={fullTokenAddressLink(token.tokenContractAddress)}
-                                                target="_blank" rel="noopener noreferrer">
-                                                {shortAddress(token.tokenContractAddress)}
-                                            </a>
-                                        </div>
-                                    </div> */}
-                                    {/* <div className="token-detail">
-                                        <div className="detail-name">Revenue Share:</div>
-                                        <div className="detail-value">{token.revenueShare}%</div>
-                                    </div> */}
+                        // Sort by funding status, sold out ones go to the end
+                        if (fundingA >= 0.98 && fundingB < 0.98) return 1;
+                        if (fundingB >= 0.98 && fundingA < 0.98) return -1;
 
-                                    <div className="token-detail">
-                                        <div className="detail-name">Project Type:</div>
-                                        <div className="detail-value">{token.assetIds[0].assetType}</div>
+                        // For the rest, sort by least funded first
+                        return fundingA - fundingB;
+                    })
+                    .map((token) => (
+                        <div key={token._id} className="col-12 col-md-6 col-lg-4 mb-4">
+                            <div className="section-container h-100">
+                                <div className="card-content">
+                                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                                        <h4>{token.name}</h4>
+                                        <button className="info-btn" onClick={() => { /* Your info button click handler */ }}>
+                                            i
+                                        </button>
                                     </div>
-                                    <div className="token-detail">
-                                        <div className="detail-name">Project Size:</div>
-                                        <div className="detail-value">${roundToDecimals(token.fundingGoal, 2)}</div>
-                                    </div>
-                                    <div className="token-detail">
-                                        <div className="detail-name">Issuer:</div>
-                                        <div className="detail-value">{token.companyId.businessName}</div>
-                                    </div>
-                                    <div className="token-detail">
-                                        <div className="detail-name">Contract Term:</div>
-                                        <div className="detail-value">{token.contractTerm} months</div>
-                                    </div>
-                                    <div className="token-detail">
-                                        <div className="detail-name">Projected Revenue:</div>
-                                        <div className="detail-value">
-                                            {roundToDecimals(token.revenueStreams[0].amount / token.fundingGoal * 100 - 100, 2)}%
+                                    <div className="token-details">
+                                        {/* <div className="token-detail">
+    <div className="detail-name">Token Contract:</div>
+    <div className="detail-value">
+        <a href={fullTokenAddressLink(token.tokenContractAddress)}
+            target="_blank" rel="noopener noreferrer">
+            {shortAddress(token.tokenContractAddress)}
+        </a>
+    </div>
+</div> */}
+                                        {/* <div className="token-detail">
+    <div className="detail-name">Revenue Share:</div>
+    <div className="detail-value">{token.revenueShare}%</div>
+</div> */}
+
+                                        <div className="token-detail">
+                                            <div className="detail-name">Project Type:</div>
+                                            <div className="detail-value">{token.assetIds[0].assetType}</div>
                                         </div>
-                                    </div>
-                                    <div className="token-detail">
-                                        {/* <div className="detail-name">Financing Status:</div> */}
-                                        <div className="progress-bar">
-                                            <div className="filler" style={{ width: `${(token.fundingCurrent / token.fundingGoal) * 102.04}%` }}>
+                                        <div className="token-detail">
+                                            <div className="detail-name">Project Size:</div>
+                                            <div className="detail-value">${roundToDecimals(token.fundingGoal, 2)}</div>
+                                        </div>
+                                        <div className="token-detail">
+                                            <div className="detail-name">Issuer:</div>
+                                            <div className="detail-value">{token.companyId.businessName}</div>
+                                        </div>
+                                        <div className="token-detail">
+                                            <div className="detail-name">Contract Term:</div>
+                                            <div className="detail-value">{token.contractTerm} months</div>
+                                        </div>
+                                        <div className="token-detail">
+                                            <div className="detail-name">Projected Revenue:</div>
+                                            <div className="detail-value">
+                                                {roundToDecimals(token.revenueStreams[0].amount / token.fundingGoal * 100 - 100, 2)}%
                                             </div>
-                                            <div className="percentage-text">{((token.fundingCurrent / token.fundingGoal) * 102.04).toFixed(2)}% Financed</div>
                                         </div>
-                                        {/* <div className="detail-value">{roundToDecimals(token.fundingCurrent / token.fundingGoal / 0.98 * 100, 2)}%</div> */}
+                                        <div className="token-detail">
+                                            {/* <div className="detail-name">Financing Status:</div> */}
+                                            <div className="progress-bar">
+                                                <div className="filler" style={{ width: `${(token.fundingCurrent / token.fundingGoal) * 102.04}%` }}>
+                                                </div>
+                                                <div className="percentage-text">{((token.fundingCurrent / token.fundingGoal) * 102.04).toFixed(2)}% Financed</div>
+                                            </div>
+                                            {/* <div className="detail-value">{roundToDecimals(token.fundingCurrent / token.fundingGoal / 0.98 * 100, 2)}%</div> */}
+                                        </div>
+                                        <div className="token-detail">
+                                            <div className="detail-name">Token Price:</div>
+                                            <div className="detail-value">{formatTokenPrice(roundToDecimals(token.tokenPrice, 2), token.currency)}</div>
+                                        </div>
+                                        {/* Add more details as needed */}
                                     </div>
-                                    <div className="token-detail">
-                                        <div className="detail-name">Token Price:</div>
-                                        <div className="detail-value">{formatTokenPrice(roundToDecimals(token.tokenPrice, 2), token.currency)}</div>
-                                    </div>
-                                    {/* Add more details as needed */}
                                 </div>
+                                <button
+                                    className={"btn-penomo" + (token.fundingCurrent / token.fundingGoal >= 0.98 ? " btn-disabled" : "")}
+                                    onClick={() => handleBuyTokensClick(token)}
+                                    disabled={token.fundingCurrent / token.fundingGoal >= 0.98}
+                                >
+                                    {token.fundingCurrent / token.fundingGoal >= 0.98 ? 'Sold Out' : 'Buy Tokens'}
+                                </button>
                             </div>
-                            <button 
-                                className= {"btn-penomo"}
-                                onClick={() => handleBuyTokensClick(token)}
-                                disabled={token.fundingCurrent / token.fundingGoal >= 0.98}
-                            >
-                                {token.fundingCurrent / token.fundingGoal >= 0.98 ? 'Sold Out' : 'Buy Tokens'}
-                            </button>
-
                         </div>
-                    </div>
-                ))}
+                    ))
+                }
             </div>
 
-            {
-                selectedToken && (
-                    <BuyTokens
-                        token={selectedToken}
-                        closeModal={handleCloseModal}
-                        show={isModalOpen}
-                    />
-                )
-            }
-        </div >
+            {selectedToken && (
+                <BuyTokens
+                    token={selectedToken}
+                    closeModal={handleCloseModal}
+                    show={isModalOpen}
+                />
+            )}
+        </div>
     );
+
 }
+
+
+
 
 export default Marketplace;
 

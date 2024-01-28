@@ -76,7 +76,8 @@ const BuyTokens = ({ token, closeModal, show }) => {
         {!responseMessage ? (
           <form onSubmit={handleSubmit} className="token-purchase-form">
             <div className="horizontal-center price-display margin-bottom-2rem">
-              <strong>Tokens Available:&nbsp;</strong><span>{roundToDecimals((token.fundingGoal-token.fundingCurrent)/token.tokenPrice, 0)}</span>
+              {/* TODO: get actual current supply from token/all  */}
+              <strong>Tokens Available:&nbsp;</strong><span>{roundToDecimals((token.fundingGoal*0.98023-token.fundingCurrent)/token.tokenPrice, 0)}</span>
             </div>
             <div className="form-group">
               <label htmlFor="tokenAmount" className="form-label"><strong>Token Amount:</strong></label>
