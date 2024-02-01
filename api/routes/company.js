@@ -199,7 +199,7 @@ async function fetchContractBalance(address) {
 
     try {
         const response = await axios(config);
-        console.log("response: ", response.data.ERC20);
+        console.log("Fetch contract balance response: ", response.data.ERC20);
         let agungBalance = '0';
         let usdcBalance = '0';
 
