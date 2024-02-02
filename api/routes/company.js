@@ -222,6 +222,29 @@ async function fetchContractBalance(address) {
     }
 }
 
+// Rate limiter function
+function rateLimiter(rateLimit, requestFunction) {
+    let lastCalled = Date.now();
+
+    return async (...args) => {
+        const now = Date.now();
+        const diff = now - lastCalled;
+        const delay = Math.max((1000 / rateLimit) - diff, 0);
+
+        return new Promise((resolve, reject) => {
+            setTimeout(async () => {
+                try {
+                    const result = await requestFunction(...args);
+                    resolve(result);
+                } catch (error) {
+                    reject(error);
+                }
+                lastCalled = Date.now();
+            }, delay);
+        });
+    };
+}
+
 /**
  * @swagger
  * /api/company/register:
@@ -806,7 +829,10 @@ router.get('/company/jwt', verifyToken, async (req, res) => {
         const tokenData = await Promise.all(
             companyTokens.map(async (token) => {
                 // Fetch liquidity pool balance and associated assets
-                const liquidityPoolBalance = await fetchContractBalance(token.liquidityContractAddress);
+                const liquidityPoolBalance = rateLimiter(5, fetchContractBalance(token.liquidityContractAddress)); 
+                
+                // const liquidityPoolBalance = await fetchContractBalance(token.liquidityContractAddress);
+
                 const associatedAssets = await Asset.find({ _id: { $in: token.assetIds } });
 
                 // Initialize the contract instance for the token
