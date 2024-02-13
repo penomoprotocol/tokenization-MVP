@@ -74,7 +74,7 @@ const NavBar = () => {
  
 
     return (
-        <Navbar bg="white" expand="lg" className="flex-column">
+        <Navbar bg="black" expand="lg" className="flex-column">
             <Navbar.Brand as={Link} to="/">
                 <img src={logo} className="navbar-logo" alt="Penomo logo" />
             </Navbar.Brand>
