@@ -1,6 +1,6 @@
 .navbar {
   min-height: 5rem; /* Adjust to the height you want */
-  padding: 0 1rem; /* Adjust horizontal padding if needed, remove vertical padding */
+  padding: 0 4rem; /* Adjust horizontal padding if needed, remove vertical padding */
 }
 
 .navbar-brand {

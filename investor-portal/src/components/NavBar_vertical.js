@@ -2,7 +2,7 @@ import React, { useContext, useState, useEffect } from 'react';
 import axios from 'axios';
 import { Navbar, Nav, Container } from 'react-bootstrap';
 import { Link } from 'react-router-dom';
-import logo from '../assets/penomo_logo.svg';
+import logo from '../assets/penomo_logo_darkmode2.png';
 import { NavLink } from 'react-router-dom';
 
 import Logout from './Logout';
@@ -74,7 +74,7 @@ const NavBar = () => {
  
 
     return (
-        <Navbar bg="white" expand="lg" className="flex-column">
+        <Navbar bg="black" expand="lg" className="flex-column">
             <Navbar.Brand as={Link} to="/">
                 <img src={logo} className="navbar-logo" alt="Penomo logo" />
             </Navbar.Brand>
