@@ -2,7 +2,7 @@
     min-height: 100vh; /* Full height */
     padding: 1rem 0; /* Adjust vertical padding */
     flex-direction: column; /* Stack items vertically */
-    margin-left: 1rem ;
+    margin-left: 2.5rem ;
     justify-content: center;
     align-items: center;
 }

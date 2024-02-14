@@ -131,12 +131,12 @@ body * {
 
 /* Styled list item */
 .section-list-item {
-    background-color: #121212;
-    /* border: 1px solid #e1e1e1; */
-    box-shadow: 4px 4px 4px rgba(255, 255, 255, 0.3);
+    background-color: #1d1d1d;
+    border-radius: 20px;
+    /* box-shadow: 4px 4px 4px rgba(255, 255, 255, 0.3); */
     padding: 1rem;
-    margin-bottom: 1rem;
-    border-radius: 5px;
+    margin: 1rem;
+    border-radius: 10px;
     transition: background-color 0.3s ease;
 }
 
