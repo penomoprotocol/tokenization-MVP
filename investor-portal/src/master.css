@@ -19,7 +19,7 @@ body * {
     display: flex;
     flex-direction: column;
     min-height: 100vh;
-    background-color: #000;
+    background-color: #000000;
     /* Full viewport height */
 }
 
@@ -103,12 +103,12 @@ body * {
 
 /* Container for each major section */
 .section-container {
-    background-color: #000;
-    border-radius: 8px;
+    background-color: #121212;
+    border-radius: 20px;
     padding: 2rem;
     margin-block: 1rem;
-    margin-bottom: 1rem;
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    margin-bottom: 2rem;
+    /* box-shadow: 4px 4px 4px rgba(255, 255, 255, 0.3); */
     overflow: clip;
     flex: 1;
     display: flex;
@@ -131,8 +131,9 @@ body * {
 
 /* Styled list item */
 .section-list-item {
-    background-color: #000;
-    border: 1px solid #e1e1e1;
+    background-color: #121212;
+    /* border: 1px solid #e1e1e1; */
+    box-shadow: 4px 4px 4px rgba(255, 255, 255, 0.3);
     padding: 1rem;
     margin-bottom: 1rem;
     border-radius: 5px;
@@ -249,7 +250,7 @@ body * {
   }
 
 .btn-penomo-secondary {
-    background-color: #9bbab6;
+    background-color: #f5f5f5;
     /* Penomo color */
     color: #000;
     /* Text color set to black */
@@ -521,7 +522,7 @@ body * {
 }
 
 .percentage-text {
-    color: #000000;
+    color: #f5f5f5;
     font-weight: bold;
     position: absolute;
     /* Use absolute positioning */
