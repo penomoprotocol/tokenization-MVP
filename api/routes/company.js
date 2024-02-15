@@ -199,7 +199,7 @@ async function fetchContractBalance(address) {
 
     try {
         const response = await axios(config);
-        console.log("Fetch contract balance response: ", response.data.ERC20);
+        // console.log("Fetch contract balance response: ", response.data.ERC20);
         let agungBalance = '0';
         let usdcBalance = '0';
 
@@ -244,6 +244,9 @@ function rateLimiter(rateLimit, requestFunction) {
         });
     };
 }
+
+// Delay function
+const delay = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 
 /**
  * @swagger
@@ -546,7 +549,7 @@ router.post('/company/verify', async (req, res) => {
 
 router.post('/company/withdrawFunds', verifyToken, async (req, res) => {
     try {
-        const {amount, liquidityContractAddress } = req.body;
+        const { amount, liquidityContractAddress } = req.body;
 
         const companyId = req.user.id;
         const company = await Company.findById(companyId);
@@ -826,50 +829,47 @@ router.get('/company/jwt', verifyToken, async (req, res) => {
         const companyTokens = await Token.find({ companyId: companyId });
 
         // Fetch balance for each serviceContractAddress and add it to the token object
-        const tokenData = await Promise.all(
-            companyTokens.map(async (token) => {
-                // Fetch liquidity pool balance and associated assets
-                const liquidityPoolBalance = rateLimiter(5, fetchContractBalance(token.liquidityContractAddress)); 
-                
-                // const liquidityPoolBalance = await fetchContractBalance(token.liquidityContractAddress);
+        const tokenData = [];
+        for (const token of companyTokens) {
+            // Fetch liquidity pool balance and associated assets
+            const liquidityPoolBalance = await fetchContractBalance(token.liquidityContractAddress);
+            await delay(1000 / 1000); // Introduce a delay to respect the rate limit
 
-                const associatedAssets = await Asset.find({ _id: { $in: token.assetIds } });
+            const associatedAssets = await Asset.find({ _id: { $in: token.assetIds } });
 
-                // Initialize the contract instance for the token
-                const contract = new web3.eth.Contract(TCABI, token.tokenContractAddress);
-                const tokenHolders = await contract.methods.getTokenHolders().call();
+            // Initialize the contract instance for the token
+            const contract = new web3.eth.Contract(TCABI, token.tokenContractAddress);
+            const tokenHolders = await contract.methods.getTokenHolders().call();
 
-                // Fetch the maxTokenSupply for the token - assuming this is available in the token object
-                const maxTokenSupply = token.maxTokenSupply;
+            // Fetch the maxTokenSupply for the token - assuming this is available in the token object
+            const maxTokenSupply = token.maxTokenSupply;
 
-                const holdersData = await Promise.all(tokenHolders.map(async (holderAddress) => {
-                    // Fetch token balance for the holder and immediately convert it to a string
-                    const tokenBalanceWei = (await contract.methods.balanceOf(holderAddress).call()).toString();
-                    const tokenBalance = web3.utils.fromWei(tokenBalanceWei, 'ether');
+            const holdersData = await Promise.all(tokenHolders.map(async (holderAddress) => {
+                // Fetch token balance for the holder and immediately convert it to a string
+                const tokenBalanceWei = (await contract.methods.balanceOf(holderAddress).call()).toString();
+                const tokenBalance = web3.utils.fromWei(tokenBalanceWei, 'ether');
 
-                    // Since tokenBalance is now a string, parsing it to a float should be safe
-                    const holdingPercentage = (parseFloat(tokenBalance) / parseFloat(maxTokenSupply)) * 100;
+                // Since tokenBalance is now a string, parsing it to a float should be safe
+                const holdingPercentage = (parseFloat(tokenBalance) / parseFloat(maxTokenSupply)) * 100;
 
-                    // Fetch investor instance from the database
-                    const investorInstance = await Investor.findOne({ ethereumPublicKey: holderAddress });
-
-                    return {
-                        address: holderAddress,
-                        tokenBalance, // Already a string, safe for JSON serialization
-                        holdingPercentage, // A float, also safe
-                        data: investorInstance // Ensure investorInstance doesn't contain BigInts; if it does, convert those as well
-                    };
-                }));
-
+                // Fetch investor instance from the database
+                const investorInstance = await Investor.findOne({ ethereumPublicKey: holderAddress });
 
                 return {
-                    ...token.toObject(),
-                    liquidityPoolBalance,
-                    associatedAssets,
-                    tokenHolders: holdersData // Replace the simple list with detailed holders data
+                    address: holderAddress,
+                    tokenBalance, // Already a string, safe for JSON serialization
+                    holdingPercentage, // A float, also safe
+                    data: investorInstance // Ensure investorInstance doesn't contain BigInts; if it does, convert those as well
                 };
-            })
-        );
+            }));
+
+            tokenData.push({
+                ...token.toObject(),
+                liquidityPoolBalance,
+                associatedAssets,
+                tokenHolders: holdersData // Replace the simple list with detailed holders data
+            });
+        }
 
         // Add the balances and tokens with their liquidity pools to the company object
         const companyDataWithBalancesAndTokenData = {

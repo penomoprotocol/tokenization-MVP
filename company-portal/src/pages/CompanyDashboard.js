@@ -45,7 +45,7 @@ const CompanyDashboard = () => {
                 const address = token.liquidityContractAddress;
                 const response = await axios.get(`${process.env.REACT_APP_PENOMO_API}/api/transactions/liquidityContract/${address}`);
                 transactionsData[token.liquidityContractAddress] = response.data.slice(0, 5); // Store the first 5 transactions for each token
-                await delay(100); // Wait for 1 second before the next request
+                await delay(1000 / 1000); // Wait for 1 second before the next request
               }
       
               setCompanyTransactions(transactionsData);
