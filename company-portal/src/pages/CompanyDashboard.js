@@ -37,35 +37,27 @@ const CompanyDashboard = () => {
 
     useEffect(() => {
         const fetchTransactions = async () => {
-            if (companyData?.tokens && companyData.tokens.length > 0) {
-                try {
-                    // Map each token to a request to fetch its transactions
-                    const transactionsRequests = companyData.tokens.map(token => {
-                        const address = token.liquidityContractAddress;
-                        return axios.get(`${process.env.REACT_APP_PENOMO_API}/api/transactions/liquidityContract/${address}`);
-
-                    });
-
-                    // Use Promise.all to handle all requests concurrently
-                    const transactionsResponses = await Promise.all(transactionsRequests);
-                    console.log("transactionsResponses: ", transactionsResponses);
-                    // Process responses to extract data
-                    const transactionsData = transactionsResponses.reduce((acc, response, index) => {
-                        const token = companyData.tokens[index];
-                        acc[token.liquidityContractAddress] = response.data.slice(0, 5); // Store the first 5 transactions for each token
-                        return acc;
-                    }, {});
-
-                    setCompanyTransactions(transactionsData);
-                    console.log("transactionsData: ", transactionsData);
-                } catch (error) {
-                    console.error('Error fetching transactions:', error);
-                }
+          if (companyData?.tokens && companyData.tokens.length > 0) {
+            try {
+              const transactionsData = {};
+      
+              for (const token of companyData.tokens) {
+                const address = token.liquidityContractAddress;
+                const response = await axios.get(`${process.env.REACT_APP_PENOMO_API}/api/transactions/liquidityContract/${address}`);
+                transactionsData[token.liquidityContractAddress] = response.data.slice(0, 5); // Store the first 5 transactions for each token
+                await delay(100); // Wait for 1 second before the next request
+              }
+      
+              setCompanyTransactions(transactionsData);
+            } catch (error) {
+              console.error('Error fetching transactions:', error);
             }
+          }
         };
-
+      
         fetchTransactions();
-    }, [companyData?.tokens]);
+      }, [companyData?.tokens]);
+      
 
     const toggleWithdraw = (currency, liquidityContractAddress) => {
         setSelectedCurrency(currency);
@@ -80,12 +72,40 @@ const CompanyDashboard = () => {
         if (isNaN(num)) {
             return 'Invalid input';
         }
-    
+
         return num.toLocaleString(undefined, {
             minimumFractionDigits: decimals,
             maximumFractionDigits: decimals,
         });
     }
+
+    // Rate limiter function
+    const rateLimiter = (rateLimit, requestFunction) => {
+        let lastCalled = Date.now();
+
+        return async (...args) => {
+            const now = Date.now();
+            const diff = now - lastCalled;
+            const delay = Math.max((1000 / rateLimit) - diff, 0);
+
+            return new Promise((resolve, reject) => {
+                setTimeout(async () => {
+                    try {
+                        const result = await requestFunction(...args);
+                        resolve(result);
+                    } catch (error) {
+                        reject(error);
+                    }
+                    lastCalled = Date.now();
+                }, delay);
+            });
+        };
+    };
+
+    // Delay function
+    const delay = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
+
+
 
     const calculateAssetsInProgress = (tokens) => {
         if (!tokens || tokens.length === 0) {
@@ -101,6 +121,7 @@ const CompanyDashboard = () => {
             return count;
         }, 0);
     };
+
 
     if (!companyData) {
         return <div className='content-center page-header'>Loading...</div>;
@@ -151,7 +172,7 @@ const CompanyDashboard = () => {
                         <div className="portfolio-item" key={token.name}>
                             <div style={{ flex: '1 1 33.3%' }} className="label-value">
                                 <strong>{token.name} </strong>
-                                <a href={fullTokenAddressLink(token.liquidityContractAddress+'?tab=erc20_transfer')}
+                                <a href={fullTokenAddressLink(token.liquidityContractAddress + '?tab=erc20_transfer')}
                                     target="_blank" rel="noopener noreferrer">
                                     <span>{`${token.liquidityContractAddress.substring(0, 6)}...${token.liquidityContractAddress.substring(token.liquidityContractAddress.length - 6)}`}</span>
                                 </a>
