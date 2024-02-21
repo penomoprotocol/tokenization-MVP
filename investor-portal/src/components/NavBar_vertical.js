@@ -65,7 +65,7 @@ const NavBar = () => {
     const firstNavLinkStyle = {
         marginTop: '0', // Adjust this value as needed
         paddingTop: '0', // Adjust this value as needed
-        marginBottom: '2rem' /* Adjust the space as needed */
+        marginBottom: '2rem'/* Adjust the space as needed */
     };
     const secondNavLinkStyle = {
         alignElements: 'center'

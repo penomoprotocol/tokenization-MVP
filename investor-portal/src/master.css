@@ -32,6 +32,8 @@ body * {
 .flex-column {
     flex-direction: column;
     background-color: #000;
+    padding-right: 3rem;
+
     /* Stack children vertically */
 }
 
@@ -441,6 +443,7 @@ body * {
 } */
 
 .form-group {
+    color: #ffffff;
     display: flex;
     justify-content: space-between;
     align-items: center;
@@ -449,6 +452,7 @@ body * {
 }
 
 .form-label {
+    color: #1d1d1d;
     text-align: left;
     width: 200%;
     margin-right: 0.5rem; /* Adjust as needed for spacing */
@@ -462,7 +466,12 @@ body * {
     border-radius: 4px; /* Example border radius */
 }
 
+.modal-title {
+    color: #1d1d1d;
+  }
+
 .modal-body {
+    color: #1d1d1d;
     padding: 20px;
     /* Adjust the padding as needed */
     margin-top:1rem;
@@ -472,6 +481,7 @@ body * {
 
 .modal-body p {
     word-wrap: break-word;
+    color: #1d1d1d; 
     /* This ensures that long words will wrap and not overflow */
     margin-bottom: 1rem;
     /* Adds some space below each paragraph if you have multiple */

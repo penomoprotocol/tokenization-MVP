@@ -18,9 +18,10 @@ const Home = () => {
     >
   
 
-      <div className="hero-section" style={{ marginTop: '8rem', padding: '4rem', backgroundColor: 'rgba(255, 255, 255, 0.5)' }}>
+      <div className="hero-section" style={{ marginTop: '4rem', padding: '8rem', backgroundColor: 'rgba(0, 0, 0, 0.5)' }}>
         <h1 className="section-header">Invest in Energy, Empower the Future</h1>
-        <p>penomo democratizes investment in energy infrastructure, enabling you to directly own a stake and earn revenue from sustainable energy projects. Start investing in a future that pays back — to you and the planet.</p>
+        <h5>penomo democratizes investment in energy infrastructure, enabling you to directly own a stake and earn revenue from sustainable energy projects.</h5>
+        <h5>Start investing in a future that pays back — to you and the planet.</h5>
       </div>
     </div>
   );

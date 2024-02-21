@@ -15,6 +15,7 @@
 .navbar-brand {
     margin-bottom: 0; /* Reduce space below the logo if necessary */
     margin-left: 1.5rem;
+    padding-right: 3rem;
     max-height: 10vh; /* Full height */
     justify-content: center;
     align-items: center;

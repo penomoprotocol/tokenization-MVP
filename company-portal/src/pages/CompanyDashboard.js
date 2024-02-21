@@ -37,27 +37,27 @@ const CompanyDashboard = () => {
 
     useEffect(() => {
         const fetchTransactions = async () => {
-          if (companyData?.tokens && companyData.tokens.length > 0) {
-            try {
-              const transactionsData = {};
-      
-              for (const token of companyData.tokens) {
-                const address = token.liquidityContractAddress;
-                const response = await axios.get(`${process.env.REACT_APP_PENOMO_API}/api/transactions/liquidityContract/${address}`);
-                transactionsData[token.liquidityContractAddress] = response.data.slice(0, 5); // Store the first 5 transactions for each token
-                await delay(1000 / 1000); // Wait for 1 second before the next request
-              }
-      
-              setCompanyTransactions(transactionsData);
-            } catch (error) {
-              console.error('Error fetching transactions:', error);
+            if (companyData?.tokens && companyData.tokens.length > 0) {
+                try {
+                    const transactionsData = {};
+
+                    for (const token of companyData.tokens) {
+                        const address = token.liquidityContractAddress;
+                        const response = await axios.get(`${process.env.REACT_APP_PENOMO_API}/api/transactions/liquidityContract/${address}`);
+                        transactionsData[token.liquidityContractAddress] = response.data.slice(0, 5); // Store the first 5 transactions for each token
+                        await delay(1000 / 1000); // Wait for 1 second before the next request
+                    }
+
+                    setCompanyTransactions(transactionsData);
+                } catch (error) {
+                    console.error('Error fetching transactions:', error);
+                }
             }
-          }
         };
-      
+
         fetchTransactions();
-      }, [companyData?.tokens]);
-      
+    }, [companyData?.tokens]);
+
 
     const toggleWithdraw = (currency, liquidityContractAddress) => {
         setSelectedCurrency(currency);
@@ -200,6 +200,7 @@ const CompanyDashboard = () => {
                     {Object.values(companyTransactions) // Get all transactions arrays
                         .flat() // Flatten them into a single array
                         .sort((a, b) => new Date(b.date) - new Date(a.date)) // Sort by date descending
+                        .slice(0, 5) // Take only the 5 most recent transactions
                         .map((transaction, index) => (
                             <li className="section-list-item" key={index} onClick={() => window.open(`https://agung-testnet.subscan.io/tx/${transaction.hash}`, '_blank')}>
                                 <strong>Date:</strong> {transaction.date}<br />
