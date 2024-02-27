@@ -181,11 +181,11 @@ const CompanyDashboard = () => {
                                 <strong className="label">Received Funds</strong>
                                 <span className="value">${"?"}</span>
                             </div>
-                            <div style={{ flex: '1 1 23.30%' }} className="btn-container">
-                            </div>
-                            <div style={{ flex: '1 1 10%' }} className="btn-container">
+                            {/* <div style={{ flex: '1 1 23.30%' }} className="btn-container">
+                            </div> */}
+                            {/* <div style={{ flex: '1 1 10%' }} className="btn-container">
                                 <button className="btn-penomo" onClick={() => toggleWithdraw('USDC', "?")}>Withdraw</button>
-                            </div>
+                            </div> */}
                         </div>
 
                     ))
