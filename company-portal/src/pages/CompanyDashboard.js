@@ -179,13 +179,13 @@ const CompanyDashboard = () => {
                             </div>
                             <div style={{ flex: '1 1 33.3%' }} className="label-value">
                                 <strong className="label">Received Funds</strong>
-                                <span className="value">${"?"}</span>
+                                <span className="value">${roundToDecimals(token.liquidityPoolBalance.usdcBalance, 2)}</span>
                             </div>
-                            {/* <div style={{ flex: '1 1 23.30%' }} className="btn-container">
-                            </div> */}
-                            {/* <div style={{ flex: '1 1 10%' }} className="btn-container">
+                            <div style={{ flex: '1 1 23.30%' }} className="btn-container">
+                            </div>
+                            <div style={{ flex: '1 1 10%' }} className="btn-container">
                                 <button className="btn-penomo" onClick={() => toggleWithdraw('USDC', "?")}>Withdraw</button>
-                            </div> */}
+                            </div>
                         </div>
 
                     ))
