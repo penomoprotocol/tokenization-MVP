@@ -69,7 +69,7 @@ const Token = require('../models/TokenModel');
 const Investor = require('../models/InvestorModel');
 
 
-// // // FUNCTIONS
+//// FUNCTIONS ////
 
 // Get gas price
 async function getCurrentGasPrice() {
@@ -441,8 +441,8 @@ router.post('/company/login', async (req, res) => {
  *       500:
  *         description: An error occurred or transaction failed.
  */
-// Company KYC
-router.post('/company/verify', async (req, res) => {
+// Submit company KYC data
+router.post('/company/kyc/submit', async (req, res) => {
     try {
         const {
             companyId,
@@ -505,6 +505,248 @@ router.post('/company/verify', async (req, res) => {
     } catch (error) {
         console.error('Error in company verification:', error);
         return res.status(500).json({ error: 'An error occurred' });
+    }
+});
+
+/**
+ * @swagger
+ * /api/company/verify:
+ *   post:
+ *     summary: Verify company (KYB+AML) and add wallet address to GlobalStateContract whitelist.
+ *     tags: 
+ *       - Company
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               companyId:
+ *                 type: string
+ *                 description: Unique identifier of the company.
+ *               businessName:
+ *                 type: string
+ *                 description: Name of the business.
+ *               registrationNumber:
+ *                 type: string
+ *                 description: Business registration number.
+ *               businessAddress:
+ *                 type: string
+ *                 description: Physical address of the business.
+ *               businessPhone:
+ *                 type: string
+ *                 description: Contact phone number of the business.
+ *     responses:
+ *       200:
+ *         description: Company successfully verified.
+ *       500:
+ *         description: An error occurred or transaction failed.
+ */
+// Verify company KYC data (admin call)
+router.post('/company/kyc/verify', async (req, res) => {
+    try {
+        const {
+            companyId,
+            firstName,
+            surname,
+            dob,
+            businessName,
+            registrationNumber,
+            businessAddress,
+            businessPhone } = req.body;
+
+        // Fetch company from the database
+        const company = await Company.findById(companyId);
+        if (!company) {
+            return res.status(404).send('Company not found');
+        }
+
+        // Update company with additional verification info
+        company.firstname = firstName;
+        company.surname = surname;
+        company.dob = dob;
+        company.businessName = businessName;
+        company.registrationNumber = registrationNumber;
+        company.businessAddress = businessAddress;
+        company.businessPhone = businessPhone;
+        company.isVerified = true; // Set the company as verified
+
+        await company.save(); // Save the updated company data
+
+        // Get company's public Ethereum address
+        const companyWalletAddress = company.ethereumPublicKey;
+
+        // Prepare the contract instance
+        const contract = new web3.eth.Contract(GSCABI, GSCAddress);
+
+        // Prepare the transaction object
+        const transaction = contract.methods.verifyCompany(companyWalletAddress);
+
+        // Send the transaction using the estimateAndSend helper function
+        const receipt = await estimateAndSend(
+            transaction,
+            MASTER_ADDRESS,
+            MASTER_PRIVATE_KEY,
+            GSCAddress
+        );
+
+        // Handle the transaction receipt
+        console.log('Transaction receipt:', receipt);
+
+        // Check if the transaction was successful
+        if (receipt.status) {
+            return res.status(200).json({
+                message: 'Company successfully verified and whitelisted in Global State Contract.',
+                transactionHash: receipt.transactionHash
+            });
+        } else {
+            return res.status(500).json({ error: 'Transaction failed' });
+        }
+
+    } catch (error) {
+        console.error('Error in company verification:', error);
+        return res.status(500).json({ error: 'An error occurred' });
+    }
+});
+
+/**
+ * @swagger
+ * /api/company/contracts:
+ *   get:
+ *     summary: Retrieve logged-in company contracts information
+ *     tags: 
+ *       - Company
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: Details of the logged-in company including balances and liquidity pool information.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 firstname:
+ *                   type: string
+ *                 surname:
+ *                   type: string
+ *                 dob:
+ *                   type: string
+ *                   format: date
+ *                 businessName:
+ *                   type: string
+ *                 registrationNumber:
+ *                   type: string
+ *                 businessAddress:
+ *                   type: string
+ *                 businessPhone:
+ *                   type: string
+ *                 email:
+ *                   type: string
+ *                 ethereumPublicKey:
+ *                   type: string
+ *                 isVerified:
+ *                   type: boolean
+ *                 balances:
+ *                   type: object
+ *                   properties:
+ *                     agungBalance:
+ *                       type: string
+ *                     usdcBalance:
+ *                       type: string
+ *                 tokens:
+ *                   type: array
+ *                   items:
+ *                     type: object
+ *                     properties:
+ *                       name:
+ *                         type: string
+ *                       symbol:
+ *                         type: string
+ *                       maxTokenSupply:
+ *                         type: number
+ *                       tokenPrice:
+ *                         type: number
+ *                       currency:
+ *                         type: string
+ *                       revenueShare:
+ *                         type: number
+ *                       contractTerm:
+ *                         type: number
+ *                       serviceContractAddress:
+ *                         type: string
+ *                       tokenContractAddress:
+ *                         type: string
+ *                       liquidityContractAddress:
+ *                         type: string
+ *                       revenueDistributionContractAddress:
+ *                         type: string
+ *                       revenueStreamContractAddresses:
+ *                         type: array
+ *                         items:
+ *                           type: string
+ *                       assetDIDs:
+ *                         type: array
+ *                         items:
+ *                           type: string
+ *                       companyId:
+ *                         type: string
+ *                       liquidityPoolBalance:
+ *                         type: object
+ *                         properties:
+ *                           agungBalance:
+ *                             type: string
+ *                           usdcBalance:
+ *                             type: string
+ *       401:
+ *         description: Unauthorized if token is missing or invalid.
+ *       404:
+ *         description: Company not found.
+ *       500:
+ *         description: Error retrieving company details and liquidity pool information.
+ */
+// Get company contracts 
+router.get('/company/contracts', verifyToken, async (req, res) => {
+    try {
+        const companyId = req.user.id; // ID is retrieved from the decoded JWT token
+        const company = await Company.findById(companyId);
+
+        if (!company) {
+            return res.status(404).send('Company not found');
+        }
+
+        // Fetch company tokens from the database
+        const companyTokens = await Token.find({ companyId: companyId });
+
+        // Fetch balance for each serviceContractAddress and add it to the token object
+        const companyContracts = await Promise.all(
+            companyTokens.map(async (token) => {
+                const liquidityPoolBalance = await fetchBalance(token.serviceContractAddress);
+
+                // Fetch associated assets for each token
+                const associatedAssets = await Asset.find({
+                    'DID.id': { $in: token.assetDIDs }
+                });
+
+                return {
+                    ...token.toObject(),
+                    liquidityPoolBalance,
+                    associatedAssets
+                };
+            })
+        );
+
+        // Add the balances and tokens with their liquidity pools and associated assets to the company object
+        const companyContractsWithAssets = {
+            contracts: companyContracts
+        };
+
+        res.json(companyContractsWithAssets);
+
+    } catch (error) {
+        console.error('Error retrieving company contracts with associated assets:', error);
+        res.status(500).send('Error retrieving company');
     }
 });
 
@@ -682,146 +924,6 @@ router.get('/company/', verifyToken, async (req, res) => {
 
 /**
  * @swagger
- * /api/company/contracts:
- *   get:
- *     summary: Retrieve logged-in company contracts information
- *     tags: 
- *       - Company
- *     security:
- *       - bearerAuth: []
- *     responses:
- *       200:
- *         description: Details of the logged-in company including balances and liquidity pool information.
- *         content:
- *           application/json:
- *             schema:
- *               type: object
- *               properties:
- *                 firstname:
- *                   type: string
- *                 surname:
- *                   type: string
- *                 dob:
- *                   type: string
- *                   format: date
- *                 businessName:
- *                   type: string
- *                 registrationNumber:
- *                   type: string
- *                 businessAddress:
- *                   type: string
- *                 businessPhone:
- *                   type: string
- *                 email:
- *                   type: string
- *                 ethereumPublicKey:
- *                   type: string
- *                 isVerified:
- *                   type: boolean
- *                 balances:
- *                   type: object
- *                   properties:
- *                     agungBalance:
- *                       type: string
- *                     usdcBalance:
- *                       type: string
- *                 tokens:
- *                   type: array
- *                   items:
- *                     type: object
- *                     properties:
- *                       name:
- *                         type: string
- *                       symbol:
- *                         type: string
- *                       maxTokenSupply:
- *                         type: number
- *                       tokenPrice:
- *                         type: number
- *                       currency:
- *                         type: string
- *                       revenueShare:
- *                         type: number
- *                       contractTerm:
- *                         type: number
- *                       serviceContractAddress:
- *                         type: string
- *                       tokenContractAddress:
- *                         type: string
- *                       liquidityContractAddress:
- *                         type: string
- *                       revenueDistributionContractAddress:
- *                         type: string
- *                       revenueStreamContractAddresses:
- *                         type: array
- *                         items:
- *                           type: string
- *                       assetDIDs:
- *                         type: array
- *                         items:
- *                           type: string
- *                       companyId:
- *                         type: string
- *                       liquidityPoolBalance:
- *                         type: object
- *                         properties:
- *                           agungBalance:
- *                             type: string
- *                           usdcBalance:
- *                             type: string
- *       401:
- *         description: Unauthorized if token is missing or invalid.
- *       404:
- *         description: Company not found.
- *       500:
- *         description: Error retrieving company details and liquidity pool information.
- */
-// Get company contracts 
-router.get('/company/contracts', verifyToken, async (req, res) => {
-    try {
-        const companyId = req.user.id; // ID is retrieved from the decoded JWT token
-        const company = await Company.findById(companyId);
-
-        if (!company) {
-            return res.status(404).send('Company not found');
-        }
-
-        // Fetch company tokens from the database
-        const companyTokens = await Token.find({ companyId: companyId });
-
-        // Fetch balance for each serviceContractAddress and add it to the token object
-        const companyContracts = await Promise.all(
-            companyTokens.map(async (token) => {
-                const liquidityPoolBalance = await fetchBalance(token.serviceContractAddress);
-
-                // Fetch associated assets for each token
-                const associatedAssets = await Asset.find({
-                    'DID.id': { $in: token.assetDIDs }
-                });
-
-                return {
-                    ...token.toObject(),
-                    liquidityPoolBalance,
-                    associatedAssets
-                };
-            })
-        );
-
-        // Add the balances and tokens with their liquidity pools and associated assets to the company object
-        const companyContractsWithAssets = {
-            contracts: companyContracts
-        };
-
-        res.json(companyContractsWithAssets);
-
-    } catch (error) {
-        console.error('Error retrieving company contracts with associated assets:', error);
-        res.status(500).send('Error retrieving company');
-    }
-});
-
-/**
- * @swagger
  * /api/company/:
  *   put:
  *     summary: Update company details by email
@@ -853,7 +955,7 @@ router.get('/company/contracts', verifyToken, async (req, res) => {
  *         description: Error updating company.
  */
 // Update company details
-router.put('/company', async (req, res) => {
+router.put('/company/', async (req, res) => {
     try {} catch (error) {}
 }
 );
