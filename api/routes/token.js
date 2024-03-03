@@ -352,6 +352,120 @@ async function deployRevenueDistributionContract(serviceContractAddress, tokenCo
 
 // // TOKEN ROUTES
 
+router.post('/token/submit', verifyToken, async (req, res) => {
+    try {
+        const companyId = req.user.id; // Retrieved from the JWT token by verifyToken middleware
+
+        const {
+            tokenName,
+            tokenSupply,
+            tokenPrice,
+            paymentCurrency,
+            contractTerm,
+            revenueShare,
+            assetIds,
+            assetValue,
+            revenueStreams,
+            fundingGoal,
+            fundingUsage,
+            projectDescription
+        } = req.body;
+
+        // console.log("/token/deploy req.body: ", req.body); 
+
+        // Validate the required parameters
+        if (!tokenSupply || !tokenPrice || !tokenName || !contractTerm || !revenueShare) {
+            return res.status(400).send('Missing required parameters.');
+        }
+
+        const company = await Company.findById(companyId);
+        if (!company) {
+            console.log('Company not found:', companyId);
+            return res.status(401).send('Company not found');
+        }
+        console.log("company.ethereumPublicKey: ", company.ethereumPublicKey);
+
+        // Define 'tokenSymbol' 
+        let tokenSymbol;
+
+        const companyTicker = company.ticker;
+
+        try {
+            // Calculate the index by counting the number of tokens with the same companyId
+            const tokensWithSameCompanyId = await Token.find({ companyId }).exec();
+            const index = tokensWithSameCompanyId.length + 1;
+
+            // Construct 'tokenSymbol'
+            tokenSymbol = `${companyTicker}-${index}`;
+
+        } catch (error) {
+            console.error('Error counting tokens:', error);
+            // Handle the error when counting tokens
+        }
+
+        BBWalletAddress = company.ethereumPublicKey;
+        maxTokenSupply = tokenSupply;
+
+        // Generate DB entry for new tokenization contracts
+        const newTokenEntry = new Token({
+            name: tokenName,
+            symbol: tokenSymbol,
+            maxTokenSupply: tokenSupply,
+            tokenPrice: tokenPrice,
+            currency: paymentCurrency,
+            revenueShare: revenueShare,
+            contractTerm: contractTerm,
+            assetValue: assetValue,
+            revenueStreams: revenueStreams,
+            fundingGoal: fundingGoal,
+            fundingCurrent: 0,
+            fundingUsage: fundingUsage,
+            projectDescription: projectDescription,
+            serviceContractAddress: serviceContractAddress,
+            tokenContractAddress: tokenContractAddress,
+            liquidityContractAddress: liquidityContractAddress,
+            revenueDistributionContractAddress: revenueDistributionContractAddress,
+            revenueStreamContractAddresses: [],
+            assetIds: assetIds,
+            companyId: companyId,
+            statusUpdates: [{
+                status: 'Pending',
+                messages: ["Your submitted documents are currently under review. We will notify you via mail with updates."],
+                actionsNeeded: ["No actions needed for now."]
+            }]
+        });
+
+        // Save the new token entry to the database
+        await newTokenEntry.save();
+
+        // Respond with the deployed contracts' addresses
+        res.status(200).json({
+            message: "Successfully deployed tokenization contracts.",
+            newTokenEntry
+        });
+
+    } catch (error) {
+        console.error('Error deploying Contracts:', error);
+        res.status(500).send('Failed to deploy the contracts.');
+    }
+});
+
+router.post('/token/approveBeta', verifyToken, async (req, res) => {
+    try {} catch (error) {}
+});
+
+router.post('/token/approve', verifyToken, async (req, res) => {
+    try {} catch (error) {}
+});
+
+router.post('/token/decline', verifyToken, async (req, res) => {
+    try {} catch (error) {}
+});
+
+router.post('/token/requestDocs', verifyToken, async (req, res) => {
+    try {} catch (error) {}
+});
+
 /**
  * @swagger
  * /api/token/deploy:
@@ -414,8 +528,6 @@ async function deployRevenueDistributionContract(serviceContractAddress, tokenCo
  *       500:
  *         description: Failed to deploy the contracts.
  */
-
-
 router.post('/token/deploy', verifyToken, async (req, res) => {
     try {
         const companyId = req.user.id; // Retrieved from the JWT token by verifyToken middleware
@@ -663,7 +775,6 @@ router.post('/token/deploy', verifyToken, async (req, res) => {
  *           type: string
  *           description: ID of the company that owns the token.
  */
-
 // PATCH endpoint to update the status of the token object
 router.patch('/token/status/:tokenId', async (req, res) => {
     try {
