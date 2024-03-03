@@ -296,7 +296,6 @@ const delay = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
  *       400:
  *         description: Invalid input
  */
-
 // Company Registration
 router.post('/company/register', async (req, res) => {
     try {
@@ -381,7 +380,6 @@ router.post('/company/register', async (req, res) => {
  *       500:
  *         description: Error logging in.
  */
-
 // Company Login
 router.post('/company/login', async (req, res) => {
     try {
@@ -404,6 +402,7 @@ router.post('/company/login', async (req, res) => {
         res.status(500).send('Error logging in');
     }
 });
+
 /**
  * @swagger
  * /api/company/verify:
@@ -439,8 +438,6 @@ router.post('/company/login', async (req, res) => {
  *       500:
  *         description: An error occurred or transaction failed.
  */
-
-
 // Company KYC
 router.post('/company/verify', async (req, res) => {
     try {
@@ -546,7 +543,7 @@ router.post('/company/verify', async (req, res) => {
 *       400:
 *         description: Invalid input or operation failed
 */
-
+// Company withdraw funds [Inactive]
 router.post('/company/withdrawFunds', verifyToken, async (req, res) => {
     try {
         const { amount, liquidityContractAddress } = req.body;
@@ -623,7 +620,7 @@ router.post('/company/withdrawFunds', verifyToken, async (req, res) => {
  *       500:
  *         description: Internal Server Error or transfer failed.
  */
-
+// Company transfer funds / tokens [Inactive]
 router.post('/company/transfer', verifyToken, async (req, res) => {
     try {
         const { amount, currency, walletAddress } = req.body;
@@ -982,7 +979,7 @@ router.get('/company/jwt', verifyToken, async (req, res) => {
  *       500:
  *         description: Error retrieving company details and liquidity pool information.
  */
-
+// Get company contracts by JWT token
 router.get('/company/contracts', verifyToken, async (req, res) => {
     try {
         const companyId = req.user.id; // ID is retrieved from the decoded JWT token
@@ -1026,7 +1023,78 @@ router.get('/company/contracts', verifyToken, async (req, res) => {
     }
 });
 
+/**
+ * @swagger
+ * /api/company/:
+ *   put:
+ *     summary: Update company details by email
+ *     tags: 
+ *       - Company
+ *     parameters:
+ *       - in: path
+ *         name: email
+ *         required: true
+ *         description: The email of the company to update.
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               name:
+ *                 type: string
+ *               password:
+ *                 type: string
+ *                 format: password
+ *     responses:
+ *       200:
+ *         description: Details of the updated company.
+ *       404:
+ *         description: Company not found.
+ *       500:
+ *         description: Error updating company.
+ */
+// Update company details by JWT 
+router.put('/company', async (req, res) => {
+    try {} catch (error) {}
+}
+);
 
+/**
+ * @swagger
+ * /api/company/:
+ *   delete:
+ *     summary: Delete company by email
+ *     tags: 
+ *       - Company
+ *     parameters:
+ *       - in: path
+ *         name: email
+ *         required: true
+ *         description: The email of the company to delete.
+ *     responses:
+ *       200:
+ *         description: Details of the deleted company.
+ *       404:
+ *         description: Company not found.
+ *       500:
+ *         description: Error deleting company.
+ */
+// Delete company by JWT
+router.delete('/company/', async (req, res) => {
+    try {
+        const email = req.params.email;
+        const deletedCompany = await Company.findOneAndDelete({ email });
+        if (!deletedCompany) {
+            return res.status(404).send('Company not found');
+        }
+        res.json(deletedCompany);
+    } catch (error) {
+        console.error('Error deleting company:', error);
+        res.status(500).send('Error deleting company');
+    }
+});
 
 
 // /**
@@ -1095,7 +1163,7 @@ router.get('/company/contracts', verifyToken, async (req, res) => {
  *       500:
  *         description: Error retrieving company.
  */
-// Retrieve company details by Email
+// Get company details by Email [Inactive]
 router.get('/company/email/:email', async (req, res) => {
     try {
         const email = req.params.email;
@@ -1145,7 +1213,7 @@ router.get('/company/email/:email', async (req, res) => {
  *       500:
  *         description: Error updating company.
  */
-// Update company details by Email
+// Update company details by Email [Inactive]
 router.put('/company/email/:email', async (req, res) => {
     try {
         const email = req.params.email;
@@ -1181,7 +1249,7 @@ router.put('/company/email/:email', async (req, res) => {
  *       500:
  *         description: Error deleting company.
  */
-// Delete company by Email
+// Delete company by Email [Inactive]
 router.delete('/company/email/:email', async (req, res) => {
     try {
         const email = req.params.email;
