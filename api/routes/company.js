@@ -248,6 +248,9 @@ function rateLimiter(rateLimit, requestFunction) {
 // Delay function
 const delay = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 
+
+//// ROUTES ////
+
 /**
  * @swagger
  * /api/company/register:
@@ -506,212 +509,6 @@ router.post('/company/verify', async (req, res) => {
 });
 
 /**
-* @swagger
-* /api/company/withdrawFunds:
-*   post:
-*     summary: Withdraw funds from the Liquidity Contract of tokenized asset
-*     tags: 
-*     - Company
-*     requestBody:
-*       required: true
-*       content:
-*         application/json:
-*           schema:
-*             type: object
-*             required:
-*               - companyId
-*               - password
-*               - amount
-*               - liquidityContractAddress
-*             properties:
-*               companyId:
-*                 type: string
-*                 description: The ID of the company
-*               password:
-*                 type: string
-*                 format: password
-*                 description: Password for the company account
-*               amount:
-*                 type: number
-*                 description: The amount of tokens to withdraw
-*               liquidityContractAddress:
-*                 type: string
-*                 description: The address of the Liquidity Contract
-*     responses:
-*       200:
-*         description: Successfully withdrawn funds
-*       400:
-*         description: Invalid input or operation failed
-*/
-// Company withdraw funds [Inactive]
-router.post('/company/withdrawFunds', verifyToken, async (req, res) => {
-    try {
-        const { amount, liquidityContractAddress } = req.body;
-
-        const companyId = req.user.id;
-        const company = await Company.findById(companyId);
-        if (!company) {
-            return res.status(404).send('Company not found');
-        }
-
-        // Validate the password
-        const isMatch = await bcrypt.compare(password, company.password);
-        if (!isMatch) {
-            return res.status(401).send('Invalid password');
-        }
-
-        // Decrypt the private key
-        const decryptedPrivateKey = decryptPrivateKey(company.ethereumPrivateKey, SECRET_KEY);
-
-        // Load the contract
-        const liquidityContract = new web3.eth.Contract(LCABI, liquidityContractAddress);
-
-        // Prepare transaction
-        const transaction = liquidityContract.methods.withdrawFunds(amount);
-
-        // Estimate and send the transaction
-        const receipt = await estimateAndSend(transaction, company.ethereumPublicKey, decryptedPrivateKey, liquidityContractAddress);
-
-        // If the transaction is successful
-        return res.status(200).json({ message: "Successfully withdrawn funds from Liquidity Contract.", receipt: serializeBigIntInObject(receipt) });
-
-    } catch (error) {
-        console.error('Error while withdrawing funds:', error);
-        res.status(500).send('Error withdrawing funds');
-    }
-});
-
-/**
- * @swagger
- * /api/company/transfer:
- *   post:
- *     summary: Transfer funds (ETH or USDC) from company's wallet to another address
- *     tags: 
- *       - Company
- *     security:
- *       - bearerAuth: []
- *     requestBody:
- *       required: true
- *       content:
- *         application/json:
- *           schema:
- *             type: object
- *             required:
- *               - amount
- *               - currency
- *               - walletAddress
- *             properties:
- *               amount:
- *                 type: string
- *                 description: The amount of currency to be transferred
- *               currency:
- *                 type: string
- *                 description: The type of currency to transfer ('ETH' or 'USDC')
- *               walletAddress:
- *                 type: string
- *                 description: The destination wallet address
- *     responses:
- *       200:
- *         description: Transfer successful. Returns transaction receipt.
- *       400:
- *         description: Bad request if invalid currency or insufficient parameters.
- *       404:
- *         description: Company not found.
- *       500:
- *         description: Internal Server Error or transfer failed.
- */
-// Company transfer funds / tokens [Inactive]
-router.post('/company/transfer', verifyToken, async (req, res) => {
-    try {
-        const { amount, currency, walletAddress } = req.body;
-        const companyId = req.user.id;
-        const company = await Company.findById(companyId);
-
-        if (!company) {
-            return res.status(404).send('Company not found');
-        }
-
-        try {
-            const decryptedPrivateKey = decryptPrivateKey(company.ethereumPrivateKey, SECRET_KEY);
-            console.log("Decrypted Private Key: ", decryptedPrivateKey); // Log to check the format
-
-            if (!decryptedPrivateKey.startsWith('0x')) {
-                throw new Error("Private key does not start with '0x'");
-            }
-
-            const account = web3.eth.accounts.privateKeyToAccount(decryptedPrivateKey);
-            web3.eth.accounts.wallet.add(account);
-
-            let rawTransaction;
-            let gasPrice;
-            let receipt;
-
-            console.log("Currency: ", currency);
-
-            if (currency === 'ETH') {
-                gasPrice = await web3.eth.getGasPrice(); // Get current gas price
-                rawTransaction = {
-                    from: account.address,
-                    to: walletAddress,
-                    value: web3.utils.toWei(amount, 'ether'),
-                    gas: 2000000,
-                    gasPrice: gasPrice
-                };
-            } else if (currency === 'USDC') {
-                gasPrice = await web3.eth.getGasPrice(); // Get current gas price
-                console.log("Gas price:", gasPrice);
-                console.log("Wallet address:", walletAddress);
-                console.log("Amount:", amount);
-
-                const usdcContract = new web3.eth.Contract(USDCABI, USDCContractAddress);
-                const tokenAmount = web3.utils.toWei(amount, 'ether');
-                const data = usdcContract.methods.transfer(walletAddress, tokenAmount).encodeABI();
-                rawTransaction = {
-                    from: account.address,
-                    to: USDCContractAddress,
-                    data: data,
-                    gas: 2000000,
-                    gasPrice: gasPrice
-                };
-                console.log("Raw transaction:", rawTransaction);
-
-
-            }
-
-            else {
-                return res.status(400).send('Invalid currency');
-            }
-
-            const signedTransaction = await web3.eth.accounts.signTransaction(rawTransaction, account.privateKey);
-            receipt = await web3.eth.sendSignedTransaction(signedTransaction.rawTransaction);
-            if (receipt.status) {
-                const transactionRecord = new Transaction({
-                    transactionType: 'Withdraw',
-                    fromAddress: company.ethereumPublicKey,
-                    toAddress: walletAddress,
-                    payableAmount: amount,
-                    currency: currency,
-                    transactionHash: receipt.transactionHash,
-                    status: 'confirmed'
-                });
-                await transactionRecord.save();
-                res.status(200).json({ message: "Transfer successful", receipt: serializeBigIntInObject(receipt) });
-            } else {
-                res.status(500).send('Transfer failed');
-            }
-        } catch (error) {
-            console.error('Error in transaction processing:', error);
-            return res.status(500).send('Internal Server Error');
-        }
-
-    } catch (error) {
-        console.error('Error:', error);
-        res.status(500).send('Internal Server Error');
-    }
-});
-
-
-/**
  * @swagger
  * /api/company/jwt:
  *   get:
@@ -807,8 +604,8 @@ router.post('/company/transfer', verifyToken, async (req, res) => {
  *       500:
  *         description: Error retrieving company details and liquidity pool information.
  */
-// Get company details by JWT token
-router.get('/company/jwt', verifyToken, async (req, res) => {
+// Get company details
+router.get('/company/', verifyToken, async (req, res) => {
     try {
         const companyId = req.user.id; // ID is retrieved from the decoded JWT token
         const company = await Company.findById(companyId);
@@ -979,7 +776,7 @@ router.get('/company/jwt', verifyToken, async (req, res) => {
  *       500:
  *         description: Error retrieving company details and liquidity pool information.
  */
-// Get company contracts by JWT token
+// Get company contracts 
 router.get('/company/contracts', verifyToken, async (req, res) => {
     try {
         const companyId = req.user.id; // ID is retrieved from the decoded JWT token
@@ -1055,7 +852,7 @@ router.get('/company/contracts', verifyToken, async (req, res) => {
  *       500:
  *         description: Error updating company.
  */
-// Update company details by JWT 
+// Update company details
 router.put('/company', async (req, res) => {
     try {} catch (error) {}
 }
@@ -1081,7 +878,7 @@ router.put('/company', async (req, res) => {
  *       500:
  *         description: Error deleting company.
  */
-// Delete company by JWT
+// Delete company
 router.delete('/company/', async (req, res) => {
     try {
         const email = req.params.email;
@@ -1097,6 +894,218 @@ router.delete('/company/', async (req, res) => {
 });
 
 
+// For Production
+/**
+ * @swagger
+ * /api/company/transfer:
+ *   post:
+ *     summary: Transfer funds (ETH or USDC) from company's wallet to another address
+ *     tags: 
+ *       - Company
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - amount
+ *               - currency
+ *               - walletAddress
+ *             properties:
+ *               amount:
+ *                 type: string
+ *                 description: The amount of currency to be transferred
+ *               currency:
+ *                 type: string
+ *                 description: The type of currency to transfer ('ETH' or 'USDC')
+ *               walletAddress:
+ *                 type: string
+ *                 description: The destination wallet address
+ *     responses:
+ *       200:
+ *         description: Transfer successful. Returns transaction receipt.
+ *       400:
+ *         description: Bad request if invalid currency or insufficient parameters.
+ *       404:
+ *         description: Company not found.
+ *       500:
+ *         description: Internal Server Error or transfer failed.
+ */
+// Company transfer funds / tokens [Inactive]
+router.post('/company/transfer', verifyToken, async (req, res) => {
+    try {
+        const { amount, currency, walletAddress } = req.body;
+        const companyId = req.user.id;
+        const company = await Company.findById(companyId);
+
+        if (!company) {
+            return res.status(404).send('Company not found');
+        }
+
+        try {
+            const decryptedPrivateKey = decryptPrivateKey(company.ethereumPrivateKey, SECRET_KEY);
+            console.log("Decrypted Private Key: ", decryptedPrivateKey); // Log to check the format
+
+            if (!decryptedPrivateKey.startsWith('0x')) {
+                throw new Error("Private key does not start with '0x'");
+            }
+
+            const account = web3.eth.accounts.privateKeyToAccount(decryptedPrivateKey);
+            web3.eth.accounts.wallet.add(account);
+
+            let rawTransaction;
+            let gasPrice;
+            let receipt;
+
+            console.log("Currency: ", currency);
+
+            if (currency === 'ETH') {
+                gasPrice = await web3.eth.getGasPrice(); // Get current gas price
+                rawTransaction = {
+                    from: account.address,
+                    to: walletAddress,
+                    value: web3.utils.toWei(amount, 'ether'),
+                    gas: 2000000,
+                    gasPrice: gasPrice
+                };
+            } else if (currency === 'USDC') {
+                gasPrice = await web3.eth.getGasPrice(); // Get current gas price
+                console.log("Gas price:", gasPrice);
+                console.log("Wallet address:", walletAddress);
+                console.log("Amount:", amount);
+
+                const usdcContract = new web3.eth.Contract(USDCABI, USDCContractAddress);
+                const tokenAmount = web3.utils.toWei(amount, 'ether');
+                const data = usdcContract.methods.transfer(walletAddress, tokenAmount).encodeABI();
+                rawTransaction = {
+                    from: account.address,
+                    to: USDCContractAddress,
+                    data: data,
+                    gas: 2000000,
+                    gasPrice: gasPrice
+                };
+                console.log("Raw transaction:", rawTransaction);
+
+
+            }
+
+            else {
+                return res.status(400).send('Invalid currency');
+            }
+
+            const signedTransaction = await web3.eth.accounts.signTransaction(rawTransaction, account.privateKey);
+            receipt = await web3.eth.sendSignedTransaction(signedTransaction.rawTransaction);
+            if (receipt.status) {
+                const transactionRecord = new Transaction({
+                    transactionType: 'Withdraw',
+                    fromAddress: company.ethereumPublicKey,
+                    toAddress: walletAddress,
+                    payableAmount: amount,
+                    currency: currency,
+                    transactionHash: receipt.transactionHash,
+                    status: 'confirmed'
+                });
+                await transactionRecord.save();
+                res.status(200).json({ message: "Transfer successful", receipt: serializeBigIntInObject(receipt) });
+            } else {
+                res.status(500).send('Transfer failed');
+            }
+        } catch (error) {
+            console.error('Error in transaction processing:', error);
+            return res.status(500).send('Internal Server Error');
+        }
+
+    } catch (error) {
+        console.error('Error:', error);
+        res.status(500).send('Internal Server Error');
+    }
+}); 
+
+// For later Version
+/**
+* @swagger
+* /api/company/withdrawFunds:
+*   post:
+*     summary: Withdraw funds from the Liquidity Contract of tokenized asset
+*     tags: 
+*     - Company
+*     requestBody:
+*       required: true
+*       content:
+*         application/json:
+*           schema:
+*             type: object
+*             required:
+*               - companyId
+*               - password
+*               - amount
+*               - liquidityContractAddress
+*             properties:
+*               companyId:
+*                 type: string
+*                 description: The ID of the company
+*               password:
+*                 type: string
+*                 format: password
+*                 description: Password for the company account
+*               amount:
+*                 type: number
+*                 description: The amount of tokens to withdraw
+*               liquidityContractAddress:
+*                 type: string
+*                 description: The address of the Liquidity Contract
+*     responses:
+*       200:
+*         description: Successfully withdrawn funds
+*       400:
+*         description: Invalid input or operation failed
+*/
+// Company withdraw funds [Inactive]
+router.post('/company/withdrawFunds', verifyToken, async (req, res) => {
+    try {
+        const { amount, liquidityContractAddress } = req.body;
+
+        const companyId = req.user.id;
+        const company = await Company.findById(companyId);
+        if (!company) {
+            return res.status(404).send('Company not found');
+        }
+
+        // Validate the password
+        const isMatch = await bcrypt.compare(password, company.password);
+        if (!isMatch) {
+            return res.status(401).send('Invalid password');
+        }
+
+        // Decrypt the private key
+        const decryptedPrivateKey = decryptPrivateKey(company.ethereumPrivateKey, SECRET_KEY);
+
+        // Load the contract
+        const liquidityContract = new web3.eth.Contract(LCABI, liquidityContractAddress);
+
+        // Prepare transaction
+        const transaction = liquidityContract.methods.withdrawFunds(amount);
+
+        // Estimate and send the transaction
+        const receipt = await estimateAndSend(transaction, company.ethereumPublicKey, decryptedPrivateKey, liquidityContractAddress);
+
+        // If the transaction is successful
+        return res.status(200).json({ message: "Successfully withdrawn funds from Liquidity Contract.", receipt: serializeBigIntInObject(receipt) });
+
+    } catch (error) {
+        console.error('Error while withdrawing funds:', error);
+        res.status(500).send('Error withdrawing funds');
+    }
+});
+
+
+
+
+
+// To delete
 // /**
 //  * @swagger
 //  * /api/company/{id}:
@@ -1163,7 +1172,7 @@ router.delete('/company/', async (req, res) => {
  *       500:
  *         description: Error retrieving company.
  */
-// Get company details by Email [Inactive]
+// Get company details by Email [Delete]
 router.get('/company/email/:email', async (req, res) => {
     try {
         const email = req.params.email;
@@ -1213,7 +1222,7 @@ router.get('/company/email/:email', async (req, res) => {
  *       500:
  *         description: Error updating company.
  */
-// Update company details by Email [Inactive]
+// Update company details by Email [Delete]
 router.put('/company/email/:email', async (req, res) => {
     try {
         const email = req.params.email;
@@ -1249,7 +1258,7 @@ router.put('/company/email/:email', async (req, res) => {
  *       500:
  *         description: Error deleting company.
  */
-// Delete company by Email [Inactive]
+// Delete company by Email [Delete]
 router.delete('/company/email/:email', async (req, res) => {
     try {
         const email = req.params.email;
