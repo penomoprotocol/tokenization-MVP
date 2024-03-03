@@ -73,7 +73,7 @@ const DIDContractAddress = '0x0000000000000000000000000000000000000800';
 // Initialize the contract with web3
 const DIDContract = new web3.eth.Contract(DIDABI, DIDContractAddress);
 
-// // // FUNCTIONS
+////// FUNCTIONS //////
 
 // Get gas price
 async function getCurrentGasPrice() {
@@ -128,11 +128,13 @@ const encryptPrivateKey = (privateKey, SECRET_KEY) => {
     return encrypted;
 };
 
+// Decrypt private key function
 const decryptPrivateKey = (encryptedKey, SECRET_KEY) => {
     const decrypted = CryptoJS.AES.decrypt(encryptedKey, SECRET_KEY).toString(CryptoJS.enc.Utf8);
     return decrypted;
 };
 
+// Create DID function
 const createPeaqDID = async (name, seed) => {
     const sdkInstance = await Sdk.createInstance({
         baseUrl: "wss://wsspc1-qa.agung.peaq.network",
@@ -157,11 +159,17 @@ const createPeaqDID = async (name, seed) => {
     return did;
 };
 
+// Read DID function
 const readDID = async (sdk, name) => {
     const did = await sdk.did.read(name, SEED);
     console.log(did);
     return did;
 };
+
+
+////// ROUTES //////
+
+//// For BETA ////
 
 /**
  * @swagger
@@ -244,7 +252,7 @@ const readDID = async (sdk, name) => {
  *       500:
  *         description: Server error or unable to register the asset.
  */
-
+// Register asset
 router.post('/asset/register', verifyToken, async (req, res) => {
     try {
         const companyId = req.user.id; // ID is retrieved from the decoded JWT token
@@ -376,7 +384,7 @@ router.post('/asset/register', verifyToken, async (req, res) => {
  *       500:
  *         description: Error occurred while storing data or updating the asset entry.
  */
-
+// Store data on- / off-chain
 router.post('/asset/storeData', async (req, res) => {
     try {
         const { companyId, companyPassword, batteryDid, batteryType, capacity, voltage } = req.body;
@@ -426,7 +434,6 @@ router.post('/asset/storeData', async (req, res) => {
     }
 });
 
-
 /**
  * @swagger
  * /api/asset:
@@ -440,7 +447,7 @@ router.post('/asset/storeData', async (req, res) => {
  *       500:
  *         description: Server error
  */
-// Retrieve all assets
+// Get all assets
 router.get('/asset', async (req, res) => {
     try {
         const assets = await Asset.find({});
@@ -450,78 +457,6 @@ router.get('/asset', async (req, res) => {
         res.status(500).send('Error retrieving all assets.');
     }
 });
-
-/**
- * @swagger
- * /api/asset/company/{companyId}:
- *   get:
- *     summary: Retrieve assets by company ID
- *     tags: 
- *       - Asset
- *     parameters:
- *       - in: path
- *         name: companyId
- *         required: true
- *         description: Company ID to retrieve assets for.
- *     responses:
- *       200:
- *         description: An array of assets for the given company.
- *       404:
- *         description: No assets found for the given company.
- *       500:
- *         description: Server error
- */
-// Retrieve assets by companyId
-router.get('/asset/company/:companyId', async (req, res) => {
-    try {
-        const { companyId } = req.params;
-        const assets = await Asset.find({ companyId: companyId });
-        if (!assets || assets.length === 0) {
-            return res.status(404).send('No assets found for the given company.');
-        }
-        res.status(200).json(assets);
-    } catch (error) {
-        console.error('Error retrieving assets by company ID:', error);
-        res.status(500).send('Error retrieving assets by company ID.');
-    }
-});
-
-/**
- * @swagger
- * /api/asset/did/{did}:
- *   get:
- *     summary: Retrieve an asset by DID
- *     tags: 
- *       - Asset
- *     parameters:
- *       - in: path
- *         name: did
- *         required: true
- *         description: Digital Identifier of the asset to retrieve.
- *     responses:
- *       200:
- *         description: Asset object.
- *       404:
- *         description: Asset not found.
- *       500:
- *         description: Server error
- */
-// Retrieve an asset by DID
-router.get('/asset/did/:did', async (req, res) => {
-    try {
-        const { did } = req.params;
-        const asset = await Asset.findOne({ DID: did });
-        if (!asset) {
-            return res.status(404).send('Asset not found.');
-        }
-        res.status(200).json(asset);
-    } catch (error) {
-        console.error('Error retrieving asset by DID:', error);
-        res.status(500).send('Error retrieving asset by DID.');
-    }
-});
-
-
 
 /**
  * @swagger
@@ -552,9 +487,8 @@ router.get('/asset/did/:did', async (req, res) => {
  *       500:
  *         description: Error updating asset.
  */
-
+// Update asset details
 router.put('/asset/did/:did', (req, res) => {
-    // Update asset details
 });
 
 /**
@@ -577,9 +511,51 @@ router.put('/asset/did/:did', (req, res) => {
  *       500:
  *         description: Error deleting asset.
  */
-
+// Delete asset 
 router.delete('/asset/did/:did', (req, res) => {
-    // Delete asset 
 });
+
+
+//// For production ////
+
+
+//// For later stage ////
+
+// /**
+//  * @swagger
+//  * /api/asset/did/{did}:
+//  *   get:
+//  *     summary: Retrieve an asset by DID
+//  *     tags: 
+//  *       - Asset
+//  *     parameters:
+//  *       - in: path
+//  *         name: did
+//  *         required: true
+//  *         description: Digital Identifier of the asset to retrieve.
+//  *     responses:
+//  *       200:
+//  *         description: Asset object.
+//  *       404:
+//  *         description: Asset not found.
+//  *       500:
+//  *         description: Server error
+//  */
+// // Retrieve an asset by DID
+// router.get('/asset/did/:did', async (req, res) => {
+//     try {
+//         const { did } = req.params;
+//         const asset = await Asset.findOne({ DID: did });
+//         if (!asset) {
+//             return res.status(404).send('Asset not found.');
+//         }
+//         res.status(200).json(asset);
+//     } catch (error) {
+//         console.error('Error retrieving asset by DID:', error);
+//         res.status(500).send('Error retrieving asset by DID.');
+//     }
+// });
+
+//// To delete ////
 
 module.exports = router;
