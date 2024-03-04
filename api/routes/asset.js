@@ -169,7 +169,7 @@ const readDID = async (sdk, name) => {
 
 ////// ROUTES //////
 
-//// For BETA ////
+//// For beta ////
 
 /**
  * @swagger
@@ -448,7 +448,7 @@ router.post('/asset/storeData', async (req, res) => {
  *         description: Server error
  */
 // Get all assets
-router.get('/asset', async (req, res) => {
+router.get('/asset/', async (req, res) => {
     try {
         const assets = await Asset.find({});
         res.status(200).json(assets);
@@ -457,6 +457,42 @@ router.get('/asset', async (req, res) => {
         res.status(500).send('Error retrieving all assets.');
     }
 });
+
+/**
+ * @swagger
+ * /api/asset/did/{did}:
+ *   get:
+ *     summary: Retrieve an asset by DID
+ *     tags: 
+ *       - Asset
+ *     parameters:
+ *       - in: path
+ *         name: did
+ *         required: true
+ *         description: Digital Identifier of the asset to retrieve.
+ *     responses:
+ *       200:
+ *         description: Asset object.
+ *       404:
+ *         description: Asset not found.
+ *       500:
+ *         description: Server error
+ */
+// Get asset by DID
+router.get('/asset/did/:did', async (req, res) => {
+    try {
+        const { did } = req.params;
+        const asset = await Asset.findOne({ DID: did });
+        if (!asset) {
+            return res.status(404).send('Asset not found.');
+        }
+        res.status(200).json(asset);
+    } catch (error) {
+        console.error('Error retrieving asset by DID:', error);
+        res.status(500).send('Error retrieving asset by DID.');
+    }
+});
+
 
 /**
  * @swagger
@@ -487,7 +523,7 @@ router.get('/asset', async (req, res) => {
  *       500:
  *         description: Error updating asset.
  */
-// Update asset details
+// Update asset
 router.put('/asset/did/:did', (req, res) => {
 });
 
@@ -521,41 +557,8 @@ router.delete('/asset/did/:did', (req, res) => {
 
 //// For later stage ////
 
-// /**
-//  * @swagger
-//  * /api/asset/did/{did}:
-//  *   get:
-//  *     summary: Retrieve an asset by DID
-//  *     tags: 
-//  *       - Asset
-//  *     parameters:
-//  *       - in: path
-//  *         name: did
-//  *         required: true
-//  *         description: Digital Identifier of the asset to retrieve.
-//  *     responses:
-//  *       200:
-//  *         description: Asset object.
-//  *       404:
-//  *         description: Asset not found.
-//  *       500:
-//  *         description: Server error
-//  */
-// // Retrieve an asset by DID
-// router.get('/asset/did/:did', async (req, res) => {
-//     try {
-//         const { did } = req.params;
-//         const asset = await Asset.findOne({ DID: did });
-//         if (!asset) {
-//             return res.status(404).send('Asset not found.');
-//         }
-//         res.status(200).json(asset);
-//     } catch (error) {
-//         console.error('Error retrieving asset by DID:', error);
-//         res.status(500).send('Error retrieving asset by DID.');
-//     }
-// });
 
 //// To delete ////
+
 
 module.exports = router;
