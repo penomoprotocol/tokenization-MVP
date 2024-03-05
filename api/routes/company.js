@@ -73,7 +73,7 @@ const Investor = require('../models/InvestorModel');
 
 //// FUNCTIONS ////
 
-// Get gas price
+// Function to get gas price
 async function getCurrentGasPrice() {
     let gasPrice = await web3.eth.getGasPrice();
     console.log(`Current Gas Price: ${gasPrice}`);
@@ -81,7 +81,7 @@ async function getCurrentGasPrice() {
     return gasPrice;
 }
 
-// Helper function to estimate gas and send a transaction
+// Function to estimate gas and send a transaction
 async function estimateAndSend(transaction, fromAddress, fromPrivateKey, toAddress) {
     try {
         let currentNonce = await web3.eth.getTransactionCount(fromAddress, 'pending');
@@ -124,18 +124,19 @@ const createWallet = () => {
     return wallet;
 };
 
-// Functions to encrypt and decrypt private keys
+// Function to encrypt private key
 const encryptPrivateKey = (privateKey, SECRET_KEY) => {
     const encrypted = CryptoJS.AES.encrypt(privateKey, SECRET_KEY).toString();
     return encrypted;
 };
 
+// Function to decrypt private key
 const decryptPrivateKey = (encryptedKey, SECRET_KEY) => {
     const decrypted = CryptoJS.AES.decrypt(encryptedKey, SECRET_KEY).toString(CryptoJS.enc.Utf8);
     return decrypted;
 };
 
-// Helper function to serialize BigInt values in an object
+// Function to serialize BigInt values in an object
 function serializeBigIntInObject(obj) {
     for (let key in obj) {
         if (typeof obj[key] === 'bigint') {
@@ -224,7 +225,7 @@ async function fetchContractBalance(address) {
     }
 }
 
-// Rate limiter function
+// Fuction to timelimit api calls 
 function rateLimiter(rateLimit, requestFunction) {
     let lastCalled = Date.now();
 
@@ -247,7 +248,7 @@ function rateLimiter(rateLimit, requestFunction) {
     };
 }
 
-// Delay function
+// Function to delay api calls
 const delay = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 
 
