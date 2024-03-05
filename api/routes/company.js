@@ -34,6 +34,8 @@ const USDCContractJSON = JSON.parse(fs.readFileSync(USDCContractPath, 'utf8'));
 const USDCABI = USDCContractJSON.abi;
 
 const verifyToken = require('../middleware/jwtCheck');
+const verifyApiKey = require('../middleware/verifyApiKey');
+
 
 const passport = require('passport');
 const JwtStrategy = require('passport-jwt').Strategy;
@@ -67,6 +69,7 @@ const Asset = require('../models/AssetModel');
 const Company = require('../models/CompanyModel');
 const Token = require('../models/TokenModel');
 const Investor = require('../models/InvestorModel');
+const verifyApiKey = require('../middleware/verifyApiKey');
 
 
 //// FUNCTIONS ////
@@ -441,7 +444,7 @@ router.post('/company/login', async (req, res) => {
  *       500:
  *         description: An error occurred or transaction failed.
  */
-// Submit company KYC data
+// Submit company KYC data (called by company representative)
 router.post('/company/kyc/submit', async (req, res) => {
     try {
         const {
@@ -468,42 +471,13 @@ router.post('/company/kyc/submit', async (req, res) => {
         company.registrationNumber = registrationNumber;
         company.businessAddress = businessAddress;
         company.businessPhone = businessPhone;
-        company.isVerified = true; // Set the company as verified
+        company.isVerified = "pending"; // Set the company KYC status as pending
 
         await company.save(); // Save the updated company data
 
-        // Get company's public Ethereum address
-        const companyWalletAddress = company.ethereumPublicKey;
-
-        // Prepare the contract instance
-        const contract = new web3.eth.Contract(GSCABI, GSCAddress);
-
-        // Prepare the transaction object
-        const transaction = contract.methods.verifyCompany(companyWalletAddress);
-
-        // Send the transaction using the estimateAndSend helper function
-        const receipt = await estimateAndSend(
-            transaction,
-            MASTER_ADDRESS,
-            MASTER_PRIVATE_KEY,
-            GSCAddress
-        );
-
-        // Handle the transaction receipt
-        console.log('Transaction receipt:', receipt);
-
-        // Check if the transaction was successful
-        if (receipt.status) {
-            return res.status(200).json({
-                message: 'Company successfully verified and whitelisted in Global State Contract.',
-                transactionHash: receipt.transactionHash
-            });
-        } else {
-            return res.status(500).json({ error: 'Transaction failed' });
-        }
 
     } catch (error) {
-        console.error('Error in company verification:', error);
+        console.error('Error in company KYC submission:', error);
         return res.status(500).json({ error: 'An error occurred' });
     }
 });
@@ -543,18 +517,10 @@ router.post('/company/kyc/submit', async (req, res) => {
  *       500:
  *         description: An error occurred or transaction failed.
  */
-// Verify company KYC data (admin call)
-router.post('/company/kyc/verify', async (req, res) => {
+// Verify company KYC data (called by penomo team or KYC provider / NYALA backend? )
+router.post('/company/kyc/verify', verifyApiKey, async (req, res) => {
     try {
-        const {
-            companyId,
-            firstName,
-            surname,
-            dob,
-            businessName,
-            registrationNumber,
-            businessAddress,
-            businessPhone } = req.body;
+        const {companyId} = req.body;
 
         // Fetch company from the database
         const company = await Company.findById(companyId);
