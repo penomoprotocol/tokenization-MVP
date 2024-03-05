@@ -69,7 +69,6 @@ const Asset = require('../models/AssetModel');
 const Company = require('../models/CompanyModel');
 const Token = require('../models/TokenModel');
 const Investor = require('../models/InvestorModel');
-const verifyApiKey = require('../middleware/verifyApiKey');
 
 
 //// FUNCTIONS ////
@@ -254,6 +253,7 @@ const delay = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 
 //// ROUTES ////
 
+// Company Registration
 /**
  * @swagger
  * /api/company/register:
@@ -297,83 +297,87 @@ const delay = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
  *                 password:
  *                   type: string
  *                   format: password
- *                 ethereumPrivateKey:
- *                   type: string
  *       400:
  *         description: Invalid input
  */
-// Company Registration
 router.post('/company/register', async (req, res) => {
     try {
         const { businessName, ticker, email, password } = req.body;
         const hashedPassword = await bcrypt.hash(password, 10);
 
-        // Create a new Ethereum wallet and get the private key
-        const wallet = createWallet();
-        const privateKey = wallet.privateKey;
-        const publicKey = wallet.address; // Get the public key (wallet address)
+        // // Create a new Ethereum wallet and get the private key
+        // const wallet = createWallet();
+        // const privateKey = wallet.privateKey;
+        // const publicKey = wallet.address; // Get the public key (wallet address)
 
-        // Encrypt the private key with the user's password
-        const encryptedPrivateKey = encryptPrivateKey(privateKey, SECRET_KEY);
+        // // Encrypt the private key with the user's password
+        // const encryptedPrivateKey = encryptPrivateKey(privateKey, SECRET_KEY);
 
         const company = new Company({
             businessName,
             ticker,
             email,
             password: hashedPassword,
-            ethereumPrivateKey: encryptedPrivateKey, // Store the encrypted private key
-            ethereumPublicKey: publicKey, // Store the public key (wallet address)
+            // ethereumPrivateKey: encryptedPrivateKey, // Store the encrypted private key
+            // ethereumPublicKey: publicKey, // Store the public key (wallet address)
         });
 
         await company.save();
         console.log("Added company instance: ", company);
 
-        // Fund the new wallet with 1000000000000000 wei
-        const fundingAmount = '1000000000000000'; // 1000000000000000 wei
+        // // Fund the new wallet with 1000000000000000 wei
+        // const fundingAmount = '1000000000000000'; // 1000000000000000 wei
 
-        // Create a raw transaction object
-        const transaction = {
-            from: MASTER_ADDRESS,
-            to: publicKey,
-            value: fundingAmount,
-            gasLimit: web3.utils.toHex(21000), // Standard gas limit for Ether transfers
-            gasPrice: web3.utils.toHex(await web3.eth.getGasPrice()) // Get current gas price
-        };
-        // Sign the transaction with the master's private key
-        const signedTx = await web3.eth.accounts.signTransaction(transaction, MASTER_PRIVATE_KEY);
+        // // Create a raw transaction object
+        // const transaction = {
+        //     from: MASTER_ADDRESS,
+        //     to: publicKey,
+        //     value: fundingAmount,
+        //     gasLimit: web3.utils.toHex(21000), // Standard gas limit for Ether transfers
+        //     gasPrice: web3.utils.toHex(await web3.eth.getGasPrice()) // Get current gas price
+        // };
+        // // Sign the transaction with the master's private key
+        // const signedTx = await web3.eth.accounts.signTransaction(transaction, MASTER_PRIVATE_KEY);
 
-        // Send the signed transaction
-        const receipt = await web3.eth.sendSignedTransaction(signedTx.rawTransaction);
+        // // Send the signed transaction
+        // const receipt = await web3.eth.sendSignedTransaction(signedTx.rawTransaction);
 
 
         res.status(200).json({ message: "Successfully registered company.", company });
     } catch (error) {
-        console.error('Error while registering company or funding wallet:', error);
-        res.status(500).send('Error registering company or funding wallet');
+        console.error('Error while registering company:', error);
+        res.status(500).send('Error registering company');
     }
 });
 
+// Company Login
 /**
  * @swagger
  * /api/company/login:
  *   post:
- *     summary: Login a company
- *     tags: 
- *     - Company
+ *     summary: Login for a company
+ *     tags: [Company]
  *     requestBody:
  *       required: true
  *       content:
  *         application/json:
  *           schema:
  *             type: object
+ *             required:
+ *               - email
+ *               - password
  *             properties:
  *               email:
  *                 type: string
+ *                 format: email
+ *                 description: Email of the company
  *               password:
  *                 type: string
+ *                 format: password
+ *                 description: Password for the company account
  *     responses:
  *       200:
- *         description: Successfully logged in.
+ *         description: Login successful
  *         content:
  *           application/json:
  *             schema:
@@ -381,12 +385,12 @@ router.post('/company/register', async (req, res) => {
  *               properties:
  *                 token:
  *                   type: string
+ *                   description: JWT token for authentication
  *       401:
- *         description: Company not found or Invalid credentials.
+ *         description: Invalid credentials or company not found
  *       500:
- *         description: Error logging in.
+ *         description: Error logging in
  */
-// Company Login
 router.post('/company/login', async (req, res) => {
     try {
         const company = await Company.findOne({ email: req.body.email });
@@ -409,42 +413,62 @@ router.post('/company/login', async (req, res) => {
     }
 });
 
+// Submit company KYC data (called by company representative)
 /**
  * @swagger
- * /api/company/verify:
+ * /api/company/kyc/submit:
  *   post:
- *     summary: Verify company (KYB+AML) and add wallet address to GlobalStateContract whitelist.
- *     tags: 
- *       - Company
+ *     summary: Submit KYC information for a company
+ *     tags: [Company]
  *     requestBody:
  *       required: true
  *       content:
  *         application/json:
  *           schema:
  *             type: object
+ *             required:
+ *               - companyId
+ *               - firstName
+ *               - surname
+ *               - dob
+ *               - businessName
+ *               - registrationNumber
+ *               - businessAddress
+ *               - businessPhone
  *             properties:
  *               companyId:
  *                 type: string
- *                 description: Unique identifier of the company.
+ *                 description: ID of the company
+ *               firstName:
+ *                 type: string
+ *                 description: First name of the contact person
+ *               surname:
+ *                 type: string
+ *                 description: Surname of the contact person
+ *               dob:
+ *                 type: string
+ *                 format: date
+ *                 description: Date of birth of the contact person
  *               businessName:
  *                 type: string
- *                 description: Name of the business.
+ *                 description: Name of the company
  *               registrationNumber:
  *                 type: string
- *                 description: Business registration number.
+ *                 description: Registration number of the company
  *               businessAddress:
  *                 type: string
- *                 description: Physical address of the business.
+ *                 description: Address of the company
  *               businessPhone:
  *                 type: string
- *                 description: Contact phone number of the business.
+ *                 description: Phone number of the company
  *     responses:
  *       200:
- *         description: Company successfully verified.
+ *         description: KYC information submitted successfully
+ *       404:
+ *         description: Company not found
  *       500:
- *         description: An error occurred or transaction failed.
+ *         description: Error submitting KYC information
  */
-// Submit company KYC data (called by company representative)
 router.post('/company/kyc/submit', async (req, res) => {
     try {
         const {
@@ -482,51 +506,99 @@ router.post('/company/kyc/submit', async (req, res) => {
     }
 });
 
+// Verify company KYC data (called by penomo team or KYC provider / NYALA backend? )
 /**
  * @swagger
- * /api/company/verify:
+ * /api/company/kyc/verify:
  *   post:
- *     summary: Verify company (KYB+AML) and add wallet address to GlobalStateContract whitelist.
- *     tags: 
- *       - Company
+ *     summary: Verify KYC data for a company
+ *     description: This endpoint is called by the penomo team or KYC provider / NYALA backend to verify KYC data for a company.
+ *     tags: [Company]
+ *     security:
+ *       - ApiKeyAuth: []
  *     requestBody:
  *       required: true
  *       content:
  *         application/json:
  *           schema:
  *             type: object
+ *             required:
+ *               - companyId
  *             properties:
  *               companyId:
  *                 type: string
- *                 description: Unique identifier of the company.
- *               businessName:
- *                 type: string
- *                 description: Name of the business.
- *               registrationNumber:
- *                 type: string
- *                 description: Business registration number.
- *               businessAddress:
- *                 type: string
- *                 description: Physical address of the business.
- *               businessPhone:
- *                 type: string
- *                 description: Contact phone number of the business.
+ *                 description: ID of the company
  *     responses:
  *       200:
- *         description: Company successfully verified.
+ *         description: Company KYC data verified and updated successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                   description: Confirmation message
+ *                 transactionHash:
+ *                   type: string
+ *                   description: Hash of the transaction in the blockchain
+ *       404:
+ *         description: Company not found
  *       500:
- *         description: An error occurred or transaction failed.
+ *         description: Error verifying company KYC data
  */
-// Verify company KYC data (called by penomo team or KYC provider / NYALA backend? )
 router.post('/company/kyc/verify', verifyApiKey, async (req, res) => {
     try {
-        const {companyId} = req.body;
+        const { companyId } = req.body;
 
         // Fetch company from the database
         const company = await Company.findById(companyId);
         if (!company) {
             return res.status(404).send('Company not found');
         }
+
+        // Create a new Ethereum wallet and get the private key
+        const wallet = createWallet();
+        const privateKey = wallet.privateKey;
+        const publicKey = wallet.address; // Get the public key (wallet address)
+
+        // Encrypt the private key with the user's password
+        const encryptedPrivateKey = encryptPrivateKey(privateKey, SECRET_KEY);
+
+        // Fund the new wallet with 1000000000000000 wei
+        const fundingAmount = '1000000000000000'; // 1000000000000000 wei
+
+        // Create a raw transaction object
+        const fundingTransaction = {
+            from: MASTER_ADDRESS,
+            to: publicKey,
+            value: fundingAmount,
+            gasLimit: web3.utils.toHex(21000), // Standard gas limit for Ether transfers
+            gasPrice: web3.utils.toHex(await web3.eth.getGasPrice()) // Get current gas price
+        };
+        // Sign the transaction with the master's private key
+        const signedTx = await web3.eth.accounts.signTransaction(transaction, MASTER_PRIVATE_KEY);
+
+        // Send the signed transaction
+        const fundingReceipt = await web3.eth.sendSignedTransaction(signedTx.rawTransaction);
+
+        // Prepare the contract instance
+        const contract = new web3.eth.Contract(GSCABI, GSCAddress);
+
+        // Prepare the transaction object
+        const whitelistTransaction = contract.methods.verifyCompany(publicKey);
+
+        // Send the transaction using the estimateAndSend helper function
+        const whitelistreceipt = await estimateAndSend(
+            transaction,
+            MASTER_ADDRESS,
+            MASTER_PRIVATE_KEY,
+            GSCAddress
+        );
+
+        // Handle the transaction receipt
+        console.log('Transaction receipt:', receipt);
+
 
         // Update company with additional verification info
         company.firstname = firstName;
@@ -536,29 +608,10 @@ router.post('/company/kyc/verify', verifyApiKey, async (req, res) => {
         company.registrationNumber = registrationNumber;
         company.businessAddress = businessAddress;
         company.businessPhone = businessPhone;
+        company.ethereumPrivateKey = encryptedPrivateKey, // Store the encrypted private key
+        company.ethereumPublicKey = publicKey, // Store the public key (wallet address)
         company.isVerified = true; // Set the company as verified
-
         await company.save(); // Save the updated company data
-
-        // Get company's public Ethereum address
-        const companyWalletAddress = company.ethereumPublicKey;
-
-        // Prepare the contract instance
-        const contract = new web3.eth.Contract(GSCABI, GSCAddress);
-
-        // Prepare the transaction object
-        const transaction = contract.methods.verifyCompany(companyWalletAddress);
-
-        // Send the transaction using the estimateAndSend helper function
-        const receipt = await estimateAndSend(
-            transaction,
-            MASTER_ADDRESS,
-            MASTER_PRIVATE_KEY,
-            GSCAddress
-        );
-
-        // Handle the transaction receipt
-        console.log('Transaction receipt:', receipt);
 
         // Check if the transaction was successful
         if (receipt.status) {
@@ -922,7 +975,7 @@ router.get('/company/', verifyToken, async (req, res) => {
  */
 // Update company details
 router.put('/company/', async (req, res) => {
-    try {} catch (error) {}
+    try { } catch (error) { }
 }
 );
 
