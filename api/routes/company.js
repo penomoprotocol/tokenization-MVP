@@ -305,43 +305,15 @@ router.post('/company/register', async (req, res) => {
         const { businessName, ticker, email, password } = req.body;
         const hashedPassword = await bcrypt.hash(password, 10);
 
-        // // Create a new Ethereum wallet and get the private key
-        // const wallet = createWallet();
-        // const privateKey = wallet.privateKey;
-        // const publicKey = wallet.address; // Get the public key (wallet address)
-
-        // // Encrypt the private key with the user's password
-        // const encryptedPrivateKey = encryptPrivateKey(privateKey, SECRET_KEY);
-
         const company = new Company({
             businessName,
             ticker,
             email,
             password: hashedPassword,
-            // ethereumPrivateKey: encryptedPrivateKey, // Store the encrypted private key
-            // ethereumPublicKey: publicKey, // Store the public key (wallet address)
         });
 
         await company.save();
         console.log("Added company instance: ", company);
-
-        // // Fund the new wallet with 1000000000000000 wei
-        // const fundingAmount = '1000000000000000'; // 1000000000000000 wei
-
-        // // Create a raw transaction object
-        // const transaction = {
-        //     from: MASTER_ADDRESS,
-        //     to: publicKey,
-        //     value: fundingAmount,
-        //     gasLimit: web3.utils.toHex(21000), // Standard gas limit for Ether transfers
-        //     gasPrice: web3.utils.toHex(await web3.eth.getGasPrice()) // Get current gas price
-        // };
-        // // Sign the transaction with the master's private key
-        // const signedTx = await web3.eth.accounts.signTransaction(transaction, MASTER_PRIVATE_KEY);
-
-        // // Send the signed transaction
-        // const receipt = await web3.eth.sendSignedTransaction(signedTx.rawTransaction);
-
 
         res.status(200).json({ message: "Successfully registered company.", company });
     } catch (error) {
@@ -757,7 +729,6 @@ router.get('/company/contracts', verifyToken, async (req, res) => {
  *                   type: string
  *                   format: email
  *                   description: Email of the company
- *                 // Add other properties as needed based on your company schema
  *                 balances:
  *                   type: object
  *                   description: General balance information
@@ -772,7 +743,6 @@ router.get('/company/contracts', verifyToken, async (req, res) => {
  *                       _id:
  *                         type: string
  *                         description: Unique identifier of the token
- *                       // Add other token properties here
  *                       liquidityPoolBalance:
  *                         type: number
  *                         description: Balance of the liquidity pool associated with the token
@@ -785,7 +755,6 @@ router.get('/company/contracts', verifyToken, async (req, res) => {
  *                             _id:
  *                               type: string
  *                               description: Unique identifier of the asset
- *                             // Define asset properties here
  *                       tokenHolders:
  *                         type: array
  *                         description: Holders of the token
@@ -905,7 +874,6 @@ router.get('/company/', verifyToken, async (req, res) => {
  *               companyId:
  *                 type: string
  *                 description: ID of the company
- *               // Add other properties to update based on your company schema
  *     responses:
  *       200:
  *         description: Company details updated successfully
@@ -995,6 +963,9 @@ router.delete('/company/', async (req, res) => {
     }
 });
 
+module.exports = router;
+
+//// DISABLES ROUTES ////
 
 // For Production
 // /**
@@ -1203,10 +1174,6 @@ router.delete('/company/', async (req, res) => {
 //     }
 // });
 
-
-
-
-
 // To delete
 // /**
 //  * @swagger
@@ -1376,4 +1343,3 @@ router.delete('/company/', async (req, res) => {
 // });
 
 
-module.exports = router;
