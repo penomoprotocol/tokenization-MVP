@@ -219,7 +219,6 @@ function serializeBigIntInObject(obj) {
  *       500:
  *         description: Error registering investor.
  */
-
 // Investor Registration
 router.post('/investor/register', async (req, res) => {
     try {
@@ -305,7 +304,6 @@ router.post('/investor/register', async (req, res) => {
  *       500:
  *         description: Error logging in.
  */
-
 //Investor Login
 router.post('/investor/login', async (req, res) => {
     try {

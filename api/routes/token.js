@@ -94,9 +94,9 @@ const DIDContractAddress = '0x0000000000000000000000000000000000000800';
 // Initialize the contract with web3
 const DIDContract = new web3.eth.Contract(DIDABI, DIDContractAddress);
 
-// // // FUNCTIONS
+////// FUNCTIONS //////
 
-// Get gas price
+// Function to get gas price
 async function getCurrentGasPrice() {
     let gasPrice = await web3.eth.getGasPrice();
     console.log(`Current Gas Price: ${gasPrice}`);
@@ -104,7 +104,7 @@ async function getCurrentGasPrice() {
     return gasPrice;
 }
 
-// Helper function to estimate gas and send a transaction
+// Function to estimate gas and send a transaction
 async function estimateAndSend(transaction, fromAddress, fromPrivateKey, toAddress) {
     try {
         let currentNonce = await web3.eth.getTransactionCount(fromAddress, 'pending');
@@ -140,7 +140,6 @@ async function estimateAndSend(transaction, fromAddress, fromPrivateKey, toAddre
     }
 }
 
-
 // Function to create a new Ethereum wallet and return the private key
 const createWallet = () => {
     const wallet = web3.eth.accounts.create();
@@ -148,12 +147,13 @@ const createWallet = () => {
     return wallet;
 };
 
-// Function to encrypt and decrypt private keys
+// Function to encrypt private key
 const encryptPrivateKey = (privateKey, SECRET_KEY) => {
     const encrypted = CryptoJS.AES.encrypt(privateKey, SECRET_KEY).toString();
     return encrypted;
 };
 
+// Function to decrypt private key
 const decryptPrivateKey = (encryptedKey, SECRET_KEY) => {
     const decrypted = CryptoJS.AES.decrypt(encryptedKey, SECRET_KEY).toString(CryptoJS.enc.Utf8);
     return decrypted;
@@ -199,7 +199,7 @@ async function fetchContractBalance(address) {
 }
 
 
-// // // DEPLOYMENT SCRIPTS // TODO: Refactor into separate file and import
+////// DEPLOYMENT SCRIPTS //////
 
 // Deploy Service Contract
 async function deployServiceContract(GSCAddress) {
@@ -350,12 +350,12 @@ async function deployRevenueDistributionContract(serviceContractAddress, tokenCo
     return receipt.contractAddress;
 }
 
-// // TOKEN ROUTES
+////// ROUTES //////
 
+//// For BETA ////
 
-//// For BETA
-
-router.post('/token/submit', verifyToken, async (req, res) => {
+// Create new token
+router.post('/token/new', verifyToken, async (req, res) => {
     try {
         const companyId = req.user.id; // Retrieved from the JWT token by verifyToken middleware
 
@@ -453,22 +453,26 @@ router.post('/token/submit', verifyToken, async (req, res) => {
     }
 });
 
-router.post('/token/approveBeta', verifyToken, async (req, res) => {
-    try {} catch (error) {}
-});
 
+// Approve token
 router.post('/token/approve', verifyToken, async (req, res) => {
     try {} catch (error) {}
 });
 
+
+// Decline token
 router.post('/token/decline', verifyToken, async (req, res) => {
     try {} catch (error) {}
 });
 
+
+// Request documents for token
 router.post('/token/requestDocs', verifyToken, async (req, res) => {
     try {} catch (error) {}
 });
 
+
+// Deploy token
 /**
  * @swagger
  * /api/token/deploy:
@@ -663,6 +667,7 @@ router.post('/token/deploy', verifyToken, async (req, res) => {
     }
 });
 
+
 /**
  * @swagger
  * /api/token/status/{tokenId}:
@@ -778,7 +783,7 @@ router.post('/token/deploy', verifyToken, async (req, res) => {
  *           type: string
  *           description: ID of the company that owns the token.
  */
-// Update status 
+// Update token status 
 router.patch('/token/status/:tokenId', async (req, res) => {
     try {
         const { status, messages, actionsNeeded } = req.body;
@@ -935,6 +940,7 @@ router.get('/token/all', async (req, res) => {
 router.put('/token/:address', (req, res) => {
 });
 
+
 /**
  * @swagger
  * /api/token/{address}:
@@ -955,10 +961,11 @@ router.put('/token/:address', (req, res) => {
  *       500:
  *         description: Error deleting token.
  */
-// Delete token
+// Delete token from database
 router.delete('/token/:address', (req, res) => {
     // Delete token 
 });
+
 
 //// For production ////
 
