@@ -629,103 +629,63 @@ router.post('/company/kyc/verify', verifyApiKey, async (req, res) => {
     }
 });
 
+// Get company contracts 
 /**
  * @swagger
  * /api/company/contracts:
  *   get:
- *     summary: Retrieve logged-in company contracts information
- *     tags: 
- *       - Company
+ *     summary: Get contracts associated with the authenticated company
+ *     description: This endpoint retrieves contracts associated with the authenticated company along with their associated assets.
+ *     tags: [Company]
  *     security:
- *       - bearerAuth: []
+ *       - BearerAuth: []
  *     responses:
  *       200:
- *         description: Details of the logged-in company including balances and liquidity pool information.
+ *         description: Contracts and associated assets retrieved successfully
  *         content:
  *           application/json:
  *             schema:
  *               type: object
  *               properties:
- *                 firstname:
- *                   type: string
- *                 surname:
- *                   type: string
- *                 dob:
- *                   type: string
- *                   format: date
- *                 businessName:
- *                   type: string
- *                 registrationNumber:
- *                   type: string
- *                 businessAddress:
- *                   type: string
- *                 businessPhone:
- *                   type: string
- *                 email:
- *                   type: string
- *                 ethereumPublicKey:
- *                   type: string
- *                 isVerified:
- *                   type: boolean
- *                 balances:
- *                   type: object
- *                   properties:
- *                     agungBalance:
- *                       type: string
- *                     usdcBalance:
- *                       type: string
- *                 tokens:
+ *                 contracts:
  *                   type: array
  *                   items:
  *                     type: object
  *                     properties:
- *                       name:
+ *                       _id:
  *                         type: string
- *                       symbol:
- *                         type: string
- *                       maxTokenSupply:
- *                         type: number
- *                       tokenPrice:
- *                         type: number
- *                       currency:
- *                         type: string
- *                       revenueShare:
- *                         type: number
- *                       contractTerm:
- *                         type: number
- *                       serviceContractAddress:
- *                         type: string
- *                       tokenContractAddress:
- *                         type: string
- *                       liquidityContractAddress:
- *                         type: string
- *                       revenueDistributionContractAddress:
- *                         type: string
- *                       revenueStreamContractAddresses:
- *                         type: array
- *                         items:
- *                           type: string
- *                       assetDIDs:
- *                         type: array
- *                         items:
- *                           type: string
+ *                         description: Unique identifier of the contract
  *                       companyId:
  *                         type: string
+ *                         description: ID of the company associated with the contract
+ *                       serviceContractAddress:
+ *                         type: string
+ *                         description: Address of the service contract
  *                       liquidityPoolBalance:
- *                         type: object
- *                         properties:
- *                           agungBalance:
- *                             type: string
- *                           usdcBalance:
- *                             type: string
- *       401:
- *         description: Unauthorized if token is missing or invalid.
+ *                         type: number
+ *                         description: Balance of the liquidity pool associated with the contract
+ *                       associatedAssets:
+ *                         type: array
+ *                         items:
+ *                           type: object
+ *                           properties:
+ *                             _id:
+ *                               type: string
+ *                               description: Unique identifier of the asset
+ *                             DID:
+ *                               type: object
+ *                               properties:
+ *                                 id:
+ *                                   type: string
+ *                                   description: Decentralized Identifier (DID) of the asset
+ *                             name:
+ *                               type: string
+ *                               description: Name of the asset
  *       404:
- *         description: Company not found.
+ *         description: Company not found
  *       500:
- *         description: Error retrieving company details and liquidity pool information.
+ *         description: Error retrieving company contracts with associated assets
  */
-// Get company contracts 
 router.get('/company/contracts', verifyToken, async (req, res) => {
     try {
         const companyId = req.user.id; // ID is retrieved from the decoded JWT token
@@ -941,69 +901,123 @@ router.get('/company/', verifyToken, async (req, res) => {
     }
 });
 
+// Update company details
 /**
  * @swagger
  * /api/company/:
- *   put:
- *     summary: Update company details by email
- *     tags: 
- *       - Company
- *     parameters:
- *       - in: path
- *         name: email
- *         required: true
- *         description: The email of the company to update.
- *     requestBody:
- *       required: true
- *       content:
- *         application/json:
- *           schema:
- *             type: object
- *             properties:
- *               name:
- *                 type: string
- *               password:
- *                 type: string
- *                 format: password
+ *   get:
+ *     summary: Get details, balances, and token data associated with the authenticated company
+ *     description: This endpoint retrieves details, balances, and token data associated with the authenticated company.
+ *     tags: [Company]
+ *     security:
+ *       - BearerAuth: []
  *     responses:
  *       200:
- *         description: Details of the updated company.
+ *         description: Details, balances, and token data retrieved successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 _id:
+ *                   type: string
+ *                   description: Unique identifier of the company
+ *                 businessName:
+ *                   type: string
+ *                   description: Name of the company
+ *                 email:
+ *                   type: string
+ *                   format: email
+ *                   description: Email of the company
+ *                 // Add other properties as needed based on your company schema
+ *                 balances:
+ *                   type: object
+ *                   description: General balance information
+ *                   properties:
+ *                     // Define balance properties here
+ *                 tokens:
+ *                   type: array
+ *                   description: Tokens associated with the company
+ *                   items:
+ *                     type: object
+ *                     properties:
+ *                       _id:
+ *                         type: string
+ *                         description: Unique identifier of the token
+ *                       // Add other token properties here
+ *                       liquidityPoolBalance:
+ *                         type: number
+ *                         description: Balance of the liquidity pool associated with the token
+ *                       associatedAssets:
+ *                         type: array
+ *                         description: Associated assets for the token
+ *                         items:
+ *                           type: object
+ *                           properties:
+ *                             _id:
+ *                               type: string
+ *                               description: Unique identifier of the asset
+ *                             // Define asset properties here
+ *                       tokenHolders:
+ *                         type: array
+ *                         description: Holders of the token
+ *                         items:
+ *                           type: object
+ *                           properties:
+ *                             address:
+ *                               type: string
+ *                               description: Address of the token holder
+ *                             tokenBalance:
+ *                               type: string
+ *                               description: Token balance of the holder
+ *                             holdingPercentage:
+ *                               type: number
+ *                               description: Percentage of tokens held by the holder
+ *                             data:
+ *                               type: object
+ *                               description: Additional data about the holder
  *       404:
- *         description: Company not found.
+ *         description: Company not found
  *       500:
- *         description: Error updating company.
+ *         description: Error retrieving company details, balances, and token data
  */
-// Update company details
 router.put('/company/', async (req, res) => {
     try { } catch (error) { }
 }
 );
 
+// Delete company
 /**
  * @swagger
  * /api/company/:
  *   delete:
- *     summary: Delete company by email
- *     tags: 
- *       - Company
+ *     summary: Delete a company
+ *     description: This endpoint deletes a company based on the provided companyId.
+ *     tags: [Company]
  *     parameters:
- *       - in: path
- *         name: email
+ *       - in: query
+ *         name: companyId
+ *         schema:
+ *           type: string
  *         required: true
- *         description: The email of the company to delete.
+ *         description: ID of the company to delete
  *     responses:
  *       200:
- *         description: Details of the deleted company.
+ *         description: Company deleted successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               description: Deleted company data
  *       404:
- *         description: Company not found.
+ *         description: Company not found
  *       500:
- *         description: Error deleting company.
+ *         description: Error deleting company
  */
-// Delete company
 router.delete('/company/', async (req, res) => {
     try {
-        const email = req.params.email;
-        const deletedCompany = await Company.findOneAndDelete({ email });
+        const companyId = req.query.companyId;
+        const deletedCompany = await Company.findOneAndDelete({ _id: companyId });
         if (!deletedCompany) {
             return res.status(404).send('Company not found');
         }
@@ -1013,6 +1027,7 @@ router.delete('/company/', async (req, res) => {
         res.status(500).send('Error deleting company');
     }
 });
+
 
 
 // For Production
