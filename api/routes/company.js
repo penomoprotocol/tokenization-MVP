@@ -729,179 +729,7 @@ router.get('/company/contracts', verifyToken, async (req, res) => {
     }
 });
 
-/**
- * @swagger
- * /api/company/jwt:
- *   get:
- *     summary: Retrieve logged-in company details, balances, and liquidity pool information
- *     tags: 
- *       - Company
- *     security:
- *       - bearerAuth: []
- *     responses:
- *       200:
- *         description: Details of the logged-in company including balances and liquidity pool information.
- *         content:
- *           application/json:
- *             schema:
- *               type: object
- *               properties:
- *                 firstname:
- *                   type: string
- *                 surname:
- *                   type: string
- *                 dob:
- *                   type: string
- *                   format: date
- *                 businessName:
- *                   type: string
- *                 registrationNumber:
- *                   type: string
- *                 businessAddress:
- *                   type: string
- *                 businessPhone:
- *                   type: string
- *                 email:
- *                   type: string
- *                 ethereumPublicKey:
- *                   type: string
- *                 isVerified:
- *                   type: boolean
- *                 balances:
- *                   type: object
- *                   properties:
- *                     agungBalance:
- *                       type: string
- *                     usdcBalance:
- *                       type: string
- *                 tokens:
- *                   type: array
- *                   items:
- *                     type: object
- *                     properties:
- *                       name:
- *                         type: string
- *                       symbol:
- *                         type: string
- *                       maxTokenSupply:
- *                         type: number
- *                       tokenPrice:
- *                         type: number
- *                       currency:
- *                         type: string
- *                       revenueShare:
- *                         type: number
- *                       contractTerm:
- *                         type: number
- *                       serviceContractAddress:
- *                         type: string
- *                       tokenContractAddress:
- *                         type: string
- *                       liquidityContractAddress:
- *                         type: string
- *                       revenueDistributionContractAddress:
- *                         type: string
- *                       revenueStreamContractAddresses:
- *                         type: array
- *                         items:
- *                           type: string
- *                       assetDIDs:
- *                         type: array
- *                         items:
- *                           type: string
- *                       companyId:
- *                         type: string
- *                       liquidityPoolBalance:
- *                         type: object
- *                         properties:
- *                           agungBalance:
- *                             type: string
- *                           usdcBalance:
- *                             type: string
- *       401:
- *         description: Unauthorized if token is missing or invalid.
- *       404:
- *         description: Company not found.
- *       500:
- *         description: Error retrieving company details and liquidity pool information.
- */
 // Get company details
-router.get('/company/', verifyToken, async (req, res) => {
-    try {
-        const companyId = req.user.id; // ID is retrieved from the decoded JWT token
-        const company = await Company.findById(companyId);
-
-        if (!company) {
-            return res.status(404).send('Company not found');
-        }
-
-        let walletAddress = company.ethereumPublicKey;
-
-        // Fetch company's general balance information
-        const generalBalance = await fetchBalance(walletAddress);
-
-        // Fetch company tokens from the database
-        const companyTokens = await Token.find({ companyId: companyId });
-
-        // Fetch balance for each serviceContractAddress and add it to the token object
-        const tokenData = [];
-        for (const token of companyTokens) {
-            // Fetch liquidity pool balance and associated assets
-            const liquidityPoolBalance = await fetchContractBalance(token.liquidityContractAddress);
-            await delay(1000 / 1000); // Introduce a delay to respect the rate limit
-
-            const associatedAssets = await Asset.find({ _id: { $in: token.assetIds } });
-
-            // Initialize the contract instance for the token
-            const contract = new web3.eth.Contract(TCABI, token.tokenContractAddress);
-            const tokenHolders = await contract.methods.getTokenHolders().call();
-
-            // Fetch the maxTokenSupply for the token - assuming this is available in the token object
-            const maxTokenSupply = token.maxTokenSupply;
-
-            const holdersData = await Promise.all(tokenHolders.map(async (holderAddress) => {
-                // Fetch token balance for the holder and immediately convert it to a string
-                const tokenBalanceWei = (await contract.methods.balanceOf(holderAddress).call()).toString();
-                const tokenBalance = web3.utils.fromWei(tokenBalanceWei, 'ether');
-
-                // Since tokenBalance is now a string, parsing it to a float should be safe
-                const holdingPercentage = (parseFloat(tokenBalance) / parseFloat(maxTokenSupply)) * 100;
-
-                // Fetch investor instance from the database
-                const investorInstance = await Investor.findOne({ ethereumPublicKey: holderAddress });
-
-                return {
-                    address: holderAddress,
-                    tokenBalance, // Already a string, safe for JSON serialization
-                    holdingPercentage, // A float, also safe
-                    data: investorInstance // Ensure investorInstance doesn't contain BigInts; if it does, convert those as well
-                };
-            }));
-
-            tokenData.push({
-                ...token.toObject(),
-                liquidityPoolBalance,
-                associatedAssets,
-                tokenHolders: holdersData // Replace the simple list with detailed holders data
-            });
-        }
-
-        // Add the balances and tokens with their liquidity pools to the company object
-        const companyDataWithBalancesAndTokenData = {
-            ...company.toObject(), // Convert the mongoose document to a plain object
-            balances: generalBalance,
-            tokens: tokenData,
-        };
-
-        res.json(companyDataWithBalancesAndTokenData);
-
-    } catch (error) {
-        console.error('Error retrieving company details, balances, and token data:', error);
-        res.status(500).send('Error retrieving company');
-    }
-});
-
-// Update company details
 /**
  * @swagger
  * /api/company/:
@@ -981,10 +809,149 @@ router.get('/company/', verifyToken, async (req, res) => {
  *       500:
  *         description: Error retrieving company details, balances, and token data
  */
-router.put('/company/', async (req, res) => {
-    try { } catch (error) { }
-}
-);
+router.get('/company/', verifyToken, async (req, res) => {
+    try {
+        const companyId = req.user.id; // ID is retrieved from the decoded JWT token
+        const company = await Company.findById(companyId);
+
+        if (!company) {
+            return res.status(404).send('Company not found');
+        }
+
+        let walletAddress = company.ethereumPublicKey;
+
+        // Fetch company's general balance information
+        const generalBalance = await fetchBalance(walletAddress);
+
+        // Fetch company tokens from the database
+        const companyTokens = await Token.find({ companyId: companyId });
+
+        // Fetch balance for each serviceContractAddress and add it to the token object
+        const tokenData = [];
+        for (const token of companyTokens) {
+            // Fetch liquidity pool balance and associated assets
+            const liquidityPoolBalance = await fetchContractBalance(token.liquidityContractAddress);
+            await delay(1000 / 1000); // Introduce a delay to respect the rate limit
+
+            const associatedAssets = await Asset.find({ _id: { $in: token.assetIds } });
+
+            // Initialize the contract instance for the token
+            const contract = new web3.eth.Contract(TCABI, token.tokenContractAddress);
+            const tokenHolders = await contract.methods.getTokenHolders().call();
+
+            // Fetch the maxTokenSupply for the token - assuming this is available in the token object
+            const maxTokenSupply = token.maxTokenSupply;
+
+            const holdersData = await Promise.all(tokenHolders.map(async (holderAddress) => {
+                // Fetch token balance for the holder and immediately convert it to a string
+                const tokenBalanceWei = (await contract.methods.balanceOf(holderAddress).call()).toString();
+                const tokenBalance = web3.utils.fromWei(tokenBalanceWei, 'ether');
+
+                // Since tokenBalance is now a string, parsing it to a float should be safe
+                const holdingPercentage = (parseFloat(tokenBalance) / parseFloat(maxTokenSupply)) * 100;
+
+                // Fetch investor instance from the database
+                const investorInstance = await Investor.findOne({ ethereumPublicKey: holderAddress });
+
+                return {
+                    address: holderAddress,
+                    tokenBalance, // Already a string, safe for JSON serialization
+                    holdingPercentage, // A float, also safe
+                    data: investorInstance // Ensure investorInstance doesn't contain BigInts; if it does, convert those as well
+                };
+            }));
+
+            tokenData.push({
+                ...token.toObject(),
+                liquidityPoolBalance,
+                associatedAssets,
+                tokenHolders: holdersData // Replace the simple list with detailed holders data
+            });
+        }
+
+        // Add the balances and tokens with their liquidity pools to the company object
+        const companyDataWithBalancesAndTokenData = {
+            ...company.toObject(), // Convert the mongoose document to a plain object
+            balances: generalBalance,
+            tokens: tokenData,
+        };
+
+        res.json(companyDataWithBalancesAndTokenData);
+
+    } catch (error) {
+        console.error('Error retrieving company details, balances, and token data:', error);
+        res.status(500).send('Error retrieving company');
+    }
+});
+
+// Update company details
+/**
+ * @swagger
+ * /api/company/:
+ *   put:
+ *     summary: Update company details
+ *     description: Update company details for the authenticated company or by an admin
+ *     tags: [Company]
+ *     security:
+ *       - BearerAuth: []
+ *       - ApiKeyAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               companyId:
+ *                 type: string
+ *                 description: ID of the company
+ *               // Add other properties to update based on your company schema
+ *     responses:
+ *       200:
+ *         description: Company details updated successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                   description: Confirmation message
+ *       404:
+ *         description: Company not found
+ *       500:
+ *         description: Error updating company details
+ */
+router.put('/company/', verifyToken, async (req, res) => {
+    try {
+        const { companyId, ...updateData } = req.body;
+        const decodedCompanyId = req.user.id;
+
+        // Check if the authenticated user is an admin
+        if (!decodedCompanyId) {
+            // Admin authentication via API key
+            // Implement admin check here if needed
+            // Example: const isAdmin = checkAdmin(req);
+            // if (!isAdmin) return res.status(401).send('Unauthorized');
+        } else {
+            // Authenticated company's companyId should match with the request companyId
+            if (companyId !== decodedCompanyId) {
+                return res.status(403).send('Forbidden');
+            }
+        }
+
+        const updatedCompany = await Company.findByIdAndUpdate(companyId, updateData, { new: true });
+
+        if (!updatedCompany) {
+            return res.status(404).send('Company not found');
+        }
+
+        res.status(200).json({ message: 'Company details updated successfully', updatedCompany });
+    } catch (error) {
+        console.error('Error updating company details:', error);
+        res.status(500).send('Error updating company details');
+    }
+});
 
 // Delete company
 /**
@@ -1027,7 +994,6 @@ router.delete('/company/', async (req, res) => {
         res.status(500).send('Error deleting company');
     }
 });
-
 
 
 // For Production
