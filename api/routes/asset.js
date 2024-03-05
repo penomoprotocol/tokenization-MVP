@@ -51,9 +51,6 @@ const SEED = process.env.SEED;
 const { mnemonicGenerate } = require('@polkadot/util-crypto');
 const { Sdk } = require('@peaq-network/sdk');
 
-
-
-
 // Connect to MongoDB
 mongoose.connect(MONGO_URI, { useNewUrlParser: true, useUnifiedTopology: true })
     .then(() => console.log('Connected to MongoDB'))
@@ -325,117 +322,6 @@ router.post('/asset/register', verifyToken, async (req, res) => {
 
 /**
  * @swagger
- * /api/asset/storeData:
- *   post:
- *     summary: Store asset data in IPFS and update the corresponding asset entry in the database.
- *     tags: 
- *       - Asset
- *     description: This endpoint stores asset-specific data on IPFS, updates the asset's database entry with the CID, and requires authentication with the company's credentials.
- *     requestBody:
- *       required: true
- *       content:
- *         application/json:
- *           schema:
- *             type: object
- *             required:
- *               - companyId
- *               - companyPassword
- *               - batteryDid
- *               - batteryType
- *               - capacity
- *               - voltage
- *             properties:
- *               batteryType:
- *                 type: string
- *                 description: The type of the battery.
- *               capacity:
- *                 type: string
- *                 description: The capacity of the battery in appropriate units.
- *               voltage:
- *                 type: string
- *                 description: The voltage of the battery in volts.
- *               batteryDid:
- *                 type: string
- *                 description: The DID of the asset to be updated.
- *               companyId:
- *                 type: string
- *                 description: The ID of the company owning the asset.
- *               companyPassword:
- *                 type: string
- *                 description: The password for the company for authentication purposes.
- *     responses:
- *       200:
- *         description: Successfully stored asset data and updated the asset entry in the database.
- *         content:
- *           application/json:
- *             schema:
- *               type: object
- *               properties:
- *                 cid:
- *                   type: string
- *                   description: The Content Identifier (CID) of the stored data in IPFS.
- *                 message:
- *                   type: string
- *                   description: Confirmation message about the asset entry update.
- *       400:
- *         description: Missing required fields in the request.
- *       404:
- *         description: Asset not found in the database.
- *       500:
- *         description: Error occurred while storing data or updating the asset entry.
- */
-// Store data on- / off-chain
-router.post('/asset/storeData', async (req, res) => {
-    try {
-        const { companyId, companyPassword, batteryDid, batteryType, capacity, voltage } = req.body;
-
-        if (!batteryType || !capacity || !voltage || !batteryDid || !companyId || !companyPassword) {
-            return res.status(400).json({ error: 'Missing required fields' });
-        }
-
-        // Validate company and password
-        const company = await Company.findById(companyId);
-        if (!company) {
-            return res.status(401).send('Company not found');
-        }
-
-        const isPasswordValid = await bcrypt.compare(companyPassword, company.password);
-        if (!isPasswordValid) {
-            return res.status(401).send('Invalid credentials');
-        }
-
-        // Store battery data on IPFS (mocked for this example)
-        // In a real-world scenario, you would store this data on IPFS and get a CID
-        const timestamp = new Date().getTime();
-        const randomPart = crypto.randomBytes(6).toString('hex');
-        const cid = `ipfs://${randomPart}${timestamp}`;
-
-        // Find the Asset using the DID
-        const asset = await Asset.findOne({ DID: batteryDid });
-        if (!asset) {
-            return res.status(404).send('Asset not found');
-        }
-
-        // Update the Asset in the database with the new fields and CID
-        asset.batteryType = batteryType;
-        asset.capacity = capacity;
-        asset.voltage = voltage;
-        asset.CID = cid;
-        await asset.save();
-
-        // Respond with the IPFS CID and confirmation message
-        res.status(200).json({
-            message: 'Successfully stored battery data on IPFS and updated the Asset document.',
-            cid: cid,
-        });
-    } catch (error) {
-        console.error('Error updating asset with battery data:', error);
-        res.status(500).json({ error: 'Failed to update asset with battery data' });
-    }
-});
-
-/**
- * @swagger
  * /api/asset:
  *   get:
  *     summary: Retrieve all assets
@@ -554,6 +440,116 @@ router.delete('/asset/did/:did', (req, res) => {
 
 //// For production ////
 
+/**
+ * @swagger
+ * /api/asset/storeData:
+ *   post:
+ *     summary: Store asset data in IPFS and update the corresponding asset entry in the database.
+ *     tags: 
+ *       - Asset
+ *     description: This endpoint stores asset-specific data on IPFS, updates the asset's database entry with the CID, and requires authentication with the company's credentials.
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - companyId
+ *               - companyPassword
+ *               - batteryDid
+ *               - batteryType
+ *               - capacity
+ *               - voltage
+ *             properties:
+ *               batteryType:
+ *                 type: string
+ *                 description: The type of the battery.
+ *               capacity:
+ *                 type: string
+ *                 description: The capacity of the battery in appropriate units.
+ *               voltage:
+ *                 type: string
+ *                 description: The voltage of the battery in volts.
+ *               batteryDid:
+ *                 type: string
+ *                 description: The DID of the asset to be updated.
+ *               companyId:
+ *                 type: string
+ *                 description: The ID of the company owning the asset.
+ *               companyPassword:
+ *                 type: string
+ *                 description: The password for the company for authentication purposes.
+ *     responses:
+ *       200:
+ *         description: Successfully stored asset data and updated the asset entry in the database.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 cid:
+ *                   type: string
+ *                   description: The Content Identifier (CID) of the stored data in IPFS.
+ *                 message:
+ *                   type: string
+ *                   description: Confirmation message about the asset entry update.
+ *       400:
+ *         description: Missing required fields in the request.
+ *       404:
+ *         description: Asset not found in the database.
+ *       500:
+ *         description: Error occurred while storing data or updating the asset entry.
+ */
+// Store data on- / off-chain
+router.post('/asset/storeData', async (req, res) => {
+    try {
+        const { companyId, companyPassword, batteryDid, batteryType, capacity, voltage } = req.body;
+
+        if (!batteryType || !capacity || !voltage || !batteryDid || !companyId || !companyPassword) {
+            return res.status(400).json({ error: 'Missing required fields' });
+        }
+
+        // Validate company and password
+        const company = await Company.findById(companyId);
+        if (!company) {
+            return res.status(401).send('Company not found');
+        }
+
+        const isPasswordValid = await bcrypt.compare(companyPassword, company.password);
+        if (!isPasswordValid) {
+            return res.status(401).send('Invalid credentials');
+        }
+
+        // Store battery data on IPFS (mocked for this example)
+        // In a real-world scenario, you would store this data on IPFS and get a CID
+        const timestamp = new Date().getTime();
+        const randomPart = crypto.randomBytes(6).toString('hex');
+        const cid = `ipfs://${randomPart}${timestamp}`;
+
+        // Find the Asset using the DID
+        const asset = await Asset.findOne({ DID: batteryDid });
+        if (!asset) {
+            return res.status(404).send('Asset not found');
+        }
+
+        // Update the Asset in the database with the new fields and CID
+        asset.batteryType = batteryType;
+        asset.capacity = capacity;
+        asset.voltage = voltage;
+        asset.CID = cid;
+        await asset.save();
+
+        // Respond with the IPFS CID and confirmation message
+        res.status(200).json({
+            message: 'Successfully stored battery data on IPFS and updated the Asset document.',
+            cid: cid,
+        });
+    } catch (error) {
+        console.error('Error updating asset with battery data:', error);
+        res.status(500).json({ error: 'Failed to update asset with battery data' });
+    }
+});
 
 //// For later stage ////
 
