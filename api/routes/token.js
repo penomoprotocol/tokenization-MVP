@@ -822,12 +822,12 @@ router.patch('/token/status/:tokenId', verifyToken, async (req, res) => {
 });
 
 
-// Deploy token (TODO: Debug implementation)
+// Deploy token 
 /**
  * @swagger
  * /api/token/deploy:
  *   post:
- *     summary: Deploys tokenization contracts and registers a new token in the system.
+ *     summary: Deploys tokenization contracts based on a token's specifications and updates its status in the system.
  *     tags:
  *       - Token
  *     security:
@@ -839,36 +839,14 @@ router.patch('/token/status/:tokenId', verifyToken, async (req, res) => {
  *           schema:
  *             type: object
  *             required:
- *               - tokenName
- *               - tokenSymbol
- *               - tokenSupply
- *               - tokenPrice
- *               - paymentCurrency
- *               - contractTerm
- *               - revenueShare
- *               - DIDs
+ *               - tokenId
  *             properties:
- *               tokenName:
+ *               tokenId:
  *                 type: string
- *               tokenSymbol:
- *                 type: string
- *               tokenSupply:
- *                 type: number
- *               tokenPrice:
- *                 type: number
- *               paymentCurrency:
- *                 type: string
- *               contractTerm:
- *                 type: number
- *               revenueShare:
- *                 type: number
- *               DIDs:
- *                 type: array
- *                 items:
- *                   type: string
+ *                 description: The unique identifier of the token to deploy.
  *     responses:
  *       200:
- *         description: Successfully deployed tokenization contracts.
+ *         description: Successfully deployed tokenization contracts and updated the token's status and symbol.
  *         content:
  *           application/json:
  *             schema:
@@ -876,119 +854,64 @@ router.patch('/token/status/:tokenId', verifyToken, async (req, res) => {
  *               properties:
  *                 message:
  *                   type: string
- *                 newTokenEntry:
+ *                 token:
  *                   $ref: '#/components/schemas/Token'
  *       400:
- *         description: Missing required parameters.
- *       401:
- *         description: Unauthorized. Company not found or invalid credentials.
+ *         description: Invalid Token ID.
+ *       404:
+ *         description: Token not found or Company not found for this token.
  *       500:
  *         description: Failed to deploy the contracts.
  */
 router.post('/token/deploy', verifyToken, async (req, res) => {
+    const { tokenId } = req.body;
+
+    if (!mongoose.Types.ObjectId.isValid(tokenId)) {
+        return res.status(400).send('Invalid Token ID.');
+    }
+
     try {
-        const companyId = req.user.id; // Retrieved from the JWT token by verifyToken middleware
-
-        const {tokenId} = req.body;
-
-        // console.log("/token/deploy req.body: ", req.body); 
-
-        // Validate the required parameters
-        if (!tokenSupply || !tokenPrice || !tokenName || !contractTerm || !revenueShare) {
-            return res.status(400).send('Missing required parameters.');
-        }
-
         const token = await Token.findById(tokenId);
         if (!token) {
-            console.log('Token not found:', tokenId);
-            return res.status(401).send('Token not found');
+            return res.status(404).send('Token not found.');
         }
 
-        // Define 'tokenSymbol' 
-        let tokenSymbol;
-
-        const companyTicker = company.ticker;
-
-        try {
-            // Calculate the index by counting the number of tokens with the same companyId
-            const tokensWithSameCompanyId = await Token.find({ companyId }).exec();
-            const index = tokensWithSameCompanyId.length + 1;
-
-            // Construct 'tokenSymbol'
-            tokenSymbol = `${companyTicker}-${index}`;
-
-        } catch (error) {
-            console.error('Error counting tokens:', error);
-            // Handle the error when counting tokens
+        const company = await Company.findById(token.companyId);
+        if (!company) {
+            return res.status(404).send('Company not found for this token.');
         }
 
+        // Determine the tokenSymbol
+        const tokens = await Token.find({ companyId: company._id });
+        const tokenSymbol = `${company.ticker}-${tokens.length + 1}`;
 
-        BBWalletAddress = company.ethereumPublicKey;
-        maxTokenSupply = tokenSupply;
+        // Deploy contracts and update token details
+        // Assuming deployContracts is an async function that returns the contract addresses
+        const { serviceContractAddress, tokenContractAddress, liquidityContractAddress, revenueDistributionContractAddress } = await deployContracts(token, tokenSymbol);
 
-        // Deploy the ServiceContract and get its address
-        const serviceContractAddress = await deployServiceContract(GSCAddress);
-        console.log("serviceContractAddress:", serviceContractAddress);
-
-
-        // Deploy the TokenContract using the ServiceContract's address
-        // TODO: Implement DID & CID handling (Datastorage on IPFS)
-        const tokenContractAddress = await deployTokenContract([], [], tokenName, tokenSymbol, revenueShare, contractTerm, tokenSupply, tokenPrice, paymentCurrency, serviceContractAddress);
-        console.log("tokenContractAddress:", tokenContractAddress);
-
-
-        // Deploy LiquidityContract
-        const liquidityContractAddress = await deployLiquidityContract(serviceContractAddress, BBWalletAddress, MASTER_ADDRESS);
-        console.log("liquidityContractAddress:", liquidityContractAddress);
-
-        // Deploy RevenueDistributionContract
-        const revenueDistributionContractAddress = await deployRevenueDistributionContract(serviceContractAddress, tokenContractAddress, liquidityContractAddress);
-        console.log("revenueDistributionContractAddress:", revenueDistributionContractAddress);
-
-        // Get SC ABI
-        const contractPath = path.join(SCBuild);
-        const contractJSON = JSON.parse(fs.readFileSync(contractPath, 'utf8'));
-        const SCABI = contractJSON.abi;
-
-        // Create a ServiceContract instance
-        const ServiceContract = new web3.eth.Contract(SCABI, serviceContractAddress);
-
-        // Prepare the transaction object
-        const transaction = ServiceContract.methods.setContractAddresses(tokenContractAddress, liquidityContractAddress, revenueDistributionContractAddress);
-
-        // Call setTokenContract with gas estimation and send
-        receipt = await estimateAndSend(transaction, MASTER_ADDRESS, MASTER_PRIVATE_KEY, serviceContractAddress);
-
-        // Add new information to DB entry 
-        const newTokenEntry = new Token({
-            symbol: tokenSymbol,
-            serviceContractAddress: serviceContractAddress,
-            tokenContractAddress: tokenContractAddress,
-            liquidityContractAddress: liquidityContractAddress,
-            revenueDistributionContractAddress: revenueDistributionContractAddress,
-            revenueStreamContractAddresses: [],
-            statusUpdates: [{
-                status: 'Deployed',
-                messages: ["Your token contract has been deployed and is now visible on the penomo marketplace."],
-                actionsNeeded: ["No actions needed."]
-            }]
+        token.serviceContractAddress = serviceContractAddress;
+        token.tokenContractAddress = tokenContractAddress;
+        token.liquidityContractAddress = liquidityContractAddress;
+        token.revenueDistributionContractAddress = revenueDistributionContractAddress;
+        token.symbol = tokenSymbol; // Update the symbol with the new one
+        token.statusUpdates.push({
+            status: 'Deployed',
+            messages: ["Your token contract has been deployed and is now visible on the marketplace."],
+            actionsNeeded: ["No actions needed."]
         });
 
-        // Save the new token entry to the database
-        await newTokenEntry.save();
+        await token.save();
 
-        // Respond with the deployed contracts' addresses
         res.status(200).json({
             message: "Successfully deployed tokenization contracts.",
-            newTokenEntry
+            token
         });
 
     } catch (error) {
-        console.error('Error deploying Contracts:', error);
+        console.error('Error during token deployment:', error);
         res.status(500).send('Failed to deploy the contracts.');
     }
 });
-
 
 /**
  * @swagger
