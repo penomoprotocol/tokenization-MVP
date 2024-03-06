@@ -996,7 +996,6 @@ router.get('/token/all', async (req, res) => {
 });
 
 
-
 /**
  * @swagger
  * /api/token/{address}:
@@ -1018,8 +1017,72 @@ router.get('/token/all', async (req, res) => {
  *         description: Error deleting token.
  */
 // Delete token
-router.delete('/token/:address', (req, res) => {
-    // Delete token 
+/**
+ * @swagger
+ * /api/token/{tokenId}:
+ *   delete:
+ *     summary: Deletes a specific token by its ID
+ *     tags:
+ *       - Token
+ *     parameters:
+ *       - in: path
+ *         name: tokenId
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: The ID of the token to delete
+ *     responses:
+ *       200:
+ *         description: Token successfully deleted
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                 deletedToken:
+ *                   $ref: '#/components/schemas/Token'
+ *       404:
+ *         description: Token not found
+ *       500:
+ *         description: Failed to delete the token
+ * components:
+ *   schemas:
+ *     Token:
+ *       type: object
+ *       properties:
+ *         name:
+ *           type: string
+ *         symbol:
+ *           type: string
+ *         serviceContractAddress:
+ *           type: string
+ *         tokenContractAddress:
+ *           type: string
+ *         liquidityContractAddress:
+ *           type: string
+ *         revenueDistributionContractAddress:
+ *           type: string
+ *         companyId:
+ *           type: string
+ *         # Add other token properties as required
+ */
+router.delete('/token/:tokenId', async (req, res) => {
+    const { tokenId } = req.params;
+
+    try {
+        const deletedToken = await Token.findByIdAndDelete(tokenId);
+
+        if (!deletedToken) {
+            return res.status(404).send('Token not found.');
+        }
+
+        res.status(200).json({ message: 'Token successfully deleted.', deletedToken });
+    } catch (error) {
+        console.error('Error deleting token:', error);
+        res.status(500).send('Failed to delete the token.');
+    }
 });
 
 
