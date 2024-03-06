@@ -627,47 +627,129 @@ router.patch('/token/decline/:tokenId', verifyToken, async (req, res) => {
 
 
 // Request documents for token
-router.post('/token/requestDocs', verifyToken, async (req, res) => {
-    try {} catch (error) {}
-});
-
 /**
  * @swagger
- * /api/token/status/{tokenId}:
+ * /token/requestDocs/{tokenId}:
  *   patch:
- *     summary: Update the status of a token object.
- *     tags:
- *       - Token
- *     description: Update the status, messages, and actions needed for a token.
+ *     summary: Request documents for a token
+ *     description: Updates the token's status to indicate that documents have been requested from the token issuer, including a message and action needed.
+ *     tags: [Token]
+ *     security:
+ *       - bearerAuth: []  # Assuming bearer token is used for authorization
  *     parameters:
  *       - in: path
  *         name: tokenId
  *         required: true
- *         description: The ID of the token to update.
  *         schema:
  *           type: string
- *       - in: body
- *         name: tokenUpdate
+ *         description: The unique identifier of the token for which documents are being requested.
+ *     responses:
+ *       200:
+ *         description: Documents requested successfully.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                   description: Success message.
+ *                 updatedToken:
+ *                   type: object
+ *                   properties:
+ *                     statusUpdates:
+ *                       type: array
+ *                       items:
+ *                         type: object
+ *                         properties:
+ *                           status:
+ *                             type: string
+ *                           messages:
+ *                             type: array
+ *                             items:
+ *                               type: string
+ *                           actionsNeeded:
+ *                             type: array
+ *                             items:
+ *                               type: string
+ *       404:
+ *         description: Token not found.
+ *       500:
+ *         description: Failed to request documents for the token.
+ */
+router.patch('/token/requestDocs/:tokenId', verifyToken, async (req, res) => {
+    const { tokenId } = req.params; // Token ID sent in the request URL
+
+    try {
+        // Update the token to reflect that documents have been requested
+        const updatedToken = await Token.findByIdAndUpdate(
+            tokenId,
+            {
+                $set: {
+                    "statusUpdates": [{
+                        status: 'Documents Requested',
+                        messages: ["Please submit the required documents for your token."],
+                        actionsNeeded: ["Upload documents via the provided link."]
+                    }]
+                }
+            },
+            { new: true } // Return the updated document
+        );
+
+        if (!updatedToken) {
+            return res.status(404).send('Token not found.');
+        }
+
+        // Respond with the updated token information
+        res.status(200).json({
+            message: "Documents requested successfully.",
+            updatedToken
+        });
+
+    } catch (error) {
+        console.error('Error requesting documents for the token:', error);
+        res.status(500).send('Failed to request documents for the token.');
+    }
+});
+
+
+// Generic token status update
+/**
+ * @swagger
+ * /token/status/{tokenId}:
+ *   patch:
+ *     summary: Update the status of a token
+ *     description: Updates a token's status, including messages and actions needed by the token issuer. Allows for a generic update to any token's status details.
+ *     tags: [Token]
+ *     security:
+ *       - bearerAuth: []  # Assuming bearer token is used for authorization
+ *     parameters:
+ *       - in: path
+ *         name: tokenId
  *         required: true
- *         description: The token status update object.
  *         schema:
- *           type: object
- *           required:
- *             - status
- *           properties:
- *             status:
- *               type: string
- *               description: The new status value for the token (pending, approved, denied, action needed).
- *             messages:
- *               type: array
- *               description: An array of messages associated with the token status.
- *               items:
+ *           type: string
+ *         description: The unique identifier of the token to update.
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               status:
  *                 type: string
- *             actionsNeeded:
- *               type: array
- *               description: An array of actions needed for the token.
- *               items:
- *                 type: string
+ *                 description: The new status for the token.
+ *               messages:
+ *                 type: array
+ *                 items:
+ *                   type: string
+ *                 description: Optional messages related to the status update.
+ *               actionsNeeded:
+ *                 type: array
+ *                 items:
+ *                   type: string
+ *                 description: Optional actions required from the token issuer.
  *     responses:
  *       200:
  *         description: Token status updated successfully.
@@ -678,94 +760,46 @@ router.post('/token/requestDocs', verifyToken, async (req, res) => {
  *               properties:
  *                 message:
  *                   type: string
- *                   description: A success message.
+ *                   description: Success message.
  *                 updatedToken:
- *                   $ref: '#/components/schemas/Token'
- *       400:
- *         description: Invalid status value.
- *         content:
- *           application/json:
- *             schema:
- *               type: object
- *               properties:
- *                 error:
- *                   type: string
- *                   description: An error message.
+ *                   type: object
+ *                   properties:
+ *                     statusUpdates:
+ *                       type: array
+ *                       items:
+ *                         type: object
+ *                         properties:
+ *                           status:
+ *                             type: string
+ *                           messages:
+ *                             type: array
+ *                             items:
+ *                               type: string
+ *                           actionsNeeded:
+ *                             type: array
+ *                             items:
+ *                               type: string
  *       404:
  *         description: Token not found.
- *         content:
- *           application/json:
- *             schema:
- *               type: object
- *               properties:
- *                 error:
- *                   type: string
- *                   description: An error message.
  *       500:
- *         description: An error occurred while updating token status.
- *         content:
- *           application/json:
- *             schema:
- *               type: object
- *               properties:
- *                 error:
- *                   type: string
- *                   description: An error message.
- * components:
- *   schemas:
- *     Token:
- *       type: object
- *       required:
- *         - name
- *         - symbol
- *         - serviceContractAddress
- *         - tokenContractAddress
- *         - liquidityContractAddress
- *         - revenueDistributionContractAddress
- *         - companyId
- *       properties:
- *         name:
- *           type: string
- *           description: Name of the token.
- *         symbol:
- *           type: string
- *           description: Symbol of the token.
- *         serviceContractAddress:
- *           type: string
- *           description: Blockchain address of the service contract.
- *         tokenContractAddress:
- *           type: string
- *           description: Blockchain address of the token contract.
- *         liquidityContractAddress:
- *           type: string
- *           description: Blockchain address of the liquidity contract.
- *         revenueDistributionContractAddress:
- *           type: string
- *           description: Blockchain address of the revenue distribution contract.
- *         companyId:
- *           type: string
- *           description: ID of the company that owns the token.
+ *         description: Failed to update token status.
  */
-// Generic token status update
-router.patch('/token/status/:tokenId', async (req, res) => {
+router.patch('/token/status/:tokenId', verifyToken, async (req, res) => {
+    const { tokenId } = req.params; // Token ID sent in the request URL
+    const { status, messages, actionsNeeded } = req.body; // Expected fields in the request body
+
+    // Validate the required parameters
+    if (!status) {
+        return res.status(400).send('Status is required.');
+    }
+
     try {
-        const { status, messages, actionsNeeded } = req.body;
-        const { tokenId } = req.params;
-
-        // Optional: Validate the status and ensure it's one of the allowed values
-        const validStatuses = ["pending", "approved", "denied", "action needed",];
-        if (!validStatuses.includes(status)) {
-            return res.status(400).send('Invalid status value.');
-        }
-
-        // Find the token by ID and update its status
+        // Update the token with the new status, messages, and actionsNeeded
         const updatedToken = await Token.findByIdAndUpdate(
             tokenId,
             {
                 $set: {
-                    status: status,
-                    messages: messages, // Assuming messages is an array of strings
-                    actionsNeeded: actionsNeeded // Assuming actionsNeeded is an array of strings
+                    "statusUpdates": [{ status, messages, actionsNeeded }]
                 }
             },
             { new: true } // Return the updated document
@@ -775,7 +809,7 @@ router.patch('/token/status/:tokenId', async (req, res) => {
             return res.status(404).send('Token not found.');
         }
 
-        // Respond with the updated token details
+        // Respond with the updated token information
         res.status(200).json({
             message: "Token status updated successfully.",
             updatedToken
@@ -783,7 +817,7 @@ router.patch('/token/status/:tokenId', async (req, res) => {
 
     } catch (error) {
         console.error('Error updating token status:', error);
-        res.status(500).send('Error updating token status.');
+        res.status(500).send('Failed to update token status.');
     }
 });
 
