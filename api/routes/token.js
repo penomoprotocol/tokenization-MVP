@@ -913,6 +913,8 @@ router.post('/token/deploy', verifyToken, async (req, res) => {
     }
 });
 
+
+// Get all tokens along with associated company and asset objects
 /**
  * @swagger
  * /api/token/all:
@@ -967,7 +969,6 @@ router.post('/token/deploy', verifyToken, async (req, res) => {
  *           type: string
  *           description: ID of the company that owns the token.
  */
-// Get all tokens along with associated company and asset objects
 router.get('/token/all', async (req, res) => {
     try {
         const tokens = await Token.find({})
@@ -996,26 +997,6 @@ router.get('/token/all', async (req, res) => {
 });
 
 
-/**
- * @swagger
- * /api/token/{address}:
- *   delete:
- *     summary: Delete token by address
- *     tags: 
- *     - Token
- *     parameters:
- *       - in: path
- *         name: tokenContractAddress
- *         required: true
- *         description: The address of the token to delete.
- *     responses:
- *       200:
- *         description: Successfully deleted token.
- *       404:
- *         description: token not found.
- *       500:
- *         description: Error deleting token.
- */
 // Delete token
 /**
  * @swagger
