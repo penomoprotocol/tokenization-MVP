@@ -970,29 +970,31 @@ router.post('/token/deploy', verifyToken, async (req, res) => {
 // Get all tokens along with associated company and asset objects
 router.get('/token/all', async (req, res) => {
     try {
-        // Find all tokens and populate company and asset fields
         const tokens = await Token.find({})
-            .populate('companyId') // Populate the company object
-            .populate('assetIds'); // Populate the asset objects
+            .populate('companyId')
+            .populate('assetIds');
 
-        for (const token of tokens) {
-            token.fundingCurrent = (await fetchContractBalance(token.liquidityContractAddress)).usdcBalance;
-            
+        const updatedTokens = await Promise.all(tokens.map(async token => {
+            const fundingCurrent = (await fetchContractBalance(token.liquidityContractAddress)).usdcBalance;
+
             const tokenContract = new web3.eth.Contract(TCABI, token.tokenContractAddress);
-            token.tokenContractBalance = await tokenContract.methods.balanceOf(token.tokenContractAddress).call();
+            const tokenContractBalance = await tokenContract.methods.balanceOf(token.tokenContractAddress).call();
 
-        }
+            // Return a new object with updated properties
+            return {
+                ...token.toObject(),
+                fundingCurrent,
+                tokenContractBalance,
+            };
+        }));
 
-        // DEBUG
-        // console.log("tokens: ", tokens[0].liquidityPoolBalance);
-
-        // Respond with an array of all token contracts along with their associated company and assets
-        res.status(200).json(tokens);
+        res.status(200).json(updatedTokens);
     } catch (error) {
         console.error('Error retrieving tokens:', error);
         res.status(500).send('Error retrieving tokens.');
     }
 });
+
 
 
 /**
