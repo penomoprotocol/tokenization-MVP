@@ -374,7 +374,6 @@ router.post('/token/new', verifyToken, async (req, res) => {
             projectDescription
         } = req.body;
 
-        // console.log("/token/deploy req.body: ", req.body); 
 
         // Validate the required parameters
         if (!tokenSupply || !tokenPrice || !tokenName || !contractTerm || !revenueShare) {
@@ -386,7 +385,6 @@ router.post('/token/new', verifyToken, async (req, res) => {
             console.log('Company not found:', companyId);
             return res.status(401).send('Company not found');
         }
-        console.log("company.ethereumPublicKey: ", company.ethereumPublicKey);
 
         // Define 'tokenSymbol' 
         let tokenSymbol;
@@ -443,21 +441,126 @@ router.post('/token/new', verifyToken, async (req, res) => {
 
         // Respond with the deployed contracts' addresses
         res.status(200).json({
-            message: "Successfully deployed tokenization contracts.",
+            message: "Successfully created contract draft.",
             newTokenEntry
         });
 
     } catch (error) {
-        console.error('Error deploying Contracts:', error);
-        res.status(500).send('Failed to deploy the contracts.');
+        console.error('Error creating contract draft:', error);
+        res.status(500).send('Failed to create the contract draft.');
     }
 });
 
 
 // Approve token
+/**
+ * @swagger
+ * /token/approve:
+ *   post:
+ *     summary: Approve a token
+ *     description: Marks a token as "Approved", indicating the contract is ready for offering to investors. This endpoint updates the token's status to "Approved" and sets the message to inform the user that their contract is ready for offering, along with an action needed prompt.
+ *     tags: [Token]
+ *     security:
+ *       - bearerAuth: []  # Assuming bearer token is used for authorization
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - tokenId
+ *             properties:
+ *               tokenId:
+ *                 type: string
+ *                 description: The unique identifier of the token to approve.
+ *     responses:
+ *       200:
+ *         description: Token approved successfully.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                   description: Success message.
+ *                 updatedToken:
+ *                   type: object
+ *                   $ref: '#/components/schemas/Token'
+ *       400:
+ *         description: Token ID is required.
+ *       404:
+ *         description: Token not found.
+ *       500:
+ *         description: Failed to approve the token.
+ * components:
+ *   schemas:
+ *     Token:
+ *       type: object
+ *       properties:
+ *         name:
+ *           type: string
+ *         symbol:
+ *           type: string
+ *         statusUpdates:
+ *           type: array
+ *           items:
+ *             type: object
+ *             properties:
+ *               status:
+ *                 type: string
+ *               messages:
+ *                 type: array
+ *                 items:
+ *                   type: string
+ *               actionsNeeded:
+ *                 type: array
+ *                 items:
+ *                   type: string
+ *         # Include other token properties as necessary
+ */
+
 router.post('/token/approve', verifyToken, async (req, res) => {
-    try {} catch (error) {}
+    const { tokenId } = req.body; // Token ID sent in the request body
+
+    // Validate the required parameters
+    if (!tokenId) {
+        return res.status(400).send('Token ID is required.');
+    }
+
+    try {
+        // Find the token by ID and update its status and statusUpdates
+        const updatedToken = await Token.findByIdAndUpdate(
+            tokenId,
+            {
+                $set: {
+                    "statusUpdates": [{
+                        status: 'Approved',
+                        messages: ["Your contract is ready for offering to investors."],
+                        actionsNeeded: ["Whenever you are ready, click on \"Offer Contract\"."]
+                    }]
+                }
+            },
+            { new: true } // Return the updated document
+        );
+
+        if (!updatedToken) {
+            return res.status(404).send('Token not found.');
+        }
+
+        // Respond with the updated token information
+        res.status(200).json({
+            message: "Token approved successfully.",
+            updatedToken
+        });
+
+    } catch (error) {
+        console.error('Error approving the token:', error);
+        res.status(500).send('Failed to approve the token.');
+    }
 });
+
 
 
 // Decline token
@@ -472,7 +575,7 @@ router.post('/token/requestDocs', verifyToken, async (req, res) => {
 });
 
 
-// Deploy token
+// Deploy token (TODO: Debug implementation)
 /**
  * @swagger
  * /api/token/deploy:
@@ -539,20 +642,7 @@ router.post('/token/deploy', verifyToken, async (req, res) => {
     try {
         const companyId = req.user.id; // Retrieved from the JWT token by verifyToken middleware
 
-        const {
-            tokenName,
-            tokenSupply,
-            tokenPrice,
-            paymentCurrency,
-            contractTerm,
-            revenueShare,
-            assetIds,
-            assetValue,
-            revenueStreams,
-            fundingGoal,
-            fundingUsage,
-            projectDescription
-        } = req.body;
+        const {tokenId} = req.body;
 
         // console.log("/token/deploy req.body: ", req.body); 
 
@@ -561,12 +651,11 @@ router.post('/token/deploy', verifyToken, async (req, res) => {
             return res.status(400).send('Missing required parameters.');
         }
 
-        const company = await Company.findById(companyId);
-        if (!company) {
-            console.log('Company not found:', companyId);
-            return res.status(401).send('Company not found');
+        const token = await Token.findById(tokenId);
+        if (!token) {
+            console.log('Token not found:', tokenId);
+            return res.status(401).send('Token not found');
         }
-        console.log("company.ethereumPublicKey: ", company.ethereumPublicKey);
 
         // Define 'tokenSymbol' 
         let tokenSymbol;
@@ -623,32 +712,18 @@ router.post('/token/deploy', verifyToken, async (req, res) => {
         // Call setTokenContract with gas estimation and send
         receipt = await estimateAndSend(transaction, MASTER_ADDRESS, MASTER_PRIVATE_KEY, serviceContractAddress);
 
-        // Generate DB entry for new tokenization contracts
+        // Add new information to DB entry 
         const newTokenEntry = new Token({
-            name: tokenName,
             symbol: tokenSymbol,
-            maxTokenSupply: tokenSupply,
-            tokenPrice: tokenPrice,
-            currency: paymentCurrency,
-            revenueShare: revenueShare,
-            contractTerm: contractTerm,
-            assetValue: assetValue,
-            revenueStreams: revenueStreams,
-            fundingGoal: fundingGoal,
-            fundingCurrent: 0,
-            fundingUsage: fundingUsage,
-            projectDescription: projectDescription,
             serviceContractAddress: serviceContractAddress,
             tokenContractAddress: tokenContractAddress,
             liquidityContractAddress: liquidityContractAddress,
             revenueDistributionContractAddress: revenueDistributionContractAddress,
             revenueStreamContractAddresses: [],
-            assetIds: assetIds,
-            companyId: companyId,
             statusUpdates: [{
-                status: 'Pending',
-                messages: ["Your submitted documents are currently under review. We will notify you via mail with updates."],
-                actionsNeeded: ["No actions needed for now."]
+                status: 'Deployed',
+                messages: ["Your token contract has been deployed and is now visible on the penomo marketplace."],
+                actionsNeeded: ["No actions needed."]
             }]
         });
 
