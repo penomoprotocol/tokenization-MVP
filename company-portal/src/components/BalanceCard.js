@@ -22,7 +22,7 @@ const sumTokenBalances = (tokens) => {
 };
 
 
-const AssetCard = ({ companyData }) => {
+const BalanceCard = ({ companyData }) => {
     // Filter the tokens that have status "pending"
     const pendingTokens = companyData.tokens.filter(token => {
         // Assuming statusUpdates is an array, you can check if any status is "Pending"
@@ -36,13 +36,13 @@ const AssetCard = ({ companyData }) => {
 
     return (
         <div style={{ marginRight: "1rem", paddingBottom: '4rem', display: 'flex', flex: '1' }} className="section-container">
-            <h3>Total Balance</h3>
+            <h3>Total Financing</h3>
             <div style={{ marginTop: '2rem' }} className="label-value-horizontal">
-                <div className="balance-title" style={{ fontSize: "2rem" }}>$</div>
+                <div className="balance-title" style={{ fontSize: "2rem" }}>$</div> 
                 <span className="balance-amount" style={{ fontSize: "2rem" }}>{totalBalance}</span>
             </div>
         </div>
     );
 };
 
-export default AssetCard;
+export default BalanceCard;

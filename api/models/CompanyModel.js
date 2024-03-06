@@ -47,8 +47,8 @@ const companySchema = new mongoose.Schema({
         unique: true
     },
     isVerified: {
-        type: Boolean,
-        default: false
+        type: String,
+        default: "false"
     }
 });
 
