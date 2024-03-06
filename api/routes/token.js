@@ -540,8 +540,89 @@ router.patch('/token/approve/:tokenId', verifyToken, async (req, res) => {
 
 
 // Decline token
-router.post('/token/decline', verifyToken, async (req, res) => {
-    try {} catch (error) {}
+/**
+ * @swagger
+ * /token/decline/{tokenId}:
+ *   patch:
+ *     summary: Decline a token
+ *     description: Marks a token as "Declined" and provides reasons or next steps. This endpoint updates specific fields of the token's status to "Declined" and includes a message for the user about what actions are needed next or the reasons for decline.
+ *     tags: [Token]
+ *     security:
+ *       - bearerAuth: []  # Assuming bearer token is used for authorization
+ *     parameters:
+ *       - in: path
+ *         name: tokenId
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: The unique identifier of the token to decline.
+ *     responses:
+ *       200:
+ *         description: Token declined successfully.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                   description: Success message.
+ *                 updatedToken:
+ *                   type: object
+ *                   properties:
+ *                     statusUpdates:
+ *                       type: array
+ *                       items:
+ *                         type: object
+ *                         properties:
+ *                           status:
+ *                             type: string
+ *                           messages:
+ *                             type: array
+ *                             items:
+ *                               type: string
+ *                           actionsNeeded:
+ *                             type: array
+ *                             items:
+ *                               type: string
+ *       404:
+ *         description: Token not found.
+ *       500:
+ *         description: Failed to decline the token.
+ */
+router.patch('/token/decline/:tokenId', verifyToken, async (req, res) => {
+    const { tokenId } = req.params; // Token ID sent in the request URL
+
+    try {
+        // Update the specific fields of the token to indicate it has been declined
+        const updatedToken = await Token.findByIdAndUpdate(
+            tokenId,
+            {
+                $set: {
+                    "statusUpdates": [{
+                        status: 'Declined',
+                        messages: ["Your contract draft has been declined."],
+                        actionsNeeded: ["Review the feedback and submit for approval again."]
+                    }]
+                }
+            },
+            { new: true } // Return the updated document
+        );
+
+        if (!updatedToken) {
+            return res.status(404).send('Token not found.');
+        }
+
+        // Respond with the updated token information
+        res.status(200).json({
+            message: "Token declined successfully.",
+            updatedToken
+        });
+
+    } catch (error) {
+        console.error('Error declining the token:', error);
+        res.status(500).send('Failed to decline the token.');
+    }
 });
 
 
