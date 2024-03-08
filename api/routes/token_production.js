@@ -895,6 +895,93 @@ router.patch('/token/status/:tokenId', verifyToken, async (req, res) => {
 });
 
 
+// Deploy token
+/**
+ * @swagger
+ * /api/token/deploy/{tokenId}:
+ *   post:
+ *     summary: Deploys tokenization contracts based on a token's specifications and updates its status in the system.
+ *     tags:
+ *       - Token
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: tokenId
+ *         schema:
+ *           type: string
+ *         required: true
+ *         description: The unique identifier of the token to deploy.
+ *     responses:
+ *       200:
+ *         description: Successfully deployed tokenization contracts and updated the token's status and symbol.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                 token:
+ *                   $ref: '#/components/schemas/Token'
+ *       400:
+ *         description: Invalid Token ID.
+ *       404:
+ *         description: Token not found or Company not found for this token.
+ *       500:
+ *         description: Failed to deploy the contracts.
+ */
+router.post('/token/deploy/:tokenId', verifyToken, async (req, res) => {
+    const { tokenId } = req.params;
+
+    if (!mongoose.Types.ObjectId.isValid(tokenId)) {
+        return res.status(400).send('Invalid Token ID.');
+    }
+
+    try {
+        const token = await Token.findById(tokenId);
+        if (!token) {
+            return res.status(404).send('Token not found.');
+        }
+
+        const company = await Company.findById(token.companyId);
+        if (!company) {
+            return res.status(404).send('Company not found for this token.');
+        }
+
+        // Determine the tokenSymbol
+        const tokens = await Token.find({ companyId: company._id });
+        const tokenSymbol = `${company.ticker}-${tokens.length + 1}`;
+
+        // Deploy contracts and update token details
+        // Assuming deployContracts is an async function that returns the contract addresses
+        const { serviceContractAddress, tokenContractAddress, liquidityContractAddress, revenueDistributionContractAddress } = await deployContracts(token, tokenSymbol);
+
+        token.serviceContractAddress = serviceContractAddress;
+        token.tokenContractAddress = tokenContractAddress;
+        token.liquidityContractAddress = liquidityContractAddress;
+        token.revenueDistributionContractAddress = revenueDistributionContractAddress;
+        token.symbol = tokenSymbol; // Update the symbol with the new one
+        token.statusUpdates.push({
+            status: 'Deployed',
+            messages: ["Your token contract has been deployed and is now visible on the marketplace."],
+            actionsNeeded: ["No actions needed."]
+        });
+
+        await token.save();
+
+        res.status(200).json({
+            message: "Successfully deployed tokenization contracts.",
+            token
+        });
+
+    } catch (error) {
+        console.error('Error during token deployment:', error);
+        res.status(500).send('Failed to deploy the contracts.');
+    }
+});
+
+
 // Get all tokens along with associated company and asset objects
 /**
  * @swagger
@@ -1047,5 +1134,283 @@ router.delete('/token/:tokenId', async (req, res) => {
     }
 });
 
+
+//// For production ////
+
+// /**
+//  * @swagger
+//  * /api/token/jwt:
+//  *   get:
+//  *     summary: Retrieve token holdings for the current authenticated investor
+//  *     tags:
+//  *       - Token
+//  *     security:
+//  *       - bearerAuth: []
+//  *     responses:
+//  *       200:
+//  *         description: Token holdings of the investor.
+//  *         content:
+//  *           application/json:
+//  *             schema:
+//  *               type: array
+//  *               items:
+//  *                 type: object
+//  *                 properties:
+//  *                   tokenName:
+//  *                     type: string
+//  *                   symbol:
+//  *                     type: string
+//  *                   balance:
+//  *                     type: string
+//  *       401:
+//  *         description: Unauthorized, token required.
+//  *       404:
+//  *         description: Investor not found.
+//  *       500:
+//  *         description: An error occurred while retrieving token holdings.
+//  */
+// // Get token holdings from investor
+// router.get('/token/', verifyToken, async (req, res) => {
+//     const investorId = req.user.id;
+
+//     try {
+//         // Fetch the investor's public key from the database
+//         const investor = await Investor.findById(investorId);
+//         if (!investor) {
+//             return res.status(404).send('Investor not found');
+//         }
+
+//         const publicKey = investor.ethereumPublicKey;
+
+//         // Fetch all tokens from the database
+//         const tokens = await Token.find({});
+
+//         // Iterate over the tokens to get the balance for the investor's public key
+//         let investorTokenHoldings = [];
+//         for (let token of tokens) {
+//             const tokenContract = new web3.eth.Contract(TCABI, token.tokenContractAddress);
+//             const balance = await tokenContract.methods.balanceOf(publicKey).call();
+
+//             // Convert the balance from Wei to Ether and check if it's greater than 0
+//             const balanceInEth = web3.utils.fromWei(balance, 'ether');
+//             if (parseFloat(balanceInEth) > 0) {
+//                 investorTokenHoldings.push({
+//                     name: token.name,
+//                     symbol: token.symbol,
+//                     tokenContractAddress: token.tokenContractAddress,
+//                     contractTerm: token.contractTerm,
+//                     tokenPrice: token.tokenPrice,
+//                     currency: token.currency,
+//                     maxTokenSupply: token.maxTokenSupply,
+//                     balance: balanceInEth // balance already converted to Ether
+//                 });
+//             }
+//         }
+
+//         res.json(investorTokenHoldings);
+//     } catch (error) {
+//         console.error('Error fetching token holdings:', error);
+//         res.status(500).send('Error fetching token holdings');
+//     }
+// });
+
+// /**
+//  * @swagger
+//  * /api/token/status/{tokenId}:
+//  *   patch:
+//  *     summary: Update the status of a token object.
+//  *     tags:
+//  *       - Token
+//  *     description: Update the status, messages, and actions needed for a token.
+//  *     parameters:
+//  *       - in: path
+//  *         name: tokenId
+//  *         required: true
+//  *         description: The ID of the token to update.
+//  *         schema:
+//  *           type: string
+//  *       - in: body
+//  *         name: tokenUpdate
+//  *         required: true
+//  *         description: The token status update object.
+//  *         schema:
+//  *           type: object
+//  *           required:
+//  *             - status
+//  *           properties:
+//  *             status:
+//  *               type: string
+//  *               description: The new status value for the token (pending, approved, denied, action needed).
+//  *             messages:
+//  *               type: array
+//  *               description: An array of messages associated with the token status.
+//  *               items:
+//  *                 type: string
+//  *             actionsNeeded:
+//  *               type: array
+//  *               description: An array of actions needed for the token.
+//  *               items:
+//  *                 type: string
+//  *     responses:
+//  *       200:
+//  *         description: Token status updated successfully.
+//  *         content:
+//  *           application/json:
+//  *             schema:
+//  *               type: object
+//  *               properties:
+//  *                 message:
+//  *                   type: string
+//  *                   description: A success message.
+//  *                 updatedToken:
+//  *                   $ref: '#/components/schemas/Token'
+//  *       400:
+//  *         description: Invalid status value.
+//  *         content:
+//  *           application/json:
+//  *             schema:
+//  *               type: object
+//  *               properties:
+//  *                 error:
+//  *                   type: string
+//  *                   description: An error message.
+//  *       404:
+//  *         description: Token not found.
+//  *         content:
+//  *           application/json:
+//  *             schema:
+//  *               type: object
+//  *               properties:
+//  *                 error:
+//  *                   type: string
+//  *                   description: An error message.
+//  *       500:
+//  *         description: An error occurred while updating token status.
+//  *         content:
+//  *           application/json:
+//  *             schema:
+//  *               type: object
+//  *               properties:
+//  *                 error:
+//  *                   type: string
+//  *                   description: An error message.
+//  * components:
+//  *   schemas:
+//  *     Token:
+//  *       type: object
+//  *       required:
+//  *         - name
+//  *         - symbol
+//  *         - serviceContractAddress
+//  *         - tokenContractAddress
+//  *         - liquidityContractAddress
+//  *         - revenueDistributionContractAddress
+//  *         - companyId
+//  *       properties:
+//  *         name:
+//  *           type: string
+//  *           description: Name of the token.
+//  *         symbol:
+//  *           type: string
+//  *           description: Symbol of the token.
+//  *         serviceContractAddress:
+//  *           type: string
+//  *           description: Blockchain address of the service contract.
+//  *         tokenContractAddress:
+//  *           type: string
+//  *           description: Blockchain address of the token contract.
+//  *         liquidityContractAddress:
+//  *           type: string
+//  *           description: Blockchain address of the liquidity contract.
+//  *         revenueDistributionContractAddress:
+//  *           type: string
+//  *           description: Blockchain address of the revenue distribution contract.
+//  *         companyId:
+//  *           type: string
+//  *           description: ID of the company that owns the token.
+//  */
+// // Confirm received funds from investor
+// router.patch('/token/status/:tokenId', async (req, res) => {
+//     try {
+//         const { status, messages, actionsNeeded } = req.body;
+//         const { tokenId } = req.params;
+
+//         // Optional: Validate the status and ensure it's one of the allowed values
+//         const validStatuses = ["pending", "approved", "denied", "action needed",];
+//         if (!validStatuses.includes(status)) {
+//             return res.status(400).send('Invalid status value.');
+//         }
+
+//         // Find the token by ID and update its status
+//         const updatedToken = await Token.findByIdAndUpdate(
+//             tokenId,
+//             {
+//                 $set: {
+//                     status: status,
+//                     messages: messages, // Assuming messages is an array of strings
+//                     actionsNeeded: actionsNeeded // Assuming actionsNeeded is an array of strings
+//                 }
+//             },
+//             { new: true } // Return the updated document
+//         );
+
+//         if (!updatedToken) {
+//             return res.status(404).send('Token not found.');
+//         }
+
+//         // Respond with the updated token details
+//         res.status(200).json({
+//             message: "Token status updated successfully.",
+//             updatedToken
+//         });
+
+//     } catch (error) {
+//         console.error('Error updating token status:', error);
+//         res.status(500).send('Error updating token status.');
+//     }
+// });
+
+//// For later version ////
+
+
+//// To delete ////
+
+// /**
+//  * @swagger
+//  * /api/token/{address}:
+//  *   get:
+//  *     summary: Retrieve token details by address
+//  *     tags: 
+//  *     - Token
+//  *     parameters:
+//  *       - in: path
+//  *         name: address
+//  *         required: true
+//  *         description: The address of the asset to retrieve.
+//  *     responses:
+//  *       200:
+//  *         description: Successfully retrieved asset details.
+//  *       404:
+//  *         description: Asset not found.
+//  *       500:
+//  *         description: Error retrieving asset.
+//  */
+// // Get token details by address [delete]
+// router.get('/token/:address', async (req, res) => {
+//     try {
+//         const { address } = req.params;
+//         const token = await Token.findOne({ tokenContractAddress: address });
+
+//         if (!token) {
+//             return res.status(404).send('Token contract not found.');
+//         }
+
+//         // Respond with the token contract data
+//         res.status(200).json(token);
+//     } catch (error) {
+//         console.error('Error retrieving token contract:', error);
+//         res.status(500).send('Error retrieving token contract.');
+//     }
+// });
 
 module.exports = router;
