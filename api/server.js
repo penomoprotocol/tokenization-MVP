@@ -93,16 +93,16 @@ const investorRoutes = require('./routes/investor');
 const companyRoutes = require('./routes/company');
 const assetRoutes = require('./routes/asset');
 const tokenRoutes = require('./routes/token');
-const revenueRoutes = require('./routes/revenue');
 const transactionRoutes = require('./routes/transaction');
+// const revenueRoutes = require('./routes/revenue');
 
 // API routes
 app.use('/api', investorRoutes);
 app.use('/api', companyRoutes);
 app.use('/api', assetRoutes);
 app.use('/api', tokenRoutes);
-app.use('/api', revenueRoutes);
 app.use('/api', transactionRoutes);
+// app.use('/api', revenueRoutes);
 
 // Serve Swagger UI on a specific path
 app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(openapiSpecification));
@@ -122,5 +122,5 @@ app.listen(PORT, (err) => {
 });
 
 // Export modules
-module.exports = { app, investorRoutes, companyRoutes, assetRoutes, tokenRoutes, revenueRoutes, transactionRoutes };
+module.exports = { app, investorRoutes, companyRoutes, assetRoutes, tokenRoutes, transactionRoutes };
 
