@@ -965,3 +965,382 @@ router.delete('/company/', async (req, res) => {
 });
 
 module.exports = router;
+
+//// DISABLES ROUTES ////
+
+// For Production
+// /**
+//  * @swagger
+//  * /api/company/transfer:
+//  *   post:
+//  *     summary: Transfer funds (ETH or USDC) from company's wallet to another address
+//  *     tags: 
+//  *       - Company
+//  *     security:
+//  *       - bearerAuth: []
+//  *     requestBody:
+//  *       required: true
+//  *       content:
+//  *         application/json:
+//  *           schema:
+//  *             type: object
+//  *             required:
+//  *               - amount
+//  *               - currency
+//  *               - walletAddress
+//  *             properties:
+//  *               amount:
+//  *                 type: string
+//  *                 description: The amount of currency to be transferred
+//  *               currency:
+//  *                 type: string
+//  *                 description: The type of currency to transfer ('ETH' or 'USDC')
+//  *               walletAddress:
+//  *                 type: string
+//  *                 description: The destination wallet address
+//  *     responses:
+//  *       200:
+//  *         description: Transfer successful. Returns transaction receipt.
+//  *       400:
+//  *         description: Bad request if invalid currency or insufficient parameters.
+//  *       404:
+//  *         description: Company not found.
+//  *       500:
+//  *         description: Internal Server Error or transfer failed.
+//  */
+// // Company transfer funds / tokens [Inactive]
+// router.post('/company/transfer', verifyToken, async (req, res) => {
+//     try {
+//         const { amount, currency, walletAddress } = req.body;
+//         const companyId = req.user.id;
+//         const company = await Company.findById(companyId);
+
+//         if (!company) {
+//             return res.status(404).send('Company not found');
+//         }
+
+//         try {
+//             const decryptedPrivateKey = decryptPrivateKey(company.ethereumPrivateKey, SECRET_KEY);
+//             console.log("Decrypted Private Key: ", decryptedPrivateKey); // Log to check the format
+
+//             if (!decryptedPrivateKey.startsWith('0x')) {
+//                 throw new Error("Private key does not start with '0x'");
+//             }
+
+//             const account = web3.eth.accounts.privateKeyToAccount(decryptedPrivateKey);
+//             web3.eth.accounts.wallet.add(account);
+
+//             let rawTransaction;
+//             let gasPrice;
+//             let receipt;
+
+//             console.log("Currency: ", currency);
+
+//             if (currency === 'ETH') {
+//                 gasPrice = await web3.eth.getGasPrice(); // Get current gas price
+//                 rawTransaction = {
+//                     from: account.address,
+//                     to: walletAddress,
+//                     value: web3.utils.toWei(amount, 'ether'),
+//                     gas: 2000000,
+//                     gasPrice: gasPrice
+//                 };
+//             } else if (currency === 'USDC') {
+//                 gasPrice = await web3.eth.getGasPrice(); // Get current gas price
+//                 console.log("Gas price:", gasPrice);
+//                 console.log("Wallet address:", walletAddress);
+//                 console.log("Amount:", amount);
+
+//                 const usdcContract = new web3.eth.Contract(USDCABI, USDCContractAddress);
+//                 const tokenAmount = web3.utils.toWei(amount, 'ether');
+//                 const data = usdcContract.methods.transfer(walletAddress, tokenAmount).encodeABI();
+//                 rawTransaction = {
+//                     from: account.address,
+//                     to: USDCContractAddress,
+//                     data: data,
+//                     gas: 2000000,
+//                     gasPrice: gasPrice
+//                 };
+//                 console.log("Raw transaction:", rawTransaction);
+
+
+//             }
+
+//             else {
+//                 return res.status(400).send('Invalid currency');
+//             }
+
+//             const signedTransaction = await web3.eth.accounts.signTransaction(rawTransaction, account.privateKey);
+//             receipt = await web3.eth.sendSignedTransaction(signedTransaction.rawTransaction);
+//             if (receipt.status) {
+//                 const transactionRecord = new Transaction({
+//                     transactionType: 'Withdraw',
+//                     fromAddress: company.ethereumPublicKey,
+//                     toAddress: walletAddress,
+//                     payableAmount: amount,
+//                     currency: currency,
+//                     transactionHash: receipt.transactionHash,
+//                     status: 'confirmed'
+//                 });
+//                 await transactionRecord.save();
+//                 res.status(200).json({ message: "Transfer successful", receipt: serializeBigIntInObject(receipt) });
+//             } else {
+//                 res.status(500).send('Transfer failed');
+//             }
+//         } catch (error) {
+//             console.error('Error in transaction processing:', error);
+//             return res.status(500).send('Internal Server Error');
+//         }
+
+//     } catch (error) {
+//         console.error('Error:', error);
+//         res.status(500).send('Internal Server Error');
+//     }
+// }); 
+
+// For later Version
+// /**
+// * @swagger
+// * /api/company/withdrawFunds:
+// *   post:
+// *     summary: Withdraw funds from the Liquidity Contract of tokenized asset
+// *     tags: 
+// *     - Company
+// *     requestBody:
+// *       required: true
+// *       content:
+// *         application/json:
+// *           schema:
+// *             type: object
+// *             required:
+// *               - companyId
+// *               - password
+// *               - amount
+// *               - liquidityContractAddress
+// *             properties:
+// *               companyId:
+// *                 type: string
+// *                 description: The ID of the company
+// *               password:
+// *                 type: string
+// *                 format: password
+// *                 description: Password for the company account
+// *               amount:
+// *                 type: number
+// *                 description: The amount of tokens to withdraw
+// *               liquidityContractAddress:
+// *                 type: string
+// *                 description: The address of the Liquidity Contract
+// *     responses:
+// *       200:
+// *         description: Successfully withdrawn funds
+// *       400:
+// *         description: Invalid input or operation failed
+// */
+// // Company withdraw funds [Inactive]
+// router.post('/company/withdrawFunds', verifyToken, async (req, res) => {
+//     try {
+//         const { amount, liquidityContractAddress } = req.body;
+
+//         const companyId = req.user.id;
+//         const company = await Company.findById(companyId);
+//         if (!company) {
+//             return res.status(404).send('Company not found');
+//         }
+
+//         // Validate the password
+//         const isMatch = await bcrypt.compare(password, company.password);
+//         if (!isMatch) {
+//             return res.status(401).send('Invalid password');
+//         }
+
+//         // Decrypt the private key
+//         const decryptedPrivateKey = decryptPrivateKey(company.ethereumPrivateKey, SECRET_KEY);
+
+//         // Load the contract
+//         const liquidityContract = new web3.eth.Contract(LCABI, liquidityContractAddress);
+
+//         // Prepare transaction
+//         const transaction = liquidityContract.methods.withdrawFunds(amount);
+
+//         // Estimate and send the transaction
+//         const receipt = await estimateAndSend(transaction, company.ethereumPublicKey, decryptedPrivateKey, liquidityContractAddress);
+
+//         // If the transaction is successful
+//         return res.status(200).json({ message: "Successfully withdrawn funds from Liquidity Contract.", receipt: serializeBigIntInObject(receipt) });
+
+//     } catch (error) {
+//         console.error('Error while withdrawing funds:', error);
+//         res.status(500).send('Error withdrawing funds');
+//     }
+// });
+
+// To delete
+// /**
+//  * @swagger
+//  * /api/company/{id}:
+//  *   get:
+//  *     summary: Retrieve company details by ID
+//  *     tags: 
+//  *       - Company
+//  *     parameters:
+//  *       - in: path
+//  *         name: id
+//  *         required: true
+//  *         description: The ID of the company to retrieve.
+//  *     responses:
+//  *       200:
+//  *         description: Details of the company.
+//  *         content:
+//  *           application/json:
+//  *             schema:
+//  *               $ref: '#/components/schemas/Company'
+//  *       404:
+//  *         description: Company not found.
+//  *       500:
+//  *         description: Error retrieving company.
+//  */
+// // Retrieve company details by ID
+// router.get('/company/:id', async (req, res) => {
+//     try {
+//         const companyId = req.params.id;
+//         console.log('Retrieving company details for ID:', companyId); // For debugging
+//         const company = await Company.findById(companyId);
+//         if (!company) {
+//             console.log('Company not found with ID:', companyId); // For debugging
+//             return res.status(404).send('Company not found');
+//         }
+//         console.log('Company details retrieved:', company); // For debugging
+//         res.json(company);
+//     } catch (error) {
+//         console.error('Error retrieving company by ID:', error);
+//         res.status(500).send('Error retrieving company');
+//     }
+// });
+
+// /**
+//  * @swagger
+//  * /api/company/email/{email}:
+//  *   get:
+//  *     summary: Retrieve company details by email
+//  *     tags: 
+//  *       - Company
+//  *     parameters:
+//  *       - in: path
+//  *         name: email
+//  *         required: true
+//  *         description: The email of the company to retrieve.
+//  *     responses:
+//  *       200:
+//  *         description: Details of the company.
+//  *         content:
+//  *           application/json:
+//  *             schema:
+//  *               $ref: '#/components/schemas/Company'
+//  *       404:
+//  *         description: Company not found.
+//  *       500:
+//  *         description: Error retrieving company.
+//  */
+// // Get company details by Email [Delete]
+// router.get('/company/email/:email', async (req, res) => {
+//     try {
+//         const email = req.params.email;
+//         console.log('Retrieving company details for email:', email); // Add this line for debugging
+//         const company = await Company.find({ email });
+//         if (!company) {
+//             console.log('Company not found:', email); // Add this line for debugging
+//             return res.status(404).send('Company not found');
+//         }
+//         console.log('Company details retrieved:', company); // Add this line for debugging
+//         res.json(company);
+//     } catch (error) {
+//         console.error('Error retrieving company:', error);
+//         res.status(500).send('Error retrieving company');
+//     }
+// });
+
+// /**
+//  * @swagger
+//  * /api/company/email/{email}:
+//  *   put:
+//  *     summary: Update company details by email
+//  *     tags: 
+//  *       - Company
+//  *     parameters:
+//  *       - in: path
+//  *         name: email
+//  *         required: true
+//  *         description: The email of the company to update.
+//  *     requestBody:
+//  *       required: true
+//  *       content:
+//  *         application/json:
+//  *           schema:
+//  *             type: object
+//  *             properties:
+//  *               name:
+//  *                 type: string
+//  *               password:
+//  *                 type: string
+//  *                 format: password
+//  *     responses:
+//  *       200:
+//  *         description: Details of the updated company.
+//  *       404:
+//  *         description: Company not found.
+//  *       500:
+//  *         description: Error updating company.
+//  */
+// // Update company details by Email [Delete]
+// router.put('/company/email/:email', async (req, res) => {
+//     try {
+//         const email = req.params.email;
+//         const updates = req.body;
+//         const updatedCompany = await Company.findOneAndUpdate({ email }, updates, { new: true });
+//         if (!updatedCompany) {
+//             return res.status(404).send('Company not found');
+//         }
+//         res.json(updatedCompany);
+//     } catch (error) {
+//         console.error('Error updating company:', error);
+//         res.status(500).send('Error updating company');
+//     }
+// });
+
+// /**
+//  * @swagger
+//  * /api/company/email/{email}:
+//  *   delete:
+//  *     summary: Delete company by email
+//  *     tags: 
+//  *       - Company
+//  *     parameters:
+//  *       - in: path
+//  *         name: email
+//  *         required: true
+//  *         description: The email of the company to delete.
+//  *     responses:
+//  *       200:
+//  *         description: Details of the deleted company.
+//  *       404:
+//  *         description: Company not found.
+//  *       500:
+//  *         description: Error deleting company.
+//  */
+// // Delete company by Email [Delete]
+// router.delete('/company/email/:email', async (req, res) => {
+//     try {
+//         const email = req.params.email;
+//         const deletedCompany = await Company.findOneAndDelete({ email });
+//         if (!deletedCompany) {
+//             return res.status(404).send('Company not found');
+//         }
+//         res.json(deletedCompany);
+//     } catch (error) {
+//         console.error('Error deleting company:', error);
+//         res.status(500).send('Error deleting company');
+//     }
+// });
+
+
