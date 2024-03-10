@@ -168,6 +168,7 @@ const readDID = async (sdk, name) => {
 
 //// For beta ////
 
+// Register asset
 /**
  * @swagger
  * /api/asset/register:
@@ -243,13 +244,12 @@ const readDID = async (sdk, name) => {
  *                 message:
  *                   type: string
  *                 newAsset:
- *                   $ref: '#/components/schemas/Asset'
+ *                   $ref: '#/models/AssetModel'
  *       401:
  *         description: Unauthorized. Company not found or invalid credentials.
  *       500:
  *         description: Server error or unable to register the asset.
  */
-// Register asset
 router.post('/asset/register', verifyToken, async (req, res) => {
     try {
         const companyId = req.user.id; // ID is retrieved from the decoded JWT token
