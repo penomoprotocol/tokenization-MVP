@@ -5,6 +5,20 @@ const { web3, networkId, GSCAddress, USDCContractAddress } = require('../config/
 const fs = require('fs');
 const path = require('path');
 
+// Import nodemailer for sending emails
+const nodemailer = require('nodemailer');
+
+// Create a nodemailer transporter
+const transporter = nodemailer.createTransport({
+    host: 'smtp.yourmailserver.com',
+    port: 587,
+    secure: false,
+    auth: {
+        user: 'your-email@example.com',
+        pass: 'your-email-password'
+    }
+});
+
 const GSCBuild = path.join(__dirname, '..', '..', 'evm-erc20', 'artifacts', 'contracts', 'GlobalStateContract.sol', 'GlobalStateContract.json');
 const SCBuild = path.join(__dirname, '..', '..', 'evm-erc20', 'artifacts', 'contracts', 'ServiceContract.sol', 'ServiceContract.json');
 const TCBuild = path.join(__dirname, '..', '..', 'evm-erc20', 'artifacts', 'contracts', 'TokenContractERC20.sol', 'TokenContractERC20.json');
@@ -72,6 +86,28 @@ const Investor = require('../models/InvestorModel');
 
 
 //// FUNCTIONS ////
+
+// Function to send verification email
+async function sendVerificationEmail(email, verificationToken) {
+    try {
+        // Create email template with verification link
+        const verificationLink = `http://yourdomain.com/api/company/verify/${verificationToken}`;
+        const html = fs.readFileSync('verificationEmail.html', 'utf8').replace('{{verificationLink}}', verificationLink);
+
+        // Send email
+        const mailOptions = {
+            from: 'your-email@example.com',
+            to: email,
+            subject: 'Company Registration Verification',
+            html: html
+        };
+
+        const info = await transporter.sendMail(mailOptions);
+        console.log('Verification email sent:', info.response);
+    } catch (error) {
+        console.error('Error sending verification email:', error);
+    }
+}
 
 // Function to get gas price
 async function getCurrentGasPrice() {
@@ -306,22 +342,29 @@ router.post('/company/register', async (req, res) => {
         const { businessName, ticker, email, password } = req.body;
         const hashedPassword = await bcrypt.hash(password, 10);
 
+        const verificationToken = generateVerificationToken();
+
         const company = new Company({
             businessName,
             ticker,
             email,
             password: hashedPassword,
+            verificationToken, // Save the verification token to the company document
         });
 
         await company.save();
         console.log("Added company instance: ", company);
 
-        res.status(200).json({ message: "Successfully registered company.", company });
+        // Send verification email
+        await sendVerificationEmail(email, verificationToken);
+
+        res.status(200).json({ message: "Successfully registered company. Verification email sent.", company });
     } catch (error) {
         console.error('Error while registering company:', error);
         res.status(500).send('Error registering company');
     }
 });
+
 
 // Company Login
 /**
