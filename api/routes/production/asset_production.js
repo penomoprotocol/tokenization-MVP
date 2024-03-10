@@ -1,13 +1,13 @@
 //const web3 = require('web3');
 const CryptoJS = require('crypto-js');
-const { web3, networkId, GSCAddress } = require('../config/web3Config_AGNG');
+const { web3, networkId, GSCAddress } = require('../../config/web3Config_AGNG');
 
 const crypto = require('crypto');
 
 const fs = require('fs');
 const path = require('path');
 
-const verifyToken = require('../middleware/jwtCheck');
+const verifyToken = require('../../middleware/jwtCheck');
 
 const GSCBuild = path.join(__dirname, '..', '..', 'evm-erc20', 'artifacts', 'contracts', 'GlobalStateContract.sol', 'GlobalStateContract.json');
 const SCBuild = path.join(__dirname, '..', '..', 'evm-erc20', 'artifacts', 'contracts', 'ServiceContract.sol', 'ServiceContract.json');
@@ -57,10 +57,10 @@ mongoose.connect(MONGO_URI, { useNewUrlParser: true, useUnifiedTopology: true })
     .catch(err => console.error('Could not connect to MongoDB', err));
 
 // Import Mongoose models:
-const Asset = require('../models/AssetModel');
-const Company = require('../models/CompanyModel');
-const Contract = require('../models/TokenModel');
-const Investor = require('../models/InvestorModel');
+const Asset = require('../../models/AssetModel');
+const Company = require('../../models/CompanyModel');
+const Contract = require('../../models/TokenModel');
+const Investor = require('../../models/InvestorModel');
 
 // Set up DID contract
 
