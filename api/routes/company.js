@@ -8,7 +8,7 @@ const path = require('path');
 // Import nodemailer for sending emails
 const nodemailer = require('nodemailer');
 
-// Create a nodemailer transporter
+// Nodemailer configuration
 const transporter = nodemailer.createTransport({
     host: 'smtp.yourmailserver.com',
     port: 587,
@@ -18,6 +18,7 @@ const transporter = nodemailer.createTransport({
         pass: 'your-email-password'
     }
 });
+
 
 const GSCBuild = path.join(__dirname, '..', '..', 'evm-erc20', 'artifacts', 'contracts', 'GlobalStateContract.sol', 'GlobalStateContract.json');
 const SCBuild = path.join(__dirname, '..', '..', 'evm-erc20', 'artifacts', 'contracts', 'ServiceContract.sol', 'ServiceContract.json');
@@ -92,7 +93,7 @@ async function sendVerificationEmail(email, verificationToken) {
     try {
         // Create email template with verification link
         const verificationLink = `http://yourdomain.com/api/company/verify/${verificationToken}`;
-        const html = fs.readFileSync('verificationEmail.html', 'utf8').replace('{{verificationLink}}', verificationLink);
+        const html = `<p>Please click the following link to verify your email: <a href="${verificationLink}">${verificationLink}</a></p>`;
 
         // Send email
         const mailOptions = {
@@ -107,6 +108,11 @@ async function sendVerificationEmail(email, verificationToken) {
     } catch (error) {
         console.error('Error sending verification email:', error);
     }
+}
+
+// Generate a verification token
+function generateVerificationToken() {
+    return jwt.sign({ timestamp: new Date().getTime() }, process.env.SECRET_KEY);
 }
 
 // Function to get gas price
@@ -291,52 +297,6 @@ const delay = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 //// ROUTES ////
 
 // Company Registration
-/**
- * @swagger
- * /api/company/register:
- *   post:
- *     summary: Register a new company
- *     tags: [Company]
- *     requestBody:
- *       required: true
- *       content:
- *         application/json:
- *           schema:
- *             type: object
- *             required:
- *               - businessName
- *               - email
- *               - password
- *             properties:
- *               businessName:
- *                 type: string
- *                 description: Name of the company
- *               email:
- *                 type: string
- *                 format: email
- *                 description: Email of the company
- *               password:
- *                 type: string
- *                 format: password
- *                 description: Password for the company account
- *     responses:
- *       200:
- *         description: Company successfully registered
- *         content:
- *           application/json:
- *             schema:
- *               type: object
- *               properties:
- *                 name:
- *                   type: string
- *                 email:
- *                   type: string
- *                 password:
- *                   type: string
- *                   format: password
- *       400:
- *         description: Invalid input
- */
 router.post('/company/register', async (req, res) => {
     try {
         const { businessName, ticker, email, password } = req.body;
@@ -349,7 +309,7 @@ router.post('/company/register', async (req, res) => {
             ticker,
             email,
             password: hashedPassword,
-            verificationToken, // Save the verification token to the company document
+            verificationToken,
         });
 
         await company.save();
@@ -362,6 +322,26 @@ router.post('/company/register', async (req, res) => {
     } catch (error) {
         console.error('Error while registering company:', error);
         res.status(500).send('Error registering company');
+    }
+});
+
+// Email verification endpoint
+router.get('/company/verify/:token', async (req, res) => {
+    try {
+        const token = req.params.token;
+        const company = await Company.findOne({ verificationToken: token });
+
+        if (!company) {
+            return res.status(404).send('Invalid verification token');
+        }
+
+        company.verified = true;
+        await company.save();
+
+        res.status(200).send('Email verified successfully');
+    } catch (error) {
+        console.error('Error verifying email:', error);
+        res.status(500).send('Error verifying email');
     }
 });
 
