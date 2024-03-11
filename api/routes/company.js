@@ -544,10 +544,9 @@ router.post('/company/login', async (req, res) => {
  *       500:
  *         description: Error submitting KYC information
  */
-router.post('/company/kyc/submit', async (req, res) => {
+router.post('/company/kyc/submit/:companyId', async (req, res) => {
     try {
         const {
-            companyId,
             firstName,
             surname,
             dob,
@@ -555,6 +554,8 @@ router.post('/company/kyc/submit', async (req, res) => {
             registrationNumber,
             businessAddress,
             businessPhone } = req.body;
+
+        const companyId = req.params.companyId;
 
         // Fetch company from the database
         const company = await Company.findById(companyId);
@@ -581,7 +582,7 @@ router.post('/company/kyc/submit', async (req, res) => {
     }
 });
 
-// Verify company KYC data (called by penomo team or KYC provider / NYALA backend? )
+// Verify company KYC data (called by penomo team)
 /**
  * @swagger
  * /api/company/kyc/verify:
@@ -622,9 +623,9 @@ router.post('/company/kyc/submit', async (req, res) => {
  *       500:
  *         description: Error verifying company KYC data
  */
-router.post('/company/kyc/verify', verifyApiKey, async (req, res) => {
+router.post('/company/kyc/verify/:companyId', async (req, res) => {
     try {
-        const { companyId } = req.body;
+        const companyId = req.params.companyId;
 
         // Fetch company from the database
         const company = await Company.findById(companyId);
@@ -684,8 +685,8 @@ router.post('/company/kyc/verify', verifyApiKey, async (req, res) => {
         company.businessAddress = businessAddress;
         company.businessPhone = businessPhone;
         company.ethereumPrivateKey = encryptedPrivateKey, // Store the encrypted private key
-        company.ethereumPublicKey = publicKey, // Store the public key (wallet address)
-        company.isVerified = true; // Set the company as verified
+            company.ethereumPublicKey = publicKey, // Store the public key (wallet address)
+            company.isVerified = true; // Set the company as verified
         await company.save(); // Save the updated company data
 
         // Check if the transaction was successful
@@ -761,7 +762,7 @@ router.post('/company/kyc/verify', verifyApiKey, async (req, res) => {
  *       500:
  *         description: Error retrieving company contracts with associated assets
  */
-router.get('/company/contracts', verifyToken, async (req, res) => {
+router.get('/company/contracts', async (req, res) => {
     try {
         const companyId = req.user.id; // ID is retrieved from the decoded JWT token
         const company = await Company.findById(companyId);
@@ -881,7 +882,7 @@ router.get('/company/contracts', verifyToken, async (req, res) => {
  *       500:
  *         description: Error retrieving company details, balances, and token data
  */
-router.get('/company/', verifyToken, async (req, res) => {
+router.get('/company/', async (req, res) => {
     try {
         const companyId = req.user.id; // ID is retrieved from the decoded JWT token
         const company = await Company.findById(companyId);
@@ -993,7 +994,7 @@ router.get('/company/', verifyToken, async (req, res) => {
  *       500:
  *         description: Error updating company details
  */
-router.put('/company/', verifyToken, async (req, res) => {
+router.put('/company/', async (req, res) => {
     try {
         const { companyId, ...updateData } = req.body;
         const decodedCompanyId = req.user.id;
