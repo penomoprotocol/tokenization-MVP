@@ -124,7 +124,6 @@ async function fetchBalance(address) {
     }
 }
 
-
 async function estimateAndSend(transaction, fromAddress, fromPrivateKey, toAddress, amountInWei = null) {
     // Fetch the current nonce
     let currentNonce = await web3.eth.getTransactionCount(fromAddress, 'pending');
@@ -158,8 +157,6 @@ async function estimateAndSend(transaction, fromAddress, fromPrivateKey, toAddre
     return web3.eth.sendSignedTransaction(signedTx.rawTransaction);
 }
 
-
-
 // Function to create a new Ethereum wallet and return the private key
 const createWallet = () => {
     const wallet = web3.eth.accounts.create();
@@ -177,7 +174,6 @@ const decryptPrivateKey = (encryptedKey, SECRET_KEY) => {
     const decrypted = CryptoJS.AES.decrypt(encryptedKey, SECRET_KEY).toString(CryptoJS.enc.Utf8);
     return decrypted;
 };
-
 
 // Helper function to serialize BigInt values in an object
 function serializeBigIntInObject(obj) {
@@ -269,7 +265,6 @@ router.post('/investor/register', async (req, res) => {
         res.status(500).send('Error registering investor');
     }
 });
-
 
 /**
  * @swagger

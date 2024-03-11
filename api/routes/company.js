@@ -301,7 +301,7 @@ const delay = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 // Company Registration
 /**
  * @swagger
- * /api/company/register:
+ * /company/register:
  *   post:
  *     summary: Register a new company
  *     tags: [Company]
@@ -313,10 +313,6 @@ const delay = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
  *           schema:
  *             type: object
  *             properties:
- *               firstname:
- *                 type: string
- *               surname:
- *                 type: string
  *               businessName:
  *                 type: string
  *                 example: 'Acme Corporation'
@@ -383,10 +379,11 @@ router.post('/company/register', async (req, res) => {
     }
 });
 
+
 // Email verification endpoint
 /**
  * @swagger
- * /api/company/register/{token}:
+ * /company/register/{token}:
  *   patch:
  *     summary: Verify a company's email
  *     tags: [Company]
@@ -424,6 +421,7 @@ router.patch('/company/register/:token', async (req, res) => {
         res.status(500).send('Error verifying email');
     }
 });
+
 
 // Company Login
 /**
@@ -488,13 +486,21 @@ router.post('/company/login', async (req, res) => {
     }
 });
 
+
 // Submit company KYC data (called by company representative)
 /**
  * @swagger
- * /api/company/kyc/submit:
+ * /company/kyc/submit/{companyId}:
  *   post:
  *     summary: Submit KYC information for a company
  *     tags: [Company]
+ *     parameters:
+ *       - in: path
+ *         name: companyId
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: ID of the company
  *     requestBody:
  *       required: true
  *       content:
@@ -502,7 +508,6 @@ router.post('/company/login', async (req, res) => {
  *           schema:
  *             type: object
  *             required:
- *               - companyId
  *               - firstName
  *               - surname
  *               - dob
@@ -511,9 +516,6 @@ router.post('/company/login', async (req, res) => {
  *               - businessAddress
  *               - businessPhone
  *             properties:
- *               companyId:
- *                 type: string
- *                 description: ID of the company
  *               firstName:
  *                 type: string
  *                 description: First name of the contact person
@@ -582,28 +584,22 @@ router.post('/company/kyc/submit/:companyId', async (req, res) => {
     }
 });
 
+
 // Verify company KYC data (called by penomo team)
 /**
  * @swagger
- * /api/company/kyc/verify:
+ * /company/kyc/verify/{companyId}:
  *   post:
  *     summary: Verify KYC data for a company
  *     description: This endpoint is called by the penomo team or KYC provider / NYALA backend to verify KYC data for a company.
  *     tags: [Company]
- *     security:
- *       - ApiKeyAuth: []
- *     requestBody:
- *       required: true
- *       content:
- *         application/json:
- *           schema:
- *             type: object
- *             required:
- *               - companyId
- *             properties:
- *               companyId:
- *                 type: string
- *                 description: ID of the company
+ *     parameters:
+ *       - in: path
+ *         name: companyId
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: ID of the company
  *     responses:
  *       200:
  *         description: Company KYC data verified and updated successfully
@@ -705,16 +701,22 @@ router.post('/company/kyc/verify/:companyId', async (req, res) => {
     }
 });
 
+
 // Get company contracts 
 /**
  * @swagger
- * /api/company/contracts:
+ * /company/contracts/{companyId}:
  *   get:
  *     summary: Get contracts associated with the authenticated company
  *     description: This endpoint retrieves contracts associated with the authenticated company along with their associated assets.
  *     tags: [Company]
- *     security:
- *       - BearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: companyId
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: ID of the company
  *     responses:
  *       200:
  *         description: Contracts and associated assets retrieved successfully
@@ -805,16 +807,22 @@ router.get('/company/contracts/:companyId', async (req, res) => {
     }
 });
 
+
 // Get company details
 /**
  * @swagger
- * /api/company/:
+ * /company/{companyId}:
  *   get:
  *     summary: Get details, balances, and token data associated with the authenticated company
  *     description: This endpoint retrieves details, balances, and token data associated with the authenticated company.
  *     tags: [Company]
- *     security:
- *       - BearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: companyId
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: ID of the company
  *     responses:
  *       200:
  *         description: Details, balances, and token data retrieved successfully
@@ -957,17 +965,22 @@ router.get('/company/:companyId', async (req, res) => {
     }
 });
 
+
 // Update company details
 /**
  * @swagger
- * /api/company/:
+ * /company/{companyId}:
  *   put:
  *     summary: Update company details
  *     description: Update company details for the authenticated company or by an admin
  *     tags: [Company]
- *     security:
- *       - BearerAuth: []
- *       - ApiKeyAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: companyId
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: ID of the company
  *     requestBody:
  *       required: true
  *       content:
@@ -975,9 +988,17 @@ router.get('/company/:companyId', async (req, res) => {
  *           schema:
  *             type: object
  *             properties:
- *               companyId:
+ *               businessName:
  *                 type: string
- *                 description: ID of the company
+ *                 description: Name of the company
+ *               ticker:
+ *                 type: string
+ *                 description: Ticker symbol of the company
+ *               email:
+ *                 type: string
+ *                 format: email
+ *                 description: Email of the company
+ *               // Add other properties that can be updated
  *     responses:
  *       200:
  *         description: Company details updated successfully
@@ -989,6 +1010,8 @@ router.get('/company/:companyId', async (req, res) => {
  *                 message:
  *                   type: string
  *                   description: Confirmation message
+ *                 updatedCompany:
+ *                   $ref: '#/components/schemas/Company'
  *       404:
  *         description: Company not found
  *       500:
@@ -1027,20 +1050,21 @@ router.put('/company/:companyId', async (req, res) => {
     }
 });
 
+
 // Delete company
 /**
  * @swagger
- * /api/company/:
+ * /company/{companyId}:
  *   delete:
  *     summary: Delete a company
  *     description: This endpoint deletes a company based on the provided companyId.
  *     tags: [Company]
  *     parameters:
- *       - in: query
+ *       - in: path
  *         name: companyId
+ *         required: true
  *         schema:
  *           type: string
- *         required: true
  *         description: ID of the company to delete
  *     responses:
  *       200:
