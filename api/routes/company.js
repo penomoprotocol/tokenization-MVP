@@ -8,18 +8,6 @@ const path = require('path');
 // Import nodemailer for sending emails
 const nodemailer = require('nodemailer');
 
-// Nodemailer configuration
-const transporter = nodemailer.createTransport({
-    host: 'smtp.yourmailserver.com',
-    port: 587,
-    secure: false,
-    auth: {
-        user: 'your-email@example.com',
-        pass: 'your-email-password'
-    }
-});
-
-
 const GSCBuild = path.join(__dirname, '..', '..', 'evm-erc20', 'artifacts', 'contracts', 'GlobalStateContract.sol', 'GlobalStateContract.json');
 const SCBuild = path.join(__dirname, '..', '..', 'evm-erc20', 'artifacts', 'contracts', 'ServiceContract.sol', 'ServiceContract.json');
 const TCBuild = path.join(__dirname, '..', '..', 'evm-erc20', 'artifacts', 'contracts', 'TokenContractERC20.sol', 'TokenContractERC20.json');
@@ -73,6 +61,8 @@ const MASTER_ADDRESS = process.env.MASTER_ADDRESS;
 const MASTER_PRIVATE_KEY = process.env.MASTER_PRIVATE_KEY;
 const BLOCKEXPLORER_API_URL = process.env.BLOCKEXPLORER_API_URL
 const BLOCKEXPLORER_API_KEY = process.env.BLOCKEXPLORER_API_KEY
+const MAIL_ADDRESS = process.env.MAIL_ADDRESS
+const MAIL_PW = process.env.MAIL_PW
 
 // Connect to MongoDB
 mongoose.connect(MONGO_URI, { useNewUrlParser: true, useUnifiedTopology: true })
@@ -86,6 +76,18 @@ const Token = require('../models/TokenModel');
 const Investor = require('../models/InvestorModel');
 
 
+// Nodemailer configuration
+const transporter = nodemailer.createTransport({
+    host: 'smtp.yourmailserver.com',
+    port: 587,
+    secure: false,
+    auth: {
+        user: MAIL_ADDRESS,
+        pass: MAIL_PW
+    }
+});
+
+
 //// FUNCTIONS ////
 
 // Function to send verification email
@@ -97,7 +99,7 @@ async function sendVerificationEmail(email, verificationToken) {
 
         // Send email
         const mailOptions = {
-            from: 'your-email@example.com',
+            from: MAIL_ADDRESS,
             to: email,
             subject: 'Company Registration Verification',
             html: html
