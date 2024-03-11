@@ -301,9 +301,10 @@ const delay = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 // Company Registration
 /**
  * @swagger
- * /company/register:
+ * /api/company/register:
  *   post:
  *     summary: Register a new company
+ *     tags: [Company]
  *     description: Registers a new company and sends a verification email.
  *     requestBody:
  *       required: true
@@ -377,7 +378,29 @@ router.post('/company/register', async (req, res) => {
 });
 
 // Email verification endpoint
-router.get('/company/verify/:token', async (req, res) => {
+/**
+ * @swagger
+ * /api/company/register/{token}:
+ *   patch:
+ *     summary: Verify a company's email
+ *     tags: [Company]
+ *     description: Verifies a company's email as part of the registration process using the provided token.
+ *     parameters:
+ *       - in: path
+ *         name: token
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: The verification token sent to the company's email.
+ *     responses:
+ *       200:
+ *         description: Email verified successfully.
+ *       404:
+ *         description: Invalid verification token.
+ *       500:
+ *         description: Error verifying email.
+ */
+router.patch('/company/register/:token', async (req, res) => {
     try {
         const token = req.params.token;
         const company = await Company.findOne({ verificationToken: token });
@@ -395,6 +418,7 @@ router.get('/company/verify/:token', async (req, res) => {
         res.status(500).send('Error verifying email');
     }
 });
+
 
 
 // Company Login
