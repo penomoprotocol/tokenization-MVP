@@ -299,6 +299,55 @@ const delay = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 //// ROUTES ////
 
 // Company Registration
+/**
+ * @swagger
+ * /company/register:
+ *   post:
+ *     summary: Register a new company
+ *     description: Registers a new company and sends a verification email.
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               businessName:
+ *                 type: string
+ *                 example: 'Acme Corporation'
+ *               ticker:
+ *                 type: string
+ *                 example: 'ACME'
+ *               email:
+ *                 type: string
+ *                 example: 'contact@acme.com'
+ *               password:
+ *                 type: string
+ *                 example: 'securepassword'
+ *     responses:
+ *       200:
+ *         description: Successfully registered company. Verification email sent.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                   example: 'Successfully registered company. Verification email sent.'
+ *                 company:
+ *                   $ref: '#/components/schemas/Company'
+ *       500:
+ *         description: Error registering company
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                   example: 'Error registering company'
+ */
 router.post('/company/register', async (req, res) => {
     try {
         const { businessName, ticker, email, password } = req.body;
