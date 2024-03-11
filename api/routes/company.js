@@ -78,14 +78,13 @@ const Investor = require('../models/InvestorModel');
 
 // Nodemailer configuration
 const transporter = nodemailer.createTransport({
-    host: 'smtp.yourmailserver.com',
-    port: 587,
-    secure: false,
+    service: 'gmail',
     auth: {
-        user: MAIL_ADDRESS,
-        pass: MAIL_PW
+        user: process.env.MAIL_ADDRESS,
+        pass: process.env.MAIL_PW
     }
 });
+
 
 
 //// FUNCTIONS ////
@@ -94,7 +93,8 @@ const transporter = nodemailer.createTransport({
 async function sendVerificationEmail(email, verificationToken) {
     try {
         // Create email template with verification link
-        const verificationLink = `http://yourdomain.com/api/company/verify/${verificationToken}`;
+        const verificationLink = `http://localhost:3000/api-docs/#/Company/register/${verificationToken}`;
+        console.log("verificationLink: ", verificationLink);
         const html = `<p>Please click the following link to verify your email: <a href="${verificationLink}">${verificationLink}</a></p>`;
 
         // Send email
@@ -313,6 +313,10 @@ const delay = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
  *           schema:
  *             type: object
  *             properties:
+ *               firstname:
+ *                 type: string
+ *               surname:
+ *                 type: string
  *               businessName:
  *                 type: string
  *                 example: 'Acme Corporation'
@@ -351,24 +355,26 @@ const delay = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
  */
 router.post('/company/register', async (req, res) => {
     try {
-        const { businessName, ticker, email, password } = req.body;
+        const { firstname, surname, businessName, ticker, email, password } = req.body;
         const hashedPassword = await bcrypt.hash(password, 10);
 
-        const verificationToken = generateVerificationToken();
+        const emailVerificationToken = generateVerificationToken();
 
         const company = new Company({
+            firstname,
+            surname,
             businessName,
             ticker,
             email,
             password: hashedPassword,
-            verificationToken,
+            emailVerificationToken,
         });
 
         await company.save();
         console.log("Added company instance: ", company);
 
         // Send verification email
-        await sendVerificationEmail(email, verificationToken);
+        await sendVerificationEmail(email, emailVerificationToken);
 
         res.status(200).json({ message: "Successfully registered company. Verification email sent.", company });
     } catch (error) {
@@ -403,13 +409,13 @@ router.post('/company/register', async (req, res) => {
 router.patch('/company/register/:token', async (req, res) => {
     try {
         const token = req.params.token;
-        const company = await Company.findOne({ verificationToken: token });
+        const company = await Company.findOne({ emailVerificationToken: token });
 
         if (!company) {
             return res.status(404).send('Invalid verification token');
         }
 
-        company.verified = true;
+        company.isEmailVerified = true;
         await company.save();
 
         res.status(200).send('Email verified successfully');
@@ -418,8 +424,6 @@ router.patch('/company/register/:token', async (req, res) => {
         res.status(500).send('Error verifying email');
     }
 });
-
-
 
 // Company Login
 /**
