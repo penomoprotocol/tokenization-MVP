@@ -882,9 +882,9 @@ router.get('/company/contracts', async (req, res) => {
  *       500:
  *         description: Error retrieving company details, balances, and token data
  */
-router.get('/company/', async (req, res) => {
+router.get('/company/:companyId', async (req, res) => {
     try {
-        const companyId = req.user.id; // ID is retrieved from the decoded JWT token
+        const companyId = req.params.companyId;
         const company = await Company.findById(companyId);
 
         if (!company) {
@@ -994,23 +994,25 @@ router.get('/company/', async (req, res) => {
  *       500:
  *         description: Error updating company details
  */
-router.put('/company/', async (req, res) => {
+router.put('/company/:companyId', async (req, res) => {
     try {
-        const { companyId, ...updateData } = req.body;
-        const decodedCompanyId = req.user.id;
+        const {...updateData } = req.body;
+        const companyId = req.params.companyId;
 
-        // Check if the authenticated user is an admin
-        if (!decodedCompanyId) {
-            // Admin authentication via API key
-            // Implement admin check here if needed
-            // Example: const isAdmin = checkAdmin(req);
-            // if (!isAdmin) return res.status(401).send('Unauthorized');
-        } else {
-            // Authenticated company's companyId should match with the request companyId
-            if (companyId !== decodedCompanyId) {
-                return res.status(403).send('Forbidden');
-            }
-        }
+        // const decodedCompanyId = req.user.id;
+
+        // // Check if the authenticated user is an admin
+        // if (!decodedCompanyId) {
+        //     // Admin authentication via API key
+        //     // Implement admin check here if needed
+        //     // Example: const isAdmin = checkAdmin(req);
+        //     // if (!isAdmin) return res.status(401).send('Unauthorized');
+        // } else {
+        //     // Authenticated company's companyId should match with the request companyId
+        //     if (companyId !== decodedCompanyId) {
+        //         return res.status(403).send('Forbidden');
+        //     }
+        // }
 
         const updatedCompany = await Company.findByIdAndUpdate(companyId, updateData, { new: true });
 
@@ -1053,7 +1055,7 @@ router.put('/company/', async (req, res) => {
  *       500:
  *         description: Error deleting company
  */
-router.delete('/company/', async (req, res) => {
+router.delete('/company/:companyId', async (req, res) => {
     try {
         const companyId = req.query.companyId;
         const deletedCompany = await Company.findOneAndDelete({ _id: companyId });
