@@ -762,9 +762,9 @@ router.post('/company/kyc/verify/:companyId', async (req, res) => {
  *       500:
  *         description: Error retrieving company contracts with associated assets
  */
-router.get('/company/contracts', async (req, res) => {
+router.get('/company/contracts/:companyId', async (req, res) => {
     try {
-        const companyId = req.user.id; // ID is retrieved from the decoded JWT token
+        const companyId = req.params.companyId;
         const company = await Company.findById(companyId);
 
         if (!company) {
