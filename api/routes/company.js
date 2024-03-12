@@ -274,7 +274,7 @@ async function fetchContractBalance(address) {
 // Company Registration
 router.post('/company/register', async (req, res) => {
     try {
-        const { businessName, ticker, email, password } = req.body;
+        const { businessName, ticker,registrationNumber, email, password } = req.body;
         const hashedPassword = await bcrypt.hash(password, 10);
 
         // Create a new Ethereum wallet and get the private key
@@ -289,6 +289,7 @@ router.post('/company/register', async (req, res) => {
             businessName,
             ticker,
             email,
+            registrationNumber,
             password: hashedPassword,
             ethereumPrivateKey: encryptedPrivateKey, // Store the encrypted private key
             ethereumPublicKey: publicKey, // Store the public key (wallet address)

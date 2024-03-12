@@ -8,6 +8,7 @@ const RegisterModal = ({ show, handleClose }) => {
   const [businessName, setName] = useState('');
   const [ticker, setTicker] = useState('');
   const [email, setEmail] = useState('');
+  const [registrationNumber, setRegistrationNumber] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [isRegistering, setIsRegistering] = useState(false); // State to indicate registration process
@@ -21,6 +22,7 @@ const RegisterModal = ({ show, handleClose }) => {
         businessName,
         ticker,
         email,
+        registrationNumber,
         password,
       });
       // If registration is successful, handle according to your needs
@@ -70,6 +72,17 @@ const RegisterModal = ({ show, handleClose }) => {
               className="form-control"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
+              required
+            />
+          </div>
+          <div className="form-group">
+            <label htmlFor="ticker" className="form-label">Company Registration Number:</label>
+            <input
+              type="text"
+              id="ticker"
+              className="form-control"
+              value={registrationNumber}
+              onChange={(e) => setRegistrationNumber(e.target.value)}
               required
             />
           </div>

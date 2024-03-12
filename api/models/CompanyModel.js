@@ -18,6 +18,7 @@ const companySchema = new mongoose.Schema({
     },
     registrationNumber: {
         type: String,
+        unique: true
     },
     businessAddress: {
         type: String,
