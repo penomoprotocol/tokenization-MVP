@@ -643,14 +643,10 @@ router.post('/company/kyc/verify/:companyId', async (req, res) => {
         company.isKycVerified = true; // Set the company as verified
         await company.save(); // Save the updated company data
 
-        // Check if the transaction was successful
-        if (receipt.status) {
-            return res.status(200).json({
-                message: 'Company KYC data successfully verified.'
-            });
-        } else {
-            return res.status(500).json({ error: 'KYC data verification failed' });
-        }
+
+        return res.status(200).json({
+            message: 'Company KYC data successfully verified.'
+        });
 
     } catch (error) {
         console.error('Error in company verification:', error);
