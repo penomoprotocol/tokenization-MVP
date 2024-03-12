@@ -498,7 +498,7 @@ router.post('/company/login', async (req, res) => {
 // Submit company KYC data (called by company representative)
 /**
  * @swagger
- * /company/kyc/submit/{companyId}:
+ * /api/company/kyc/submit/{companyId}:
  *   post:
  *     summary: Submit KYC information for a company
  *     tags: [Company]
@@ -563,7 +563,8 @@ router.post('/company/kyc/submit/:companyId', async (req, res) => {
             businessName,
             registrationNumber,
             businessAddress,
-            businessPhone } = req.body;
+            businessPhone
+        } = req.body;
 
         const companyId = req.params.companyId;
 
@@ -585,10 +586,11 @@ router.post('/company/kyc/submit/:companyId', async (req, res) => {
 
         await company.save(); // Save the updated company data
 
-
+        // Send a response to indicate that the KYC data has been successfully submitted
+        res.status(200).json({ message: "KYC information submitted successfully", company });
     } catch (error) {
         console.error('Error in company KYC submission:', error);
-        return res.status(500).json({ error: 'An error occurred' });
+        res.status(500).json({ error: 'An error occurred' });
     }
 });
 
@@ -657,7 +659,7 @@ router.post('/company/kyc/verify/:companyId', async (req, res) => {
             gasPrice: web3.utils.toHex(await web3.eth.getGasPrice()) // Get current gas price
         };
         // Sign the transaction with the master's private key
-        const signedTx = await web3.eth.accounts.signTransaction(transaction, MASTER_PRIVATE_KEY);
+        const signedTx = await web3.eth.accounts.signTransaction(fundingTransaction, MASTER_PRIVATE_KEY);
 
         // Send the signed transaction
         const fundingReceipt = await web3.eth.sendSignedTransaction(signedTx.rawTransaction);
@@ -681,16 +683,9 @@ router.post('/company/kyc/verify/:companyId', async (req, res) => {
 
 
         // Update company with additional verification info
-        company.firstname = firstName;
-        company.surname = surname;
-        company.dob = dob;
-        company.businessName = businessName;
-        company.registrationNumber = registrationNumber;
-        company.businessAddress = businessAddress;
-        company.businessPhone = businessPhone;
         company.ethereumPrivateKey = encryptedPrivateKey, // Store the encrypted private key
             company.ethereumPublicKey = publicKey, // Store the public key (wallet address)
-            company.isVerified = true; // Set the company as verified
+            company.isKycVerified = true; // Set the company as verified
         await company.save(); // Save the updated company data
 
         // Check if the transaction was successful

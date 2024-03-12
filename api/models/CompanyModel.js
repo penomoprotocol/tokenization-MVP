@@ -49,6 +49,10 @@ const companySchema = new mongoose.Schema({
         type: Boolean,
         default: false
     },
+    isKycVerified: {
+        type: Boolean,
+        default: false
+    },
     emailVerificationToken: {
         type: String
     }
