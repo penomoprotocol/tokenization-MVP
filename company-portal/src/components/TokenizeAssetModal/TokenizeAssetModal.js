@@ -130,11 +130,11 @@ const TokenizeAssetModal = ({ show, handleClose }) => {
             setResponseMessage(
                 <div>
                     <center>
-                    <br><p>Your asset has been registered under the following DID:</p></br>
+                    <p>Your asset has been registered under the following DID:</p> <br />
                         <p><strong>{newAsset.DID.document.id}</strong></p>
                     </center>
                     <center>
-                    <br><p>Your Security Contract has been deployed under the following address:</p></br>
+                    <p>Your Security Contract has been deployed under the following address:</p> <br />
                         <p><strong>{tokenResponse.data.newTokenEntry.tokenContractAddress}</strong></p>
                     </center>
                 </div>
