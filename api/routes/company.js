@@ -516,7 +516,7 @@ router.post('/company/login', async (req, res) => {
  *           schema:
  *             type: object
  *             required:
- *               - firstName
+ *               - firstname
  *               - surname
  *               - dob
  *               - businessName
@@ -524,7 +524,7 @@ router.post('/company/login', async (req, res) => {
  *               - businessAddress
  *               - businessPhone
  *             properties:
- *               firstName:
+ *               firstname:
  *                 type: string
  *                 description: First name of the contact person
  *               surname:
@@ -557,7 +557,7 @@ router.post('/company/login', async (req, res) => {
 router.post('/company/kyc/submit/:companyId', async (req, res) => {
     try {
         const {
-            firstName,
+            firstname,
             surname,
             dob,
             businessName,
@@ -574,7 +574,7 @@ router.post('/company/kyc/submit/:companyId', async (req, res) => {
         }
 
         // Update company with additional verification info
-        company.firstname = firstName;
+        company.firstname = firstname;
         company.surname = surname;
         company.dob = dob;
         company.businessName = businessName;
@@ -596,7 +596,7 @@ router.post('/company/kyc/submit/:companyId', async (req, res) => {
 // Verify company KYC data (called by penomo team)
 /**
  * @swagger
- * /company/kyc/verify/{companyId}:
+ * /api/company/kyc/verify/{companyId}:
  *   post:
  *     summary: Verify KYC data for a company
  *     description: This endpoint is called by the penomo team or KYC provider / NYALA backend to verify KYC data for a company.
