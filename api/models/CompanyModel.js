@@ -19,7 +19,6 @@ const companySchema = new mongoose.Schema({
     },
     registrationNumber: {
         type: String,
-        sparse: true 
     },
     businessAddress: {
         type: String,
@@ -42,11 +41,9 @@ const companySchema = new mongoose.Schema({
     },
     ethereumPrivateKey: {
         type: String,
-        sparse: true 
     },
     ethereumPublicKey: {
         type: String,
-        sparse: true 
     },
     isEmailVerified: {
         type: Boolean,

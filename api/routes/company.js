@@ -391,7 +391,7 @@ router.post('/company/register', async (req, res) => {
 // Email verification endpoint
 /**
  * @swagger
- * /company/register/{token}:
+ * /api/company/register/{token}:
  *   patch:
  *     summary: Verify a company's email
  *     tags: [Company]
