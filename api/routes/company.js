@@ -639,63 +639,17 @@ router.post('/company/kyc/verify/:companyId', async (req, res) => {
             return res.status(404).send('Company not found');
         }
 
-        // Create a new Ethereum wallet and get the private key
-        const wallet = createWallet();
-        const privateKey = wallet.privateKey;
-        const publicKey = wallet.address; // Get the public key (wallet address)
-
-        // Encrypt the private key with the user's password
-        const encryptedPrivateKey = encryptPrivateKey(privateKey, SECRET_KEY);
-
-        // Fund the new wallet with 1000000000000000 wei
-        const fundingAmount = '1000000000000000'; // 1000000000000000 wei
-
-        // Create a raw transaction object
-        const fundingTransaction = {
-            from: MASTER_ADDRESS,
-            to: publicKey,
-            value: fundingAmount,
-            gasLimit: web3.utils.toHex(21000), // Standard gas limit for Ether transfers
-            gasPrice: web3.utils.toHex(await web3.eth.getGasPrice()) // Get current gas price
-        };
-        // Sign the transaction with the master's private key
-        const signedTx = await web3.eth.accounts.signTransaction(fundingTransaction, MASTER_PRIVATE_KEY);
-
-        // Send the signed transaction
-        const fundingReceipt = await web3.eth.sendSignedTransaction(signedTx.rawTransaction);
-
-        // Prepare the contract instance
-        const contract = new web3.eth.Contract(GSCABI, GSCAddress);
-
-        // Prepare the transaction object
-        const whitelistTransaction = contract.methods.verifyCompany(publicKey);
-
-        // Send the transaction using the estimateAndSend helper function
-        const whitelistreceipt = await estimateAndSend(
-            transaction,
-            MASTER_ADDRESS,
-            MASTER_PRIVATE_KEY,
-            GSCAddress
-        );
-
-        // Handle the transaction receipt
-        console.log('Transaction receipt:', receipt);
-
-
         // Update company with additional verification info
-        company.ethereumPrivateKey = encryptedPrivateKey, // Store the encrypted private key
-            company.ethereumPublicKey = publicKey, // Store the public key (wallet address)
-            company.isKycVerified = true; // Set the company as verified
+        company.isKycVerified = true; // Set the company as verified
         await company.save(); // Save the updated company data
 
         // Check if the transaction was successful
         if (receipt.status) {
             return res.status(200).json({
-                message: 'Company successfully verified and whitelisted in Global State Contract.',
-                transactionHash: receipt.transactionHash
+                message: 'Company KYC data successfully verified.'
             });
         } else {
-            return res.status(500).json({ error: 'Transaction failed' });
+            return res.status(500).json({ error: 'KYC data verification failed' });
         }
 
     } catch (error) {
@@ -1022,7 +976,7 @@ router.get('/company/:companyId', async (req, res) => {
  */
 router.put('/company/:companyId', async (req, res) => {
     try {
-        const {...updateData } = req.body;
+        const { ...updateData } = req.body;
         const companyId = req.params.companyId;
 
         // const decodedCompanyId = req.user.id;
