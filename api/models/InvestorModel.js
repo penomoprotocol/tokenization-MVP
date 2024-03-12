@@ -24,11 +24,11 @@ const investorSchema = new mongoose.Schema({
     },
     ethereumPrivateKey: {
         type: String,
-        unique: true
+        sparse: true // Allow multiple null values
     },
     ethereumPublicKey: {
         type: String,
-        unique: true
+        sparse: true // Allow multiple null values
     },
     dob: Date, // Date of birth
     passportId: String,

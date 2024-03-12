@@ -301,7 +301,7 @@ const delay = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 // Company Registration
 /**
  * @swagger
- * /company/register:
+ * /api/company/register:
  *   post:
  *     summary: Register a new company
  *     tags: [Company]
@@ -313,6 +313,12 @@ const delay = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
  *           schema:
  *             type: object
  *             properties:
+ *               firstname:
+ *                 type: string
+ *                 example: 'John'
+ *               surname:
+ *                 type: string
+ *                 example: 'Doe'
  *               businessName:
  *                 type: string
  *                 example: 'Acme Corporation'
@@ -321,9 +327,11 @@ const delay = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
  *                 example: 'ACME'
  *               email:
  *                 type: string
+ *                 format: email
  *                 example: 'contact@acme.com'
  *               password:
  *                 type: string
+ *                 format: password
  *                 example: 'securepassword'
  *     responses:
  *       200:

@@ -1,4 +1,5 @@
 const mongoose = require('mongoose');
+const validator = require('validator'); // Add this to use the validator library
 
 // Define company schema
 const companySchema = new mongoose.Schema({
@@ -18,7 +19,7 @@ const companySchema = new mongoose.Schema({
     },
     registrationNumber: {
         type: String,
-        unique: true
+        sparse: true 
     },
     businessAddress: {
         type: String,
@@ -29,7 +30,8 @@ const companySchema = new mongoose.Schema({
     email: {
         type: String,
         required: true,
-        unique: true
+        unique: true,
+        validate: [validator.isEmail, 'Invalid email']
     },
     bank: {
         type: String,
@@ -40,11 +42,11 @@ const companySchema = new mongoose.Schema({
     },
     ethereumPrivateKey: {
         type: String,
-        unique: true
+        sparse: true 
     },
     ethereumPublicKey: {
         type: String,
-        unique: true
+        sparse: true 
     },
     isEmailVerified: {
         type: Boolean,
