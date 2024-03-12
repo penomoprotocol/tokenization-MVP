@@ -1,5 +1,5 @@
 // Replace with the actual contract ABI and address
-const GSCAddress = '0xeEBac63d9393ba35B2031E2081A7FB10A5197773';
+const GSCAddress = '0x472F66017039fa6E707F55FF9bc6b4088e399F62';
 
 
 
