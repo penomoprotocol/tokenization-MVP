@@ -199,7 +199,7 @@ router.post('/revenue/rental', async (req, res) => {
         }
 
         // Fetch the asset and contract from the database
-        const asset = await Asset.findOne({ DID: batteryDid });
+        const asset = await Asset.findOne({ "DID.document.id": batteryDid });
         const contract = await Contract.findOne({ serviceContractAddress });
 
         if (!asset || !contract) {
@@ -302,7 +302,7 @@ router.post('/revenue/grid', async (req, res) => {
             return res.status(400).send('Missing required parameters');
         }
 
-        const asset = await Asset.findOne({ DID: batteryDid });
+        const asset = await Asset.findOne({ "DID.document.id": batteryDid });
         const contract = await Contract.findOne({ serviceContractAddress });
 
         if (!asset || !contract) {
@@ -395,7 +395,7 @@ router.post('/revenue/arbitrage', async (req, res) => {
             return res.status(400).send('Missing required parameters');
         }
 
-        const asset = await Asset.findOne({ DID: batteryDid });
+        const asset = await Asset.findOne({ "DID.document.id": batteryDid });
         const contract = await Contract.findOne({ serviceContractAddress });
 
         if (!asset || !contract) {
@@ -499,7 +499,7 @@ router.post('/revenue/data', async (req, res) => {
             return res.status(400).send('Missing required parameters');
         }
 
-        const asset = await Asset.findOne({ DID: batteryDid });
+        const asset = await Asset.findOne({ "DID.document.id": batteryDid });
         const contract = await Contract.findOne({ serviceContractAddress });
 
         if (!asset || !contract) {
@@ -604,7 +604,7 @@ router.post('/revenue/carbon', async (req, res) => {
             return res.status(400).send('Missing required parameters');
         }
 
-        const asset = await Asset.findOne({ DID: batteryDid });
+        const asset = await Asset.findOne({ "DID.document.id": batteryDid });
         const contract = await Contract.findOne({ serviceContractAddress });
 
         if (!asset || !contract) {
@@ -824,8 +824,37 @@ router.get('/revenue/type/:type', async (req, res) => {
  *         description: Error updating asset.
  */
 
-router.put('/revenue/:address', (req, res) => {
+router.put('/revenue/:address', async(req, res) => {
     // Update asset details
+    const { address } = req.params;
+    const {unitPrice,unit,currency } = req.body;
+    
+        try {
+            const updatedRevenue = await Revenue.findOneAndUpdate(
+                { revenueStreamContractAddress: address }, 
+                { $set: 
+                    { 
+                        unitPrice,
+                        unit,
+                        currency
+                    } 
+                }, 
+                { new: true } 
+            );
+    
+            if (!updatedRevenue) {
+                return res.status(404).send('Revenue Stream Contract not found.');
+            }
+    
+            // Respond with the updated token details
+            res.status(200).json({
+                message: "Revenue Details updated successfully.",
+                updatedRevenue
+            });
+        } catch (error) {
+            console.error('Error updating Revenue Stream contract:', error);
+            res.status(500).send('Error updating Revenue Stream contract.');
+        }
 });
 
 /**

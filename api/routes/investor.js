@@ -357,7 +357,7 @@ router.post('/investor/login', async (req, res) => {
  *         description: An error occurred or transaction failed.
  */
 // Investor KYC
-router.post('/investor/verify', verifyToken, async (req, res) => {
+router.post('/investor/verify', async (req, res) => {
     try {
         const { investorId } = req.body;
 
