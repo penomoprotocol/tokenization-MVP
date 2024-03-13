@@ -758,7 +758,7 @@ router.get('/company/:companyId', async (req, res) => {
 // Edit company details
 /**
  * @swagger
- * /company/{companyId}:
+ * /api/company/{companyId}:
  *   patch:
  *     summary: Update company details
  *     description: Partially update company details for the authenticated company or by an admin.
@@ -833,7 +833,7 @@ router.patch('/company/:companyId', async (req, res) => {
 // Delete company
 /**
  * @swagger
- * /company/{companyId}:
+ * /api/company/{companyId}:
  *   delete:
  *     summary: Delete a company
  *     description: This endpoint deletes a company based on the provided companyId.

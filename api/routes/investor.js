@@ -1,12 +1,13 @@
 //const web3 = require('web3');
 const CryptoJS = require('crypto-js');
-const { ethers } = require('ethers');
 const { web3, networkId, GSCAddress, USDCContractAddress } = require('../config/web3Config_AGNG');
 
 const fs = require('fs');
 const path = require('path');
 
-// Import Contract Artifacts
+// Import nodemailer for sending emails
+const nodemailer = require('nodemailer');
+
 const GSCBuild = path.join(__dirname, '..', '..', 'evm-erc20', 'artifacts', 'contracts', 'GlobalStateContract.sol', 'GlobalStateContract.json');
 const SCBuild = path.join(__dirname, '..', '..', 'evm-erc20', 'artifacts', 'contracts', 'ServiceContract.sol', 'ServiceContract.json');
 const TCBuild = path.join(__dirname, '..', '..', 'evm-erc20', 'artifacts', 'contracts', 'TokenContractERC20.sol', 'TokenContractERC20.json');
@@ -16,45 +17,35 @@ const RSCBuild = path.join(__dirname, '..', '..', 'evm-erc20', 'artifacts', 'con
 const USDCBuild = path.join(__dirname, '..', '..', 'evm-erc20', 'artifacts', 'contracts', 'USDCContract.sol', 'USDCContract.json');
 
 // Get GSC ABI
-const contractPath = path.join(GSCBuild);
-const contractJSON = JSON.parse(fs.readFileSync(contractPath, 'utf8'));
-const GSCABI = contractJSON.abi;
-// Get SC ABI
-const SCcontractPath = path.join(SCBuild);
-const SCcontractJSON = JSON.parse(fs.readFileSync(SCcontractPath, 'utf8'));
-const SCABI = SCcontractJSON.abi;
+const GSCPath = path.join(GSCBuild);
+const GSCJSON = JSON.parse(fs.readFileSync(GSCPath, 'utf8'));
+const GSCABI = GSCJSON.abi;
+
 // Get TC ABI
-const TCcontractPath = path.join(TCBuild);
-const TCcontractJSON = JSON.parse(fs.readFileSync(TCcontractPath, 'utf8'));
-const TCABI = TCcontractJSON.abi;
+const TCPath = path.join(TCBuild);
+const TCJSON = JSON.parse(fs.readFileSync(TCPath, 'utf8'));
+const TCABI = TCJSON.abi;
+
+// Get LC ABI
+const LCPath = path.join(LCBuild);
+const LCJSON = JSON.parse(fs.readFileSync(LCPath, 'utf8'));
+const LCABI = LCJSON.abi;
+
 // Get USDC ABI
 const USDCContractPath = path.join(USDCBuild);
 const USDCContractJSON = JSON.parse(fs.readFileSync(USDCContractPath, 'utf8'));
 const USDCABI = USDCContractJSON.abi;
 
-// Initialize Global Contracts
-const GSContract = new web3.eth.Contract(GSCABI, GSCAddress);
-const USDContract = new web3.eth.Contract(USDCABI, USDCContractAddress);
+const verifyToken = require('../middleware/jwtCheck');
+const verifyApiKey = require('../middleware/verifyApiKey');
+
 
 const passport = require('passport');
 const JwtStrategy = require('passport-jwt').Strategy;
 const ExtractJwt = require('passport-jwt').ExtractJwt;
-const jwt = require('jsonwebtoken');
-
-const verifyToken = require('../middleware/jwtCheck');
-
 const bcrypt = require('bcryptjs');
-
+const jwt = require('jsonwebtoken');
 const mongoose = require('mongoose');
-
-require('dotenv').config();
-const SECRET_KEY = process.env.SECRET_KEY;
-const MONGO_URI = process.env.MONGO_URI;
-const MASTER_ADDRESS = process.env.MASTER_ADDRESS;
-const MASTER_PRIVATE_KEY = process.env.MASTER_PRIVATE_KEY;
-const BLOCKEXPLORER_API_URL = process.env.BLOCKEXPLORER_API_URL
-const BLOCKEXPLORER_API_KEY = process.env.BLOCKEXPLORER_API_KEY
-
 
 const swaggerJsdoc = require('swagger-jsdoc');
 const swaggerUi = require('swagger-ui-express');
@@ -63,21 +54,140 @@ const express = require('express');
 const router = express.Router();
 const axios = require('axios');
 
+require('dotenv').config();
+const SECRET_KEY = process.env.SECRET_KEY;
+const MONGO_URI = process.env.MONGO_URI;
+const MASTER_ADDRESS = process.env.MASTER_ADDRESS;
+const MASTER_PRIVATE_KEY = process.env.MASTER_PRIVATE_KEY;
+const BLOCKEXPLORER_API_URL = process.env.BLOCKEXPLORER_API_URL
+const BLOCKEXPLORER_API_KEY = process.env.BLOCKEXPLORER_API_KEY
+const MAIL_ADDRESS = process.env.MAIL_ADDRESS
+const MAIL_PW = process.env.MAIL_PW
+
+// Connect to MongoDB
+mongoose.connect(MONGO_URI, { useNewUrlParser: true, useUnifiedTopology: true })
+    .then(() => console.log('Connected to MongoDB'))
+    .catch(err => console.error('Could not connect to MongoDB', err));
+
 // Import Mongoose models:
 const Asset = require('../models/AssetModel');
-const Company = require('../models/CompanyModel');
-const Contract = require('../models/TokenModel');
 const Investor = require('../models/InvestorModel');
-const Transaction = require('../models/TransactionModel');
+const Token = require('../models/TokenModel');
 
-// // // FUNCTIONS
+// Nodemailer configuration
+const transporter = nodemailer.createTransport({
+    service: 'gmail',
+    auth: {
+        user: process.env.MAIL_ADDRESS,
+        pass: process.env.MAIL_PW
+    }
+});
 
-// Get gas price
+
+
+//// FUNCTIONS ////
+
+// Function to send verification email
+async function sendVerificationEmail(email, verificationToken) {
+    try {
+        // Create email template with verification link
+        const verificationLink = `http://localhost:3000/api-docs/#/Investor/register/${verificationToken}`;
+        console.log("verificationLink: ", verificationLink);
+        const html = `<p>Please click the following link to verify your email: <a href="${verificationLink}">${verificationLink}</a></p>`;
+
+        // Send email
+        const mailOptions = {
+            from: MAIL_ADDRESS,
+            to: email,
+            subject: 'Investor Registration Verification',
+            html: html
+        };
+
+        const info = await transporter.sendMail(mailOptions);
+        console.log('Verification email sent:', info.response);
+    } catch (error) {
+        console.error('Error sending verification email:', error);
+    }
+}
+
+// Generate a verification token
+function generateVerificationToken() {
+    return jwt.sign({ timestamp: new Date().getTime() }, process.env.SECRET_KEY);
+}
+
+// Function to get gas price
 async function getCurrentGasPrice() {
-    let gasPrice = await web3.eth.getGasPrice(); // This will get the current gas price in wei
+    let gasPrice = await web3.eth.getGasPrice();
     console.log(`Current Gas Price: ${gasPrice}`);
     gasPrice = BigInt(gasPrice) * 200n / 100n;
     return gasPrice;
+}
+
+// Function to estimate gas and send a transaction
+async function estimateAndSend(transaction, fromAddress, fromPrivateKey, toAddress) {
+    try {
+        let currentNonce = await web3.eth.getTransactionCount(fromAddress, 'pending');
+        console.log(`Current Nonce: ${currentNonce}`);
+
+        const estimatedGas = await transaction.estimateGas({ from: fromAddress });
+        console.log(`Estimated Gas: ${estimatedGas}`);
+
+        const bufferGas = estimatedGas * 200n / 100n;
+        const roundedGas = bufferGas + (10n - bufferGas % 10n);
+        let currentGasPrice = await getCurrentGasPrice();
+
+        const txData = {
+            from: fromAddress,
+            to: toAddress,
+            data: transaction.encodeABI(),
+            gas: roundedGas.toString(),
+            gasPrice: currentGasPrice,
+            nonce: currentNonce
+        };
+
+        console.log('Transaction Data:', txData);
+
+        const signedTx = await web3.eth.accounts.signTransaction(txData, fromPrivateKey);
+        console.log('Signed Transaction:', signedTx);
+
+        const receipt = await web3.eth.sendSignedTransaction(signedTx.rawTransaction);
+        console.log('Transaction Receipt:', receipt);
+        return receipt;
+    } catch (error) {
+        console.error('Error in estimateAndSend:', error);
+        throw error;
+    }
+}
+
+// Function to create a new Ethereum wallet and return the private key
+const createWallet = () => {
+    const wallet = web3.eth.accounts.create();
+    console.log("privateKey: ", wallet.privateKey);
+    return wallet;
+};
+
+// Function to encrypt private key
+const encryptPrivateKey = (privateKey, SECRET_KEY) => {
+    const encrypted = CryptoJS.AES.encrypt(privateKey, SECRET_KEY).toString();
+    return encrypted;
+};
+
+// Function to decrypt private key
+const decryptPrivateKey = (encryptedKey, SECRET_KEY) => {
+    const decrypted = CryptoJS.AES.decrypt(encryptedKey, SECRET_KEY).toString(CryptoJS.enc.Utf8);
+    return decrypted;
+};
+
+// Function to serialize BigInt values in an object
+function serializeBigIntInObject(obj) {
+    for (let key in obj) {
+        if (typeof obj[key] === 'bigint') {
+            obj[key] = obj[key].toString();
+        } else if (typeof obj[key] === 'object' && obj[key] !== null) {
+            obj[key] = serializeBigIntInObject(obj[key]);
+        }
+    }
+    return obj;
 }
 
 // Function to fetch balance for a given address
@@ -96,25 +206,19 @@ async function fetchBalance(address) {
 
     try {
         const response = await axios(config);
-
-        // Log the response for debugging
-        console.log("API Response:", response.data);
-
         let agungBalance = '0';
         let usdcBalance = '0';
 
-        // Validate the existence of the expected data structure
-        if (response.data && response.data.data) {
-            if (response.data.data.native) {
-                const nativeBalances = response.data.data.native;
-                const agungBalanceWei = nativeBalances.find(token => token.symbol === 'AGUNG')?.balance || '0';
-                agungBalance = web3.utils.fromWei(agungBalanceWei, 'ether');
-            }
-            if (response.data.data.ERC20) {
-                const erc20Balances = response.data.data.ERC20;
-                const usdcBalanceWei = erc20Balances.find(token => token.contract === USDCContractAddress)?.balance || '0';
-                usdcBalance = web3.utils.fromWei(usdcBalanceWei, 'ether');
-            }
+        // Check if balance arrays exist
+        if (response.data.data.native) {
+            const nativeBalances = response.data.data.native;
+            const agungBalanceWei = nativeBalances.find(token => token.symbol === 'AGUNG')?.balance || '0';
+            agungBalance = web3.utils.fromWei(agungBalanceWei, 'ether');
+        }
+        if (response.data.data.ERC20) {
+            const erc20Balances = response.data.data.ERC20;
+            const usdcBalanceWei = erc20Balances.find(token => token.contract === USDCContractAddress)?.balance || '0';
+            usdcBalance = web3.utils.fromWei(usdcBalanceWei, 'ether');
         }
 
         return { agungBalance, usdcBalance };
@@ -124,76 +228,82 @@ async function fetchBalance(address) {
     }
 }
 
-async function estimateAndSend(transaction, fromAddress, fromPrivateKey, toAddress, amountInWei = null) {
-    // Fetch the current nonce
-    let currentNonce = await web3.eth.getTransactionCount(fromAddress, 'pending');
-
-    // Estimate gas for the transaction
-    const estimatedGas = await transaction.estimateGas({ from: fromAddress });
-
-    const bufferGas = estimatedGas * 150n / 100n;  // Adding a 10% buffer
-    const roundedGas = bufferGas + (10n - bufferGas % 10n);  // Rounding up to the nearest 10
-    let currentGasPrice = await getCurrentGasPrice();
-
-    // Prepare the transaction data with nonce
-    const txData = {
-        from: fromAddress,
-        to: toAddress,
-        data: transaction.encodeABI(),
-        gas: roundedGas.toString(),
-        gasPrice: currentGasPrice,
-        nonce: currentNonce
+// Function to fetch balance for a given address
+async function fetchContractBalance(address) {
+    const data = JSON.stringify({ "address": address });
+    const config = {
+        method: 'post',
+        url: `${BLOCKEXPLORER_API_URL}/api/scan/account/tokens`,
+        headers: {
+            'User-Agent': 'Apidog/1.0.0 (https://apidog.com)',
+            'Content-Type': 'application/json',
+            'X-API-Key': BLOCKEXPLORER_API_KEY
+        },
+        data: data
     };
 
-    // Include the value field only if amountInWei is provided
-    if (amountInWei !== null) {
-        txData.value = amountInWei;
-    }
+    try {
+        const response = await axios(config);
+        // console.log("Fetch contract balance response: ", response.data.ERC20);
+        let agungBalance = '0';
+        let usdcBalance = '0';
 
-    // Sign the transaction
-    const signedTx = await web3.eth.accounts.signTransaction(txData, fromPrivateKey);
-
-    // Send the signed transaction
-    return web3.eth.sendSignedTransaction(signedTx.rawTransaction);
-}
-
-// Function to create a new Ethereum wallet and return the private key
-const createWallet = () => {
-    const wallet = web3.eth.accounts.create();
-    console.log("privateKey: ", wallet.privateKey);
-    return wallet;
-};
-
-// Function to encrypt and decrypt private keys
-const encryptPrivateKey = (privateKey, SECRET_KEY) => {
-    const encrypted = CryptoJS.AES.encrypt(privateKey, SECRET_KEY).toString();
-    return encrypted;
-};
-
-const decryptPrivateKey = (encryptedKey, SECRET_KEY) => {
-    const decrypted = CryptoJS.AES.decrypt(encryptedKey, SECRET_KEY).toString(CryptoJS.enc.Utf8);
-    return decrypted;
-};
-
-// Helper function to serialize BigInt values in an object
-function serializeBigIntInObject(obj) {
-    for (let key in obj) {
-        if (typeof obj[key] === 'bigint') {
-            obj[key] = obj[key].toString();
-        } else if (typeof obj[key] === 'object' && obj[key] !== null) {
-            obj[key] = serializeBigIntInObject(obj[key]);
+        // Check if balance arrays exist
+        if (response.data.data.native) {
+            const nativeBalances = response.data.data.native;
+            const agungBalanceWei = nativeBalances.find(token => token.symbol === 'AGUNG')?.balance || '0';
+            agungBalance = web3.utils.fromWei(agungBalanceWei, 'ether');
         }
+        if (response.data.data.ERC20) {
+            const erc20Balances = response.data.data.ERC20;
+            const usdcBalanceWei = erc20Balances.find(token => token.contract === USDCContractAddress)?.balance || '0';
+            usdcBalance = web3.utils.fromWei(usdcBalanceWei, 'ether');
+        }
+
+        return { agungBalance, usdcBalance };
+    } catch (error) {
+        console.error(`Error fetching balance for address ${address}:`, error);
+        return { agungBalance: '0', usdcBalance: '0' };
     }
-    return obj;
 }
 
+// Fuction to timelimit api calls 
+function rateLimiter(rateLimit, requestFunction) {
+    let lastCalled = Date.now();
+
+    return async (...args) => {
+        const now = Date.now();
+        const diff = now - lastCalled;
+        const delay = Math.max((1000 / rateLimit) - diff, 0);
+
+        return new Promise((resolve, reject) => {
+            setTimeout(async () => {
+                try {
+                    const result = await requestFunction(...args);
+                    resolve(result);
+                } catch (error) {
+                    reject(error);
+                }
+                lastCalled = Date.now();
+            }, delay);
+        });
+    };
+}
+
+// Function to delay api calls
+const delay = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
+
+
+//// ROUTES ////
+
+// Investor Registration
 /**
  * @swagger
  * /api/investor/register:
  *   post:
- *     summary: Register an investor
- *     tags: 
- *     - Investor
+ *     summary: Register a new investor
+ *     tags: [Investor]
+ *     description: Registers a new investor and sends a verification email.
  *     requestBody:
  *       required: true
  *       content:
@@ -201,92 +311,152 @@ function serializeBigIntInObject(obj) {
  *           schema:
  *             type: object
  *             properties:
- *               surname:
- *                 type: string
  *               firstname:
  *                 type: string
+ *                 example: 'John'
+ *               surname:
+ *                 type: string
+ *                 example: 'Doe'
+ *               businessName:
+ *                 type: string
+ *                 example: 'Acme Corporation'
+ *               ticker:
+ *                 type: string
+ *                 example: 'ACME'
  *               email:
  *                 type: string
+ *                 format: email
+ *                 example: 'contact@acme.com'
  *               password:
  *                 type: string
+ *                 format: password
+ *                 example: 'securepassword'
  *     responses:
  *       200:
- *         description: Successfully registered investor.
+ *         description: Successfully registered investor. Verification email sent.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                   example: 'Successfully registered investor. Verification email sent.'
+ *                 investor:
+ *                   $ref: '#/components/schemas/Investor'
  *       500:
- *         description: Error registering investor.
+ *         description: Error registering investor
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                   example: 'Error registering investor'
  */
-// Investor Registration
 router.post('/investor/register', async (req, res) => {
     try {
-        const { surname, firstname, email, password } = req.body;
+        const { firstname, surname, businessName, ticker, email, password } = req.body;
         const hashedPassword = await bcrypt.hash(password, 10);
 
-        // Create a new Ethereum wallet and get the private key
-        const wallet = createWallet();
-        const privateKey = wallet.privateKey;
-        console.log("Original privateKey: ", privateKey);
-        const publicKey = wallet.address; // Get the public key (wallet address)
-
-        // Encrypt the private key with the user's password
-        const encryptedPrivateKey = encryptPrivateKey(privateKey, SECRET_KEY);
+        const emailVerificationToken = generateVerificationToken();
 
         const investor = new Investor({
-            surname,
             firstname,
+            surname,
+            businessName,
+            ticker,
             email,
             password: hashedPassword,
-            ethereumPrivateKey: encryptedPrivateKey, // Store the encrypted private key
-            ethereumPublicKey: publicKey, // Store the public key (wallet address)
+            emailVerificationToken,
         });
 
         await investor.save();
         console.log("Added investor instance: ", investor);
 
-        // Fund the new wallet with 1000000000000000 wei
-        const fundingAmount = '10000000000000000';
+        // Send verification email
+        await sendVerificationEmail(email, emailVerificationToken);
 
-        // Create a raw transaction object
-        const transaction = {
-            from: MASTER_ADDRESS,
-            to: publicKey,
-            value: fundingAmount,
-            gasLimit: web3.utils.toHex(42000), // Standard gas limit for Ether transfers
-            gasPrice: web3.utils.toHex(await web3.eth.getGasPrice()) // Get current gas price
-        };
-        // Sign the transaction with the master's private key
-        const signedTx = await web3.eth.accounts.signTransaction(transaction, MASTER_PRIVATE_KEY);
-
-        // Send the signed transaction
-        const receipt = await web3.eth.sendSignedTransaction(signedTx.rawTransaction);
-
-        res.status(200).json({ message: "Successfully registered investor.", investor });
+        res.status(200).json({ message: "Successfully registered investor. Verification email sent.", investor });
     } catch (error) {
         console.error('Error while registering investor:', error);
         res.status(500).send('Error registering investor');
     }
 });
 
+
+// Email verification endpoint
+/**
+ * @swagger
+ * /api/investor/register/{token}:
+ *   patch:
+ *     summary: Verify a investor's email
+ *     tags: [Investor]
+ *     description: Verifies a investor's email as part of the registration process using the provided token.
+ *     parameters:
+ *       - in: path
+ *         name: token
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: The verification token sent to the investor's email.
+ *     responses:
+ *       200:
+ *         description: Email verified successfully.
+ *       404:
+ *         description: Invalid verification token.
+ *       500:
+ *         description: Error verifying email.
+ */
+router.patch('/investor/register/:token', async (req, res) => {
+    try {
+        const token = req.params.token;
+        const investor = await Investor.findOne({ emailVerificationToken: token });
+
+        if (!investor) {
+            return res.status(404).send('Invalid verification token');
+        }
+
+        investor.isEmailVerified = true;
+        await investor.save();
+
+        res.status(200).send('Email verified successfully');
+    } catch (error) {
+        console.error('Error verifying email:', error);
+        res.status(500).send('Error verifying email');
+    }
+});
+
+
+// Investor Login
 /**
  * @swagger
  * /api/investor/login:
  *   post:
- *     summary: Login an investor
- *     tags: 
- *     - Investor
+ *     summary: Login for a investor
+ *     tags: [Investor]
  *     requestBody:
  *       required: true
  *       content:
  *         application/json:
  *           schema:
  *             type: object
+ *             required:
+ *               - email
+ *               - password
  *             properties:
  *               email:
  *                 type: string
+ *                 format: email
+ *                 description: Email of the investor
  *               password:
  *                 type: string
+ *                 format: password
+ *                 description: Password for the investor account
  *     responses:
  *       200:
- *         description: Successfully logged in.
+ *         description: Login successful
  *         content:
  *           application/json:
  *             schema:
@@ -294,12 +464,12 @@ router.post('/investor/register', async (req, res) => {
  *               properties:
  *                 token:
  *                   type: string
+ *                   description: JWT token for authentication
  *       401:
- *         description: Investor not found or Invalid credentials.
+ *         description: Invalid credentials or investor not found
  *       500:
- *         description: Error logging in.
+ *         description: Error logging in
  */
-//Investor Login
 router.post('/investor/login', async (req, res) => {
     try {
         const investor = await Investor.findOne({ email: req.body.email });
@@ -322,13 +492,21 @@ router.post('/investor/login', async (req, res) => {
     }
 });
 
+
+// Submit investor KYC data (called by investor representative)
 /**
  * @swagger
- * /api/investor/verify:
+ * /api/investor/kyc/submit/{investorId}:
  *   post:
- *     summary: Verify an investor (KYC) and add their wallet address to the GlobalStateContract whitelist.
- *     tags: 
- *       - Investor
+ *     summary: Submit KYC information for a investor
+ *     tags: [Investor]
+ *     parameters:
+ *       - in: path
+ *         name: investorId
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: ID of the investor
  *     requestBody:
  *       required: true
  *       content:
@@ -336,23 +514,52 @@ router.post('/investor/login', async (req, res) => {
  *           schema:
  *             type: object
  *             required:
- *               - investorId
+ *               - firstname
+ *               - surname
+ *               - dob
+ *               - documentnumber
+ *               - address
+ *               - phone
  *             properties:
- *               investorId:
+ *               firstname:
  *                 type: string
- *                 description: The unique identifier of the investor.
+ *                 description: First name of the contact person
+ *               surname:
+ *                 type: string
+ *                 description: Surname of the contact person
+ *               dob:
+ *                 type: string
+ *                 format: date
+ *                 description: Date of birth of the contact person
+ *               documentNumber:
+ *                 type: string
+ *                 description: Doc number of the investor
+ *               address:
+ *                 type: string
+ *                 description: Address of the investor
+ *               phone:
+ *                 type: string
+ *                 description: Phone number of the investor
  *     responses:
  *       200:
- *         description: Investor successfully verified.
+ *         description: KYC information submitted successfully
  *       404:
- *         description: Investor not found.
+ *         description: Investor not found
  *       500:
- *         description: An error occurred or transaction failed.
+ *         description: Error submitting KYC information
  */
-// Investor KYC
-router.post('/investor/verify', verifyToken, async (req, res) => {
+router.post('/investor/kyc/submit/:investorId', async (req, res) => {
     try {
-        const { investorId, firstName, surname, dob, passportId, issueDate, expiryDate } = req.body;
+        const {
+            firstname,
+            surname,
+            dob,
+            documentNumber,
+            address,
+            phone
+        } = req.body;
+
+        const investorId = req.params.investorId;
 
         // Fetch investor from the database
         const investor = await Investor.findById(investorId);
@@ -360,605 +567,198 @@ router.post('/investor/verify', verifyToken, async (req, res) => {
             return res.status(404).send('Investor not found');
         }
 
-        // Get investor's public Ethereum address
-        const investorWalletAddress = investor.ethereumPublicKey;
-
-        // Prepare the contract instance
-        const contract = new web3.eth.Contract(GSCABI, GSCAddress);
-
-        // Prepare the transaction object
-        const transaction = contract.methods.verifyInvestor(investorWalletAddress);
-
-        // Send the transaction using the estimateAndSend helper function
-        const receipt = await estimateAndSend(
-            transaction,
-            MASTER_ADDRESS,
-            MASTER_PRIVATE_KEY,
-            GSCAddress
-        );
-
-        // Handle the transaction receipt
-        console.log('Transaction receipt:', receipt);
-
         // Update investor with additional verification info
-        investor.firstName = firstName;
+        investor.firstname = firstname;
         investor.surname = surname;
         investor.dob = dob;
-        investor.passportId = passportId;
-        investor.passportIssueDate = issueDate;
-        investor.passportExpiryDate = expiryDate;
-        investor.isVerified = true; // Set the investor as verified
+        investor.isVerified = "pending"; // Set the investor KYC status as pending
 
         await investor.save(); // Save the updated investor data
 
-        // Transaction receipt handling
-        if (receipt.status) {
-            return res.status(200).json({
-                message: 'Investor successfully verified.',
-                transactionHash: receipt.transactionHash
-            });
-        } else {
-            return res.status(500).json({ error: 'Transaction failed' });
-        }
+        // Send a response to indicate that the KYC data has been successfully submitted
+        res.status(200).json({ message: "KYC information submitted successfully", investor });
     } catch (error) {
-        console.error('Error:', error);
-        return res.status(500).json({ error: 'Internal Server Error' });
+        console.error('Error in investor KYC submission:', error);
+        res.status(500).json({ error: 'An error occurred' });
     }
 });
 
+
+// Verify investor KYC data (called by penomo team)
 /**
  * @swagger
- * /api/investor/buyToken:
+ * /api/investor/kyc/verify/{investorId}:
  *   post:
- *     summary: Investor buys tokens
- *     tags: 
- *       - Investor
- *     requestBody:
- *       required: true
- *       content:
- *         application/json:
- *           schema:
- *             type: object
- *             required:
- *               - investorEmail
- *               - password
- *               - tokenAmount
- *               - serviceContractAddress
- *             properties:
- *               investorEmail:
- *                 type: string
- *                 format: email
- *                 description: The email of the investor
- *               password:
- *                 type: string
- *                 format: password
- *                 description: The password to verify investor's identity
- *               tokenAmount:
- *                 type: number
- *                 description: The amount of tokens the investor wishes to buy
- *               serviceContractAddress:
- *                 type: string
- *                 description: The smart contract address to handle the token purchase
+ *     summary: Verify KYC data for a investor
+ *     description: This endpoint is called by the penomo team or KYC provider / NYALA backend to verify KYC data for a investor.
+ *     tags: [Investor]
+ *     parameters:
+ *       - in: path
+ *         name: investorId
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: ID of the investor
  *     responses:
  *       200:
- *         description: Successfully bought tokens.
- *       400:
- *         description: Bad request if service contract address is missing.
- *       401:
- *         description: Unauthorized if investor is not found or invalid credentials.
- *       500:
- *         description: Error buying tokens.
- */
-
-router.post('/investor/buyToken', verifyToken, async (req, res) => {
-    try {
-        const { tokenAmount, serviceContractAddress, currency } = req.body;
-        const investorId = req.user.id; // ID retrieved from the decoded JWT token
-        const investor = await Investor.findById(investorId);
-
-        if (!investor) {
-            return res.status(404).send('Investor not found');
-        }
-        if (!serviceContractAddress) {
-            return res.status(400).send('Missing service contract address.');
-        }
-
-        const ServiceContract = new web3.eth.Contract(SCABI, serviceContractAddress);
-        const tokenContractERC20Address = await ServiceContract.methods.tokenContractERC20().call();
-        const tokenContractInstance = new web3.eth.Contract(TCABI, tokenContractERC20Address);
-
-        const tokenPrice = await tokenContractInstance.methods.tokenPrice().call();
-        const tokenSymbol = await tokenContractInstance.methods.symbol().call();
-        const tokenName = await tokenContractInstance.methods.name().call();
-        const acceptedCurrency = await tokenContractInstance.methods.acceptedCurrency().call();
-        console.log("acceptedCurrency: ", acceptedCurrency);
-
-        const tokenAmountBigInt = BigInt(tokenAmount);
-        const tokenAmountWei = web3.utils.toWei(tokenAmountBigInt.toString(), 'ether')
-        const tokenPriceBigInt = BigInt(tokenPrice);
-        const requiredAmount = tokenPriceBigInt * tokenAmountBigInt;
-        const requiredAmountReal = requiredAmount / BigInt(10 ** 18);
-
-        let receipt;
-        let transaction;
-        if (acceptedCurrency === 'ETH') {
-            transaction = ServiceContract.methods.buyTokens(tokenAmountWei.toString());
-            receipt = await estimateAndSend(transaction, investor.ethereumPublicKey, decryptPrivateKey(investor.ethereumPrivateKey, SECRET_KEY), serviceContractAddress, requiredAmount);
-        } else if (acceptedCurrency === 'USDC') {
-            const usdcTokenAddress = await tokenContractInstance.methods.usdcTokenAddress().call();
-            const USDCContractInstance = new web3.eth.Contract(USDCABI, usdcTokenAddress);
-
-            // Approve the Service Contract to spend USDC
-            const approveTransaction = USDCContractInstance.methods.approve(serviceContractAddress, requiredAmount.toString());
-            await estimateAndSend(approveTransaction, investor.ethereumPublicKey, decryptPrivateKey(investor.ethereumPrivateKey, SECRET_KEY), usdcTokenAddress);
-
-            // Execute buyTokens function
-            transaction = ServiceContract.methods.buyTokens(tokenAmountWei.toString());
-
-            receipt = await estimateAndSend(transaction, investor.ethereumPublicKey, decryptPrivateKey(investor.ethereumPrivateKey, SECRET_KEY), serviceContractAddress);
-        }
-
-
-
-        // Check if the transaction was successful and log the transaction
-        if (receipt.status) {
-            const transactionRecord = new Transaction({
-                transactionType: 'Buy Token',
-                tokenAmount: tokenAmount, // The amount of tokens purchased
-                payableAmount: requiredAmountReal.toString(), // TODO: Debug loss of precision. Refine and get gas costs from transaction
-                currency: acceptedCurrency,
-                tokenSymbol: tokenSymbol,
-                tokenName: tokenName,
-                fromAddress: investor.ethereumPublicKey, // The address of the investor (buyer)
-                toAddress: serviceContractAddress, // The address of the service contract (seller)
-                transactionHash: receipt.transactionHash, // The hash of the transaction
-                // assetDID: 'The DID of the asset if applicable',
-                // companyId: 'The ObjectId of the company if applicable',
-                status: 'pending', // Initially 'pending', update when confirmed
-                details: {
-                    // Add any additional details you might want to include
-                }
-            });
-
-            await transactionRecord.save(); // Save the transaction to the database
-
-            // Update the transaction status based on the confirmation of the blockchain
-            transactionRecord.status = 'confirmed'; // or 'failed' based on the blockchain confirmation
-            await transactionRecord.save();
-        }
-
-        res.status(200).json({ message: "Successfully purchased tokens.", receipt: serializeBigIntInObject(receipt) });
-    } catch (error) {
-        console.error('Error purchasing tokens:', error);
-        res.status(500).send('Failed to purchase tokens.');
-
-        // // Log the failed transaction
-        // const failedTransactionRecord = new Transaction({
-        //     transactionType: 'token_transaction',
-        //     amount: tokenAmountBigInt, // The attempted purchase amount
-        //     currency: 'ETH', // Assuming USDC is the currency attempted for the purchase
-        //     tokenSymbol: tokenSymbol,
-        //     tokenName: tokenName,
-        //     fromAddress: investor.ethereumPublicKey, // The address of the investor (buyer)
-        //     toAddress: serviceContractAddress, // The address of the service contract (seller)
-        //     transactionHash: '', // You might not have a transaction hash if the transaction failed
-        //     status: 'failed', // The status is 'failed'
-        //     details: {
-        //         error: error.message // Log the error message
-        //     }
-        // });
-
-        // await failedTransactionRecord.save(); // Save the failed transaction to the database
-    }
-});
-
-
-/**
- * @swagger
- * /api/investor/transfer:
- *   post:
- *     summary: Transfer funds (ETH or USDC) from investor's wallet to another address
- *     tags: 
- *       - Investor
- *     security:
- *       - bearerAuth: []
- *     requestBody:
- *       required: true
- *       content:
- *         application/json:
- *           schema:
- *             type: object
- *             required:
- *               - amount
- *               - currency
- *               - walletAddress
- *             properties:
- *               amount:
- *                 type: string
- *                 description: The amount of currency to be transferred
- *               currency:
- *                 type: string
- *                 description: The type of currency to transfer ('ETH' or 'USDC')
- *               walletAddress:
- *                 type: string
- *                 description: The destination wallet address
- *     responses:
- *       200:
- *         description: Transfer successful. Returns transaction receipt.
- *       400:
- *         description: Bad request if invalid currency or insufficient parameters.
- *       404:
- *         description: Investor not found.
- *       500:
- *         description: Internal Server Error or transfer failed.
- */
-
-router.post('/investor/transfer', verifyToken, async (req, res) => {
-    try {
-        const { amount, currency, walletAddress } = req.body;
-        const investorId = req.user.id;
-        const investor = await Investor.findById(investorId);
-
-        if (!investor) {
-            return res.status(404).send('Investor not found');
-        }
-
-        try {
-            const decryptedPrivateKey = decryptPrivateKey(investor.ethereumPrivateKey, SECRET_KEY);
-            console.log("Decrypted Private Key: ", decryptedPrivateKey); // Log to check the format
-
-            if (!decryptedPrivateKey.startsWith('0x')) {
-                throw new Error("Private key does not start with '0x'");
-            }
-
-            const account = web3.eth.accounts.privateKeyToAccount(decryptedPrivateKey);
-            web3.eth.accounts.wallet.add(account);
-
-            let rawTransaction;
-            let gasPrice;
-            let receipt;
-
-            console.log("Currency: ", currency);
-
-            if (currency === 'ETH') {
-                gasPrice = await web3.eth.getGasPrice(); // Get current gas price
-                rawTransaction = {
-                    from: account.address,
-                    to: walletAddress,
-                    value: web3.utils.toWei(amount, 'ether'),
-                    gas: 2000000,
-                    gasPrice: gasPrice
-                };
-            } else if (currency === 'USDC') {
-                gasPrice = await web3.eth.getGasPrice(); // Get current gas price
-                const usdcContract = new web3.eth.Contract(USDCABI, USDCContractAddress);
-                const tokenAmount = web3.utils.toWei(amount, 'ether');
-                const data = usdcContract.methods.transfer(walletAddress, tokenAmount).encodeABI();
-                rawTransaction = {
-                    from: account.address,
-                    to: USDCContractAddress,
-                    data: data,
-                    gas: 2000000,
-                    gasPrice: gasPrice
-                };
-            }
-
-            else {
-                return res.status(400).send('Invalid currency');
-            }
-
-            const signedTransaction = await web3.eth.accounts.signTransaction(rawTransaction, account.privateKey);
-            receipt = await web3.eth.sendSignedTransaction(signedTransaction.rawTransaction);
-            if (receipt.status) {
-                const transactionRecord = new Transaction({
-                    transactionType: 'Withdraw',
-                    fromAddress: investor.ethereumPublicKey,
-                    toAddress: walletAddress,
-                    payableAmount: amount,
-                    currency: currency,
-                    transactionHash: receipt.transactionHash,
-                    status: 'confirmed'
-                });
-                await transactionRecord.save();
-                res.status(200).json({ message: "Transfer successful", receipt: serializeBigIntInObject(receipt) });
-            } else {
-                res.status(500).send('Transfer failed');
-            }
-        } catch (error) {
-            console.error('Error in transaction processing:', error);
-            return res.status(500).send('Internal Server Error');
-        }
-
-    } catch (error) {
-        console.error('Error:', error);
-        res.status(500).send('Internal Server Error');
-    }
-});
-
-
-// /**
-//  * @swagger
-//  * /api/investor/sellToken:
-//  *   post:
-//  *     summary: Investor sells tokens by listing them for sale
-//  *     description: Allows an investor to list a specified amount of tokens for sale on the platform.
-//  *     tags:
-//  *       - Investor
-//  *     requestBody:
-//  *       required: true
-//  *       content:
-//  *         application/json:
-//  *           schema:
-//  *             type: object
-//  *             required:
-//  *               - investorId
-//  *               - password
-//  *               - amount
-//  *               - serviceContractAddress
-//  *             properties:
-//  *               investorId:
-//  *                 type: string
-//  *                 description: The unique identifier of the investor.
-//  *               password:
-//  *                 type: string
-//  *                 description: The password for the investor's account.
-//  *               amount:
-//  *                 type: number
-//  *                 description: The number of tokens the investor wishes to sell.
-//  *               serviceContractAddress:
-//  *                 type: string
-//  *                 description: The Ethereum address of the service contract.
-//  *     responses:
-//  *       200:
-//  *         description: Successfully sold tokens.
-//  *       500:
-//  *         description: Error selling tokens.
-//  */
-
-
-// // Handle investor token sell
-// router.post('/investor/sellToken', async (req, res) => {
-//     try {
-//         const { investorId, password, amount, serviceContractAddress } = req.body;
-
-//         if (!investorId || !password || !amount || !serviceContractAddress) {
-//             return res.status(400).send('Missing required parameters.');
-//         }
-
-//         // Retrieve and authenticate the investor
-//         const investor = await Investor.findById(investorId);
-//         if (!investor) {
-//             return res.status(404).send('Investor not found.');
-//         }
-
-//         const isPasswordValid = await bcrypt.compare(password, investor.password);
-//         if (!isPasswordValid) {
-//             return res.status(401).send('Invalid credentials.');
-//         }
-
-//         // Decrypt the investor's private key
-//         const decryptedPrivateKey = decryptPrivateKey(investor.ethereumPrivateKey, SECRET_KEY);
-
-//         // Create a ServiceContract instance
-//         const serviceContract = new web3.eth.Contract(SCABI, serviceContractAddress);
-
-//         // Prepare the sellTokens transaction
-//         const transaction = serviceContract.methods.sellTokens(amount);
-
-//         // Estimate gas and send the transaction
-//         const receipt = await estimateAndSend(transaction, investor.ethereumPublicKey, decryptedPrivateKey, serviceContractAddress, '0');
-
-//         // Respond with the transaction receipt
-//         res.status(200).json({ receipt });
-//     } catch (error) {
-//         console.error('Error selling tokens:', error);
-//         res.status(500).send('Failed to sell tokens.');
-//     }
-// });
-
-/**
- * @swagger
- * /api/investor/jwt:
- *   get:
- *     summary: Retrieve logged-in investor details
- *     tags: 
- *       - Investor
- *     security:
- *       - bearerAuth: []
- *     responses:
- *       200:
- *         description: Details of the logged-in investor.
+ *         description: Investor KYC data verified and updated successfully
  *         content:
  *           application/json:
  *             schema:
  *               type: object
  *               properties:
- *                 name:
+ *                 message:
  *                   type: string
+ *                   description: Confirmation message
+ *                 transactionHash:
+ *                   type: string
+ *                   description: Hash of the transaction in the blockchain
+ *       404:
+ *         description: Investor not found
+ *       500:
+ *         description: Error verifying investor KYC data
+ */
+router.post('/investor/kyc/verify/:investorId', async (req, res) => {
+    try {
+        const investorId = req.params.investorId;
+
+        // Fetch investor from the database
+        const investor = await Investor.findById(investorId);
+        if (!investor) {
+            return res.status(404).send('Investor not found');
+        }
+
+        // Update investor with additional verification info
+        investor.isKycVerified = true; // Set the investor as verified
+        await investor.save(); // Save the updated investor data
+
+
+        return res.status(200).json({
+            message: 'Investor KYC data successfully verified.'
+        });
+
+    } catch (error) {
+        console.error('Error in investor verification:', error);
+        return res.status(500).json({ error: 'An error occurred' });
+    }
+});
+
+
+// Get investor details
+/**
+ * @swagger
+ * /api/investor/{investorId}:
+ *   get:
+ *     summary: Get details and project data associated with the authenticated investor
+ *     description: This endpoint retrieves details and project data associated with a investor.
+ *     tags: [Investor]
+ *     parameters:
+ *       - in: path
+ *         name: investorId
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: ID of the investor
+ *     responses:
+ *       200:
+ *         description: Details and project data retrieved successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 _id:
+ *                   type: string
+ *                   description: Unique identifier of the investor
+ *                 businessName:
+ *                   type: string
+ *                   description: Name of the investor
  *                 email:
  *                   type: string
- *                 balance:
- *                   type: number
- *       401:
- *         description: Unauthorized if token is missing or invalid.
+ *                   format: email
+ *                   description: Email of the investor
+ *                 projects:
+ *                   type: array
+ *                   description: Projects associated with the investor
+ *                   items:
+ *                     type: object
+ *                     properties:
+ *                       _id:
+ *                         type: string
+ *                         description: Unique identifier of the project
+ *                       associatedAssets:
+ *                         type: array
+ *                         description: Associated assets for the project
+ *                         items:
+ *                           type: object
+ *                           properties:
+ *                             _id:
+ *                               type: string
+ *                               description: Unique identifier of the asset
  *       404:
- *         description: Investor not found.
+ *         description: Investor not found
  *       500:
- *         description: Error retrieving investor.
+ *         description: Error retrieving investor details, balances, and project data
  */
-
-// Assuming web3 is already configured and imported, and USDCContract is the instance of the USDC token contract
-
-router.get('/investor/jwt', verifyToken, async (req, res) => {
+router.get('/investor/:investorId', async (req, res) => {
     try {
-        const investorId = req.user.id; // ID is retrieved from the decoded JWT token
+        const investorId = req.params.investorId;
         const investor = await Investor.findById(investorId);
 
         if (!investor) {
             return res.status(404).send('Investor not found');
         }
 
-        let walletAddress = investor.ethereumPublicKey;
+        // let walletAddress = investor.ethereumPublicKey;
 
-        // Fetch company's general balance information
-        const generalBalance = await fetchBalance(walletAddress);
+        // Fetch investor's general balance information
+        // const generalBalance = await fetchBalance(walletAddress);
 
-        // Safely access the native and ERC20 balances using optional chaining
-        const agungBalance = generalBalance.agungBalance;
-        const usdcBalance = generalBalance.usdcBalance;
+        // Fetch investor tokens from the database
+        const investorTokens = await Token.find({ investorId: investorId });
 
-        // const data = JSON.stringify({ "address": walletAddress });
-        // const config = {
-        //     method: 'post',
-        //     url: `${BLOCKEXPLORER_API_URL}/api/scan/account/tokens`,
-        //     headers: {
-        //         'User-Agent': 'Apidog/1.0.0 (https://apidog.com)',
-        //         'Content-Type': 'application/json',
-        //         'X-API-Key': BLOCKEXPLORER_API_KEY
-        //     },
-        //     data: data
-        // };
+        // Fetch balance for each serviceContractAddress and add it to the token object
+        const tokenData = [];
+        for (const token of investorTokens) {
 
-        // const balances = await axios(config);
+            const associatedAssets = await Asset.find({ _id: { $in: token.assetIds } });
 
-        // // FOR DEBUGGING
-        // console.log(JSON.stringify(balances.data, null, 2));
+            tokenData.push({
+                ...token.toObject(),
+                associatedAssets,
+            });
+        }
 
-        // // Check if balances.data or balances.data.data is null or undefined
-        // if (!balances.data || !balances.data.data) {
-        //     throw new Error('Error retrieving balance data');
-        // }
-
-
-
-        // const agungBalanceWei = nativeBalances.find(token => token.symbol === 'AGUNG')?.balance || '0';
-        // const usdcBalanceWei = erc20Balances.find(token => token.contract === USDCContractAddress)?.balance || '0';
-
-        // const agungBalance = web3.utils.fromWei(agungBalanceWei, 'ether');
-        // const usdcBalance = web3.utils.fromWei(usdcBalanceWei, 'ether');
-
-        // // Add the balances to the investor object that will be returned
-        const investorDataWithBalances = {
+        // Add the balances and tokens
+        const investorData = {
             ...investor.toObject(), // Convert the mongoose document to a plain object
-            agungBalance,
-            usdcBalance
+            // balances: generalBalance,
+            tokens: tokenData,
         };
 
-        res.json(investorDataWithBalances);
+        res.json(investorData);
 
     } catch (error) {
-        console.error('Error retrieving investor details and balances:', error);
-        res.status(500).send('Error retrieving investor');
-    }
-});
-
-/**
- * @swagger
- * /api/investor/{id}:
- *   get:
- *     summary: Retrieve investor details by ID
- *     tags: 
- *       - Investor
- *     parameters:
- *       - in: path
- *         name: id
- *         required: true
- *         description: The ID of the investor to retrieve.
- *     responses:
- *       200:
- *         description: Details of the investor.
- *         content:
- *           application/json:
- *             schema:
- *               type: object
- *               properties:
- *                 name:
- *                   type: string
- *                 email:
- *                   type: string
- *                 balance:
- *                   type: number
- *       404:
- *         description: Investor not found.
- *       500:
- *         description: Error retrieving investor.
- */
-// Retrieve investor details by ID
-router.get('/investor/:id', verifyToken, async (req, res) => {
-    try {
-        const investorId = req.user.id;
-        const investor = await Investor.findById(investorId);
-        if (!investor) {
-            console.log('Investor not found with ID:', investorId); // For debugging
-            return res.status(404).send('Investor not found');
-        }
-        console.log('Investor details retrieved:', investor); // For debugging
-        res.json(investor);
-    } catch (error) {
-        console.error('Error retrieving investor by ID:', error);
-        res.status(500).send('Error retrieving investor');
+        res.status(500).send('Error retrieving investor data');
     }
 });
 
 
-// Retrieve investor details by email
+// Edit investor details
 /**
  * @swagger
- * /api/investor/email/{email}:
- *   get:
- *     summary: Retrieve investor details by email
- *     tags: 
- *       - Investor
+ * /api/investor/{investorId}:
+ *   patch:
+ *     summary: Update investor details
+ *     description: Partially update investor details for the authenticated investor or by an admin.
+ *     tags: [Investor]
  *     parameters:
  *       - in: path
- *         name: email
+ *         name: investorId
  *         required: true
- *         description: The email of the investor to retrieve.
- *     responses:
- *       200:
- *         description: Details of the investor.
- *         content:
- *           application/json:
- *             schema:
- *               type: object
- *               properties:
- *                 name:
- *                   type: string
- *                 email:
- *                   type: string
- *                 balance:
- *                   type: number
- *       404:
- *         description: Investor not found.
- *       500:
- *         description: Error retrieving investor.
- */
-router.get('/investor/email/:email', async (req, res) => {
-    try {
-        const email = req.params.email;
-        const investor = await Investor.findOne({ email });
-        if (!investor) {
-            return res.status(404).send('Investor not found');
-        }
-        res.json(investor);
-    } catch (error) {
-        res.status(500).send('Error retrieving investor: ' + error.message);
-    }
-});
-
-// Update investor details by email
-/**
- * @swagger
- * /api/investor/email/{email}:
- *   put:
- *     summary: Update investor details by email
- *     tags: 
- *       - Investor
- *     parameters:
- *       - in: path
- *         name: email
- *         required: true
- *         description: The email of the investor to update.
+ *         schema:
+ *           type: string
+ *         description: ID of the investor
  *     requestBody:
  *       required: true
  *       content:
@@ -966,67 +766,99 @@ router.get('/investor/email/:email', async (req, res) => {
  *           schema:
  *             type: object
  *             properties:
- *               name:
+ *               businessName:
  *                 type: string
+ *                 description: Name of the investor
+ *               ticker:
+ *                 type: string
+ *                 description: Ticker symbol of the investor
  *               email:
  *                 type: string
- *               balance:
- *                 type: number
+ *                 format: email
+ *                 description: Email of the investor
+ *               // Add other properties that can be updated
  *     responses:
  *       200:
- *         description: Updated investor details.
+ *         description: Investor details updated successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                   description: Confirmation message
+ *                 updatedInvestor:
+ *                   $ref: '#/components/schemas/Investor'
  *       404:
- *         description: Investor not found.
+ *         description: Investor not found
  *       500:
- *         description: Error updating investor.
+ *         description: Error updating investor details
  */
-router.put('/investor/email/:email', async (req, res) => {
+router.patch('/investor/:investorId', async (req, res) => {
     try {
-        const email = req.params.email;
-        const updates = req.body;
-        const updatedInvestor = await Investor.findOneAndUpdate({ email }, updates, { new: true });
+        const updateData = req.body;
+        const investorId = req.params.investorId;
+
+        // Optional: Add logic to prevent certain fields from being updated
+        // if (updateData.email) {
+        //     return res.status(400).send("Email cannot be updated.");
+        // }
+
+        const updatedInvestor = await Investor.findByIdAndUpdate(investorId, updateData, { new: true });
+
         if (!updatedInvestor) {
             return res.status(404).send('Investor not found');
         }
-        res.json(updatedInvestor);
+
+        res.status(200).json({ message: 'Investor details updated successfully', updatedInvestor });
     } catch (error) {
-        res.status(500).send('Error updating investor: ' + error.message);
+        console.error('Error updating investor details:', error);
+        res.status(500).send('Error updating investor details');
     }
 });
 
-// Delete investor by email
+
+// Delete investor
 /**
  * @swagger
- * /api/investor/email/{email}:
+ * /api/investor/{investorId}:
  *   delete:
- *     summary: Delete investor by email
- *     tags: 
- *       - Investor
+ *     summary: Delete a investor
+ *     description: This endpoint deletes a investor based on the provided investorId.
+ *     tags: [Investor]
  *     parameters:
  *       - in: path
- *         name: email
+ *         name: investorId
  *         required: true
- *         description: The email of the investor to delete.
+ *         schema:
+ *           type: string
+ *         description: ID of the investor to delete
  *     responses:
  *       200:
- *         description: Deleted investor.
+ *         description: Investor deleted successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               description: Deleted investor data
  *       404:
- *         description: Investor not found.
+ *         description: Investor not found
  *       500:
- *         description: Error deleting investor.
+ *         description: Error deleting investor
  */
-router.delete('/investor/email/:email', async (req, res) => {
+router.delete('/investor/:investorId', async (req, res) => {
     try {
-        const email = req.params.email;
-        const deletedInvestor = await Investor.findOneAndDelete({ email });
+        const investorId = req.query.investorId;
+        const deletedInvestor = await Investor.findOneAndDelete({ _id: investorId });
         if (!deletedInvestor) {
             return res.status(404).send('Investor not found');
         }
         res.json(deletedInvestor);
     } catch (error) {
-        res.status(500).send('Error deleting investor: ' + error.message);
+        console.error('Error deleting investor:', error);
+        res.status(500).send('Error deleting investor');
     }
 });
-
 
 module.exports = router;
