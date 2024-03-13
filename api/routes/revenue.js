@@ -878,8 +878,21 @@ router.put('/revenue/:address', async(req, res) => {
  *         description: Error deleting asset.
  */
 
-router.delete('/revenue/:address', (req, res) => {
+router.delete('/revenue/:address', async(req, res) => {
     // Delete asset 
+    const { address } = req.params;
+
+    try {
+        const result = await Revenue.findOneAndDelete({ revenueStreamContractAddress: address });
+        if (!result) {
+            return res.status(404).send('Revenue not found.');
+        }
+
+        res.status(200).send('Successfully deleted revenue.');
+    } catch (error) {
+        console.error('Error deleting revenue:', error);
+        res.status(500).send('Error deleting revenue.');
+    }
 });
 
 module.exports = router;
