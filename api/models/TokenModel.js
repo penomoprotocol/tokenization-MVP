@@ -26,11 +26,11 @@ const tokenSchema = new mongoose.Schema({
         type: String,
         required: true
     },
-    maxTokenSupply:{
+    maxTokenSupply:{//NUmber of tokens
         type: Number,
         required: true,
     },
-    tokenPrice:{
+    tokenPrice:{//Price in Wei
         type: Number,
         required: true,
     },

@@ -5,6 +5,7 @@ const transactionSchema = new mongoose.Schema({
         type: String,
         required: true,
         enum: ['Buy Token', 'Sell Token', 'Receive Revenue', 'Top Up', 'Withdraw', 'Onramp', 'Offramp'], // Define the allowed transaction types
+        //OnRamp = Fiat Currency to Crypto , //OffRamp - Crypto to fiat currency
     },
     tokenAmount: {
         type: Number,

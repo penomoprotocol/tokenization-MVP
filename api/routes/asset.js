@@ -255,7 +255,7 @@ router.post('/asset/register', verifyToken, async (req, res) => {
             brand,
             model,
             serialNumber,
-            capacity,
+            capacity, //in Kwh
             power,
             location,
             assetValue,
@@ -553,8 +553,51 @@ router.get('/asset/did/:did', async (req, res) => {
  *         description: Error updating asset.
  */
 
-router.put('/asset/did/:did', (req, res) => {
+router.put('/asset/did/:did', async(req, res) => {
     // Update asset details
+    // Update asset details
+    const { did } = req.params;
+    const {
+        assetType,
+        brand,
+        model,
+        serialNumber,
+        capacity,
+        power,
+        location,
+        // Include other fields that can be updated as necessary
+    } = req.body;
+
+
+    try {
+        const updatedAsset = await Asset.findOneAndUpdate(
+            { "DID.document.id": did },
+            { $set: 
+                {
+                    assetType,
+                    brand,
+                    model,
+                    serialNumber,
+                    capacity,
+                    power,
+                    location
+                } 
+            },
+            { new: true }
+        );
+
+        if (!updatedAsset) {
+            return res.status(404).send('Asset not found.');
+        }
+
+        res.status(200).json({
+            message: "Asset details updated successfully.",
+            asset: updatedAsset
+        });
+    } catch (error) {
+        console.error('Error updating asset by DID:', error);
+        res.status(500).send('Error updating asset.');
+    }
 });
 
 /**

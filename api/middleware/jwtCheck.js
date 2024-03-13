@@ -20,7 +20,9 @@ const verifyToken = (req, res, next) => {
     }
 
     // Token is valid, add decoded information to request
+    //decoded - contains the decoded payload
     req.user = decoded;
+    //req.user contains user identifications or other payloads
     next();
   });
 };
