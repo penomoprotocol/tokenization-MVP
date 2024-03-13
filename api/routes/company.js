@@ -658,7 +658,7 @@ router.post('/company/kyc/verify/:companyId', async (req, res) => {
 // Get company details
 /**
  * @swagger
- * /company/{companyId}:
+ * /api/company/{companyId}:
  *   get:
  *     summary: Get details and project data associated with the authenticated company
  *     description: This endpoint retrieves details and project data associated with a company.
@@ -755,13 +755,13 @@ router.get('/company/:companyId', async (req, res) => {
 });
 
 
-// Update company details
+// Edit company details
 /**
  * @swagger
  * /company/{companyId}:
- *   put:
+ *   patch:
  *     summary: Update company details
- *     description: Update company details for the authenticated company or by an admin
+ *     description: Partially update company details for the authenticated company or by an admin.
  *     tags: [Company]
  *     parameters:
  *       - in: path
@@ -806,24 +806,14 @@ router.get('/company/:companyId', async (req, res) => {
  *       500:
  *         description: Error updating company details
  */
-router.put('/company/:companyId', async (req, res) => {
+router.patch('/company/:companyId', async (req, res) => {
     try {
-        const { ...updateData } = req.body;
+        const updateData = req.body;
         const companyId = req.params.companyId;
 
-        // const decodedCompanyId = req.user.id;
-
-        // // Check if the authenticated user is an admin
-        // if (!decodedCompanyId) {
-        //     // Admin authentication via API key
-        //     // Implement admin check here if needed
-        //     // Example: const isAdmin = checkAdmin(req);
-        //     // if (!isAdmin) return res.status(401).send('Unauthorized');
-        // } else {
-        //     // Authenticated company's companyId should match with the request companyId
-        //     if (companyId !== decodedCompanyId) {
-        //         return res.status(403).send('Forbidden');
-        //     }
+        // Optional: Add logic to prevent certain fields from being updated
+        // if (updateData.email) {
+        //     return res.status(400).send("Email cannot be updated.");
         // }
 
         const updatedCompany = await Company.findByIdAndUpdate(companyId, updateData, { new: true });
