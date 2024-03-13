@@ -67,6 +67,8 @@ const Asset = require('../models/AssetModel');
 const Company = require('../models/CompanyModel');
 const Token = require('../models/TokenModel');
 const Investor = require('../models/InvestorModel');
+const Transaction = require('../models/TransactionModel');
+
 
 
 // // // FUNCTIONS
