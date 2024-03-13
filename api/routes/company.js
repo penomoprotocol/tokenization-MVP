@@ -524,7 +524,8 @@ router.post('/company/verify', async (req, res) => {
 
 router.post('/company/withdrawFunds', verifyToken, async (req, res) => {
     try {
-        const {amount, liquidityContractAddress } = req.body;
+        //amount in wei
+        const {amount, liquidityContractAddress,password,withdrawInUsdc } = req.body;
 
         const companyId = req.user.id;
         const company = await Company.findById(companyId);
@@ -545,7 +546,7 @@ router.post('/company/withdrawFunds', verifyToken, async (req, res) => {
         const liquidityContract = new web3.eth.Contract(LCABI, liquidityContractAddress);
 
         // Prepare transaction
-        const transaction = liquidityContract.methods.withdrawFunds(amount);
+        const transaction = liquidityContract.methods.withdrawFunds(amount,withdrawInUsdc);
 
         // Estimate and send the transaction
         const receipt = await estimateAndSend(transaction, company.ethereumPublicKey, decryptedPrivateKey, liquidityContractAddress);

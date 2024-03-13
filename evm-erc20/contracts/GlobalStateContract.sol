@@ -8,7 +8,7 @@ contract GlobalStateContract {
 
     uint256 public penomoFee;
 
-    event InvestorVerified(address indexed investor);
+    event InvestorVerified(address indexed investor); ////index keyword allows the addresses to be searchable/filterable
     event CompanyVerified(address indexed company);
     event PenomoFeeUpdated(uint256 newFee);
 
