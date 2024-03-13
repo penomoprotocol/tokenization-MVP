@@ -655,112 +655,6 @@ router.post('/company/kyc/verify/:companyId', async (req, res) => {
 });
 
 
-// Get company contracts 
-/**
- * @swagger
- * /company/contracts/{companyId}:
- *   get:
- *     summary: Get contracts associated with the authenticated company
- *     description: This endpoint retrieves contracts associated with the authenticated company along with their associated assets.
- *     tags: [Company]
- *     parameters:
- *       - in: path
- *         name: companyId
- *         required: true
- *         schema:
- *           type: string
- *         description: ID of the company
- *     responses:
- *       200:
- *         description: Contracts and associated assets retrieved successfully
- *         content:
- *           application/json:
- *             schema:
- *               type: object
- *               properties:
- *                 contracts:
- *                   type: array
- *                   items:
- *                     type: object
- *                     properties:
- *                       _id:
- *                         type: string
- *                         description: Unique identifier of the contract
- *                       companyId:
- *                         type: string
- *                         description: ID of the company associated with the contract
- *                       serviceContractAddress:
- *                         type: string
- *                         description: Address of the service contract
- *                       liquidityPoolBalance:
- *                         type: number
- *                         description: Balance of the liquidity pool associated with the contract
- *                       associatedAssets:
- *                         type: array
- *                         items:
- *                           type: object
- *                           properties:
- *                             _id:
- *                               type: string
- *                               description: Unique identifier of the asset
- *                             DID:
- *                               type: object
- *                               properties:
- *                                 id:
- *                                   type: string
- *                                   description: Decentralized Identifier (DID) of the asset
- *                             name:
- *                               type: string
- *                               description: Name of the asset
- *       404:
- *         description: Company not found
- *       500:
- *         description: Error retrieving company contracts with associated assets
- */
-router.get('/company/contracts/:companyId', async (req, res) => {
-    try {
-        const companyId = req.params.companyId;
-        const company = await Company.findById(companyId);
-
-        if (!company) {
-            return res.status(404).send('Company not found');
-        }
-
-        // Fetch company tokens from the database
-        const companyTokens = await Token.find({ companyId: companyId });
-
-        // Fetch balance for each serviceContractAddress and add it to the token object
-        const companyContracts = await Promise.all(
-            companyTokens.map(async (token) => {
-                const liquidityPoolBalance = await fetchBalance(token.serviceContractAddress);
-
-                // Fetch associated assets for each token
-                const associatedAssets = await Asset.find({
-                    'DID.id': { $in: token.assetDIDs }
-                });
-
-                return {
-                    ...token.toObject(),
-                    liquidityPoolBalance,
-                    associatedAssets
-                };
-            })
-        );
-
-        // Add the balances and tokens with their liquidity pools and associated assets to the company object
-        const companyContractsWithAssets = {
-            contracts: companyContracts
-        };
-
-        res.json(companyContractsWithAssets);
-
-    } catch (error) {
-        console.error('Error retrieving company contracts with associated assets:', error);
-        res.status(500).send('Error retrieving company');
-    }
-});
-
-
 // Get company details
 /**
  * @swagger
@@ -863,43 +757,17 @@ router.get('/company/:companyId', async (req, res) => {
         // Fetch balance for each serviceContractAddress and add it to the token object
         const tokenData = [];
         for (const token of companyTokens) {
-            // Fetch liquidity pool balance and associated assets
-            const liquidityPoolBalance = await fetchContractBalance(token.liquidityContractAddress);
             await delay(1000 / 1000); // Introduce a delay to respect the rate limit
 
             const associatedAssets = await Asset.find({ _id: { $in: token.assetIds } });
 
-            // Initialize the contract instance for the token
-            const contract = new web3.eth.Contract(TCABI, token.tokenContractAddress);
-            const tokenHolders = await contract.methods.getTokenHolders().call();
-
             // Fetch the maxTokenSupply for the token - assuming this is available in the token object
             const maxTokenSupply = token.maxTokenSupply;
 
-            const holdersData = await Promise.all(tokenHolders.map(async (holderAddress) => {
-                // Fetch token balance for the holder and immediately convert it to a string
-                const tokenBalanceWei = (await contract.methods.balanceOf(holderAddress).call()).toString();
-                const tokenBalance = web3.utils.fromWei(tokenBalanceWei, 'ether');
-
-                // Since tokenBalance is now a string, parsing it to a float should be safe
-                const holdingPercentage = (parseFloat(tokenBalance) / parseFloat(maxTokenSupply)) * 100;
-
-                // Fetch investor instance from the database
-                const investorInstance = await Investor.findOne({ ethereumPublicKey: holderAddress });
-
-                return {
-                    address: holderAddress,
-                    tokenBalance, // Already a string, safe for JSON serialization
-                    holdingPercentage, // A float, also safe
-                    data: investorInstance // Ensure investorInstance doesn't contain BigInts; if it does, convert those as well
-                };
-            }));
 
             tokenData.push({
                 ...token.toObject(),
-                liquidityPoolBalance,
                 associatedAssets,
-                tokenHolders: holdersData // Replace the simple list with detailed holders data
             });
         }
 
