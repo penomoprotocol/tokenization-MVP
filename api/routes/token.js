@@ -993,8 +993,26 @@ router.put('/token/:address', async(req, res) => {
  *         description: Error deleting token.
  */
 
-router.delete('/token/:address', (req, res) => {
+router.delete('/token/:address', async(req, res) => {
     // Delete token 
+    const { address } = req.params;
+
+    try {
+        const deletedToken = await Token.findOneAndRemove({ tokenContractAddress: address });
+
+
+        if (!deletedToken) {
+            return res.status(404).send('Token contract not found.');
+        }
+
+        res.status(200).json({
+            message: "Token successfully deleted.",
+            deletedToken
+        });
+    } catch (error) {
+        console.error('Error deleting token contract:', error);
+        res.status(500).send('Error deleting token contract.');
+    }
 });
 
 module.exports = router;
