@@ -1,3 +1,5 @@
+//THis file is used when we are testing using the Sepolia Test Net
+
 const {Web3} = require('web3');
 
 // Replace with your Ethereum provider URL

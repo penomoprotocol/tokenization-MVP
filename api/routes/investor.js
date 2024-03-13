@@ -359,7 +359,7 @@ router.post('/investor/login', async (req, res) => {
 // Investor KYC
 router.post('/investor/verify', verifyToken, async (req, res) => {
     try {
-        const { investorId, firstName, surname, dob, passportId, issueDate, expiryDate } = req.body;
+        const { investorId } = req.body;
 
         // Fetch investor from the database
         const investor = await Investor.findById(investorId);
@@ -388,12 +388,12 @@ router.post('/investor/verify', verifyToken, async (req, res) => {
         console.log('Transaction receipt:', receipt);
 
         // Update investor with additional verification info
-        investor.firstName = firstName;
-        investor.surname = surname;
-        investor.dob = dob;
-        investor.passportId = passportId;
-        investor.passportIssueDate = issueDate;
-        investor.passportExpiryDate = expiryDate;
+        // investor.firstName = firstname;
+        // investor.surname = surname;
+        // investor.dob = dob;
+        // investor.passportId = passportId;
+        // investor.passportIssueDate = issueDate;
+        // investor.passportExpiryDate = expiryDate;
         investor.isVerified = true; // Set the investor as verified
 
         await investor.save(); // Save the updated investor data
