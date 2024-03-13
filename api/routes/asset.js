@@ -621,8 +621,25 @@ router.put('/asset/did/:did', async(req, res) => {
  *         description: Error deleting asset.
  */
 
-router.delete('/asset/did/:did', (req, res) => {
+router.delete('/asset/did/:did', async(req, res) => {
     // Delete asset 
+    const { did } = req.params;
+
+    try {
+        const deletedAsset = await Asset.findOneAndDelete({ "DID.document.id": did });
+
+        if (!deletedAsset) {
+            return res.status(404).send('Asset not found.');
+        }
+
+        res.status(200).json({
+            message: "Asset deleted successfully.",
+            asset: deletedAsset
+        });
+    } catch (error) {
+        console.error('Error deleting asset by DID:', error);
+        res.status(500).send('Error deleting asset.');
+    }
 });
 
 module.exports = router;
