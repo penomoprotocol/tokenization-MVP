@@ -720,10 +720,10 @@ router.get('/company/:companyId', async (req, res) => {
             return res.status(404).send('Company not found');
         }
 
-        let walletAddress = company.ethereumPublicKey;
+        // let walletAddress = company.ethereumPublicKey;
 
         // Fetch company's general balance information
-        const generalBalance = await fetchBalance(walletAddress);
+        // const generalBalance = await fetchBalance(walletAddress);
 
         // Fetch company tokens from the database
         const companyTokens = await Token.find({ companyId: companyId });
@@ -731,7 +731,6 @@ router.get('/company/:companyId', async (req, res) => {
         // Fetch balance for each serviceContractAddress and add it to the token object
         const tokenData = [];
         for (const token of companyTokens) {
-            await delay(1000 / 1000); // Introduce a delay to respect the rate limit
 
             const associatedAssets = await Asset.find({ _id: { $in: token.assetIds } });
 
@@ -742,17 +741,16 @@ router.get('/company/:companyId', async (req, res) => {
         }
 
         // Add the balances and tokens
-        const companyDataWithBalancesAndTokenData = {
+        const companyData = {
             ...company.toObject(), // Convert the mongoose document to a plain object
-            balances: generalBalance,
+            // balances: generalBalance,
             tokens: tokenData,
         };
 
-        res.json(companyDataWithBalancesAndTokenData);
+        res.json(companyData);
 
     } catch (error) {
-        console.error('Error retrieving company details, balances, and token data:', error);
-        res.status(500).send('Error retrieving company');
+        res.status(500).send('Error retrieving company data');
     }
 });
 
