@@ -933,8 +933,43 @@ router.get('/token/:address', async (req, res) => {
  *         description: Error updating token.
  */
 
-router.put('/token/:address', (req, res) => {
+router.put('/token/:address', async(req, res) => {
     // Update token details
+    const { address } = req.params;
+    const { name, symbol, maxTokenSupply,tokenPrice,currency,revenueShare,contractTerm,fundingGoal,projectDescription } = req.body;
+    
+        try {
+            const updatedToken = await Token.findOneAndUpdate(
+                { tokenContractAddress: address }, 
+                { $set: 
+                    { 
+                        name, 
+                        symbol, 
+                        maxTokenSupply,
+                        tokenPrice,
+                        currency,
+                        revenueShare,
+                        contractTerm,
+                        fundingGoal,
+                        projectDescription
+                    } 
+                }, 
+                { new: true } 
+            );
+    
+            if (!updatedToken) {
+                return res.status(404).send('Token contract not found.');
+            }
+    
+            // Respond with the updated token details
+            res.status(200).json({
+                message: "Token details updated successfully.",
+                updatedToken
+            });
+        } catch (error) {
+            console.error('Error updating token contract:', error);
+            res.status(500).send('Error updating token contract.');
+        }
 });
 
 /**
