@@ -660,8 +660,8 @@ router.post('/company/kyc/verify/:companyId', async (req, res) => {
  * @swagger
  * /company/{companyId}:
  *   get:
- *     summary: Get details, balances, and token data associated with the authenticated company
- *     description: This endpoint retrieves details, balances, and token data associated with the authenticated company.
+ *     summary: Get details and project data associated with the authenticated company
+ *     description: This endpoint retrieves details and project data associated with a company.
  *     tags: [Company]
  *     parameters:
  *       - in: path
@@ -672,7 +672,7 @@ router.post('/company/kyc/verify/:companyId', async (req, res) => {
  *         description: ID of the company
  *     responses:
  *       200:
- *         description: Details, balances, and token data retrieved successfully
+ *         description: Details and project data retrieved successfully
  *         content:
  *           application/json:
  *             schema:
@@ -688,54 +688,28 @@ router.post('/company/kyc/verify/:companyId', async (req, res) => {
  *                   type: string
  *                   format: email
  *                   description: Email of the company
- *                 balances:
- *                   type: object
- *                   description: General balance information
- *                   properties:
- *                     // Define balance properties here
- *                 tokens:
+ *                 projects:
  *                   type: array
- *                   description: Tokens associated with the company
+ *                   description: Projects associated with the company
  *                   items:
  *                     type: object
  *                     properties:
  *                       _id:
  *                         type: string
- *                         description: Unique identifier of the token
- *                       liquidityPoolBalance:
- *                         type: number
- *                         description: Balance of the liquidity pool associated with the token
+ *                         description: Unique identifier of the project
  *                       associatedAssets:
  *                         type: array
- *                         description: Associated assets for the token
+ *                         description: Associated assets for the project
  *                         items:
  *                           type: object
  *                           properties:
  *                             _id:
  *                               type: string
  *                               description: Unique identifier of the asset
- *                       tokenHolders:
- *                         type: array
- *                         description: Holders of the token
- *                         items:
- *                           type: object
- *                           properties:
- *                             address:
- *                               type: string
- *                               description: Address of the token holder
- *                             tokenBalance:
- *                               type: string
- *                               description: Token balance of the holder
- *                             holdingPercentage:
- *                               type: number
- *                               description: Percentage of tokens held by the holder
- *                             data:
- *                               type: object
- *                               description: Additional data about the holder
  *       404:
  *         description: Company not found
  *       500:
- *         description: Error retrieving company details, balances, and token data
+ *         description: Error retrieving company details, balances, and project data
  */
 router.get('/company/:companyId', async (req, res) => {
     try {
@@ -761,17 +735,13 @@ router.get('/company/:companyId', async (req, res) => {
 
             const associatedAssets = await Asset.find({ _id: { $in: token.assetIds } });
 
-            // Fetch the maxTokenSupply for the token - assuming this is available in the token object
-            const maxTokenSupply = token.maxTokenSupply;
-
-
             tokenData.push({
                 ...token.toObject(),
                 associatedAssets,
             });
         }
 
-        // Add the balances and tokens with their liquidity pools to the company object
+        // Add the balances and tokens
         const companyDataWithBalancesAndTokenData = {
             ...company.toObject(), // Convert the mongoose document to a plain object
             balances: generalBalance,
