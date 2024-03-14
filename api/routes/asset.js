@@ -260,30 +260,9 @@ router.post('/asset/register', verifyToken, async (req, res) => {
             brand,
             model,
             serialNumber,
-            capacity,
-            power,
             location,
             assetValue,
-            revenueStreams,
-            financingGoal,
-            fundUsage
         } = req.body;
-
-        // Create DID using peaq SDK
-        let did;
-        try {
-            did = await createPeaqDID(serialNumber, SEED);
-        } catch (error) {
-            console.error(`Error creating peaq DID: ${error}`);
-        }
-
-        // Create a new Ethereum wallet for the asset
-        const wallet = createWallet();
-        const privateKey = wallet.privateKey;
-        const publicKey = wallet.address; // Get the public key (wallet address)
-
-        // Encrypt the private key with the company's secret key
-        const encryptedPrivateKey = encryptPrivateKey(privateKey, SECRET_KEY);
 
         // Create a new asset with the wallet details
         const newAsset = new Asset({
@@ -291,16 +270,8 @@ router.post('/asset/register', verifyToken, async (req, res) => {
             brand: brand,
             model: model,
             serialNumber: serialNumber,
-            capacity: capacity,
-            power: power,
             location: location,
             assetValue: assetValue,
-            revenueStreams: revenueStreams,
-            financingGoal: financingGoal,
-            fundUsage: fundUsage,
-            DID: did,
-            publicKey: publicKey,
-            privateKey: encryptedPrivateKey,
             companyId: companyId
         });
 
@@ -435,7 +406,6 @@ router.put('/asset/:assetId', (req, res) => {
 // Delete asset 
 router.delete('/asset/:assetId', (req, res) => {
 });
-
 
 
 module.exports = router;

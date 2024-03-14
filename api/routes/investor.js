@@ -378,7 +378,6 @@ router.post('/investor/register', async (req, res) => {
 });
 
 
-
 // Email verification endpoint
 /**
  * @swagger
@@ -755,7 +754,7 @@ router.get('/investor/:investorId', async (req, res) => {
  * /api/investor/{investorId}:
  *   patch:
  *     summary: Update investor details
- *     description: Partially update investor details for the authenticated investor or by an admin.
+ *     description: Partially update investor details for the authenticated investor.
  *     tags: [Investor]
  *     parameters:
  *       - in: path
@@ -770,6 +769,14 @@ router.get('/investor/:investorId', async (req, res) => {
  *         application/json:
  *           schema:
  *             type: object
+ *             properties:
+ *               firstname:
+ *                 type: string
+ *                 description: First name of the investor
+ *               bank:
+ *                 type: string
+ *                 description: Bank of the investor
+ *               // Add other properties that can be updated
  *     responses:
  *       200:
  *         description: Investor details updated successfully
@@ -792,11 +799,6 @@ router.patch('/investor/:investorId', async (req, res) => {
     try {
         const updateData = req.body;
         const investorId = req.params.investorId;
-
-        // Optional: Add logic to prevent certain fields from being updated
-        // if (updateData.email) {
-        //     return res.status(400).send("Email cannot be updated.");
-        // }
 
         const updatedInvestor = await Investor.findByIdAndUpdate(investorId, updateData, { new: true });
 
@@ -853,5 +855,6 @@ router.delete('/investor/:investorId', async (req, res) => {
         res.status(500).send('Error deleting investor');
     }
 });
+
 
 module.exports = router;

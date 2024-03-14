@@ -440,8 +440,6 @@ router.post('/token/new', verifyToken, async (req, res) => {
             contractTerm,
             revenueShare,
             assetIds,
-            assetValue,
-            revenueStreams,
             fundingGoal,
             fundingUsage,
             projectDescription
@@ -489,7 +487,6 @@ router.post('/token/new', verifyToken, async (req, res) => {
             currency: paymentCurrency,
             revenueShare: revenueShare,
             contractTerm: contractTerm,
-            assetValue: assetValue,
             revenueStreams: revenueStreams,
             fundingGoal: fundingGoal,
             fundingCurrent: 0,

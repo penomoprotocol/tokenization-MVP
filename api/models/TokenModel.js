@@ -26,11 +26,11 @@ const tokenSchema = new mongoose.Schema({
         type: String,
         required: true
     },
-    maxTokenSupply:{
+    maxTokenSupply: {
         type: Number,
         required: true,
     },
-    tokenPrice:{
+    tokenPrice: {
         type: Number,
         required: true,
     },
@@ -39,11 +39,11 @@ const tokenSchema = new mongoose.Schema({
         required: true,
         enum: ['ETH', 'USDC'] // Accepts only 'ETH' or 'USDC'
     },
-    revenueShare:{
+    revenueShare: {
         type: Number,
         required: true,
     },
-    contractTerm:{
+    contractTerm: {
         type: Number,
         required: true,
     },
@@ -53,7 +53,11 @@ const tokenSchema = new mongoose.Schema({
     revenueStreams: [{
         name: String,
         amount: Number,
-        details: String
+        details: String,
+        assetId: {
+            type: mongoose.Schema.Types.ObjectId,
+            ref: 'Asset'
+        },
     }],
     fundingGoal: {
         type: Number,
@@ -103,6 +107,9 @@ const tokenSchema = new mongoose.Schema({
     },
     statusUpdates: [statusUpdateSchema] 
 });
+
+// Indexes for performance optimization
+tokenSchema.index({ companyId: 1, serviceContractAddress: 1 });
 
 const Token = mongoose.model('Token', tokenSchema);
 
