@@ -24,18 +24,22 @@ const Transactions = () => {
 }, []);
 
   useEffect(() => {
-    const fetchTransactions = async () => {
-      try {
-        const address = investorData.ethereumPublicKey; 
-        const response = await axios.get(`${process.env.REACT_APP_PENOMO_API}/api/transactions/user/${address}`);
-        setTransactions(response.data); 
-      } catch (error) {
-        console.error('Error fetching transactions:', error);
-      } finally {
-        setIsLoading(false); // Set loading to false after fetching data
-      }
-    };
-    fetchTransactions();
+    if(investorData){
+      const fetchTransactions = async () => {
+        try {
+          const address = investorData.ethereumPublicKey; 
+          const response = await axios.get(`${process.env.REACT_APP_PENOMO_API}/api/transactions/user/${address}`);
+          setTransactions(response.data); 
+        } catch (error) {
+          console.error('Error fetching transactions:', error);
+        } finally {
+          setIsLoading(false); // Set loading to false after fetching data
+        }
+      };
+      fetchTransactions();
+
+    }
+    
   });
 
   function roundToDecimals(str, x) {
