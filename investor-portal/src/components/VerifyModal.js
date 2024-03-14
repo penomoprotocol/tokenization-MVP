@@ -51,9 +51,9 @@ const VerifyModal = ({ show, handleClose, investorId, authToken }) => {
 
             setVerificationStatus({
                 message1: (
-                    <span>
+                    <span style={{color:"black"}}>
                         Successfully verified on Global State Contract. See tx{' '}
-                        <a href={`https://sepolia.etherscan.io/tx/${response.data.transactionHash}`} target="_blank" rel="noopener noreferrer">
+                        <a href={`https://agung-testnet.subscan.io/tx/${response.data.transactionHash}`} target="_blank" rel="noopener noreferrer">
                             here
                         </a>.
                     </span>
@@ -85,37 +85,37 @@ const VerifyModal = ({ show, handleClose, investorId, authToken }) => {
                         <>
                             {/* First Name */}
                             <Form.Group className="mb-3">
-                                <Form.Label>First Name</Form.Label>
+                                <Form.Label style={{color:"black"}}>First Name</Form.Label>
                                 <Form.Control type="text" value={firstName} onChange={(e) => setFirstName(e.target.value)} required />
                             </Form.Group>
 
                             {/* Surname */}
                             <Form.Group className="mb-3">
-                                <Form.Label>Surname</Form.Label>
+                                <Form.Label style={{color:"black"}}>Surname</Form.Label>
                                 <Form.Control type="text" value={surname} onChange={(e) => setSurname(e.target.value)} required />
                             </Form.Group>
 
                             {/* Date of Birth */}
                             <Form.Group className="mb-3">
-                                <Form.Label>Date of Birth</Form.Label>
+                                <Form.Label style={{color:"black"}}>Date of Birth</Form.Label>
                                 <Form.Control type="date" value={dob} onChange={(e) => setDob(e.target.value)} required />
                             </Form.Group>
 
                             {/* Passport ID */}
                             <Form.Group className="mb-3">
-                                <Form.Label>Passport ID</Form.Label>
+                                <Form.Label style={{color:"black"}}>Passport ID</Form.Label>
                                 <Form.Control type="text" value={passportId} onChange={(e) => setPassportId(e.target.value)} required />
                             </Form.Group>
 
                             {/* Passport Issue Date */}
                             <Form.Group className="mb-3">
-                                <Form.Label>Issue Date</Form.Label>
+                                <Form.Label style={{color:"black"}}>Issue Date</Form.Label>
                                 <Form.Control type="date" value={issueDate} onChange={(e) => setIssueDate(e.target.value)} required />
                             </Form.Group>
 
                             {/* Passport Expiry Date */}
                             <Form.Group className="mb-3">
-                                <Form.Label>Expiry Date</Form.Label>
+                                <Form.Label style={{color:"black"}}>Expiry Date</Form.Label>
                                 <Form.Control type="date" value={expiryDate} onChange={(e) => setExpiryDate(e.target.value)} required />
                             </Form.Group>
                             <Button variant="penomo-navbar" type="submit" disabled={isSubmitting}>

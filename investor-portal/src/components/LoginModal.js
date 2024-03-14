@@ -34,7 +34,7 @@ const LoginModal = ({ show, handleClose }) => {
       <Modal.Body>
         <form onSubmit={handleLogin}>
           <div className="form-group">
-            <label htmlFor="email" className="form-label">Email:</label>
+            <label htmlFor="email" style={{color:"black"}} className="form-label">Email:</label>
             <input
               type="email"
               id="email"
@@ -45,7 +45,7 @@ const LoginModal = ({ show, handleClose }) => {
             />
           </div>
           <div className="form-group">
-            <label htmlFor="password" className="form-label">Password:</label>
+            <label htmlFor="password" style={{color:"black"}} className="form-label">Password:</label>
             <input
               type="password"
               id="password"

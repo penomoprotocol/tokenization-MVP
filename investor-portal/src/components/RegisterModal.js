@@ -41,7 +41,7 @@ const RegisterModal = ({ show, handleClose }) => {
       <Modal.Body>
         <form onSubmit={handleRegister}>
           <div className="form-group">
-            <label htmlFor="firstname" className="form-label">First Name:</label>
+            <label htmlFor="firstname" style={{color:"black"}} className="form-label">First Name:</label>
             <input
               type="text"
               id="firstname"
@@ -52,7 +52,7 @@ const RegisterModal = ({ show, handleClose }) => {
             />
           </div>
           <div className="form-group">
-            <label htmlFor="surname" className="form-label">Surname:</label>
+            <label htmlFor="surname" style={{color:"black"}} className="form-label">Surname:</label>
             <input
               type="text"
               id="surname"
@@ -63,7 +63,7 @@ const RegisterModal = ({ show, handleClose }) => {
             />
           </div>
           <div className="form-group">
-            <label htmlFor="email" className="form-label">Email:</label>
+            <label htmlFor="email" style={{color:"black"}} className="form-label">Email:</label>
             <input
               type="email"
               id="email"
@@ -74,7 +74,7 @@ const RegisterModal = ({ show, handleClose }) => {
             />
           </div>
           <div className="form-group">
-            <label htmlFor="password" className="form-label">Password:</label>
+            <label htmlFor="password" style={{color:"black"}} className="form-label">Password:</label>
             <input
               type="password"
               id="password"
