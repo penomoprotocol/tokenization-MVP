@@ -299,7 +299,7 @@ const delay = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 // Investor Registration
 /**
  * @swagger
- * /api/investor/register:
+ * /investor/register:
  *   post:
  *     summary: Register a new investor
  *     tags: [Investor]
@@ -317,16 +317,10 @@ const delay = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
  *               surname:
  *                 type: string
  *                 example: 'Doe'
- *               businessName:
- *                 type: string
- *                 example: 'Acme Corporation'
- *               ticker:
- *                 type: string
- *                 example: 'ACME'
  *               email:
  *                 type: string
  *                 format: email
- *                 example: 'contact@acme.com'
+ *                 example: 'john.doe@example.com'
  *               password:
  *                 type: string
  *                 format: password
@@ -357,7 +351,7 @@ const delay = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
  */
 router.post('/investor/register', async (req, res) => {
     try {
-        const { firstname, surname, businessName, ticker, email, password } = req.body;
+        const { firstname, surname, email, password } = req.body;
         const hashedPassword = await bcrypt.hash(password, 10);
 
         const emailVerificationToken = generateVerificationToken();
@@ -365,8 +359,6 @@ router.post('/investor/register', async (req, res) => {
         const investor = new Investor({
             firstname,
             surname,
-            businessName,
-            ticker,
             email,
             password: hashedPassword,
             emailVerificationToken,
@@ -384,6 +376,7 @@ router.post('/investor/register', async (req, res) => {
         res.status(500).send('Error registering investor');
     }
 });
+
 
 
 // Email verification endpoint
@@ -496,9 +489,9 @@ router.post('/investor/login', async (req, res) => {
 // Submit investor KYC data (called by investor representative)
 /**
  * @swagger
- * /api/investor/kyc/submit/{investorId}:
+ * /investor/kyc/submit/{investorId}:
  *   post:
- *     summary: Submit KYC information for a investor
+ *     summary: Submit KYC information for an investor
  *     tags: [Investor]
  *     parameters:
  *       - in: path
@@ -517,32 +510,56 @@ router.post('/investor/login', async (req, res) => {
  *               - firstname
  *               - surname
  *               - dob
- *               - documentnumber
+ *               - passportId
+ *               - passportIssueDate
+ *               - passportExpiryDate
  *               - address
  *               - phone
+ *               - bank
  *             properties:
  *               firstname:
  *                 type: string
- *                 description: First name of the contact person
+ *                 description: First name of the investor
  *               surname:
  *                 type: string
- *                 description: Surname of the contact person
+ *                 description: Surname of the investor
  *               dob:
  *                 type: string
  *                 format: date
- *                 description: Date of birth of the contact person
- *               documentNumber:
+ *                 description: Date of birth of the investor
+ *               passportId:
  *                 type: string
- *                 description: Doc number of the investor
+ *                 description: Passport ID of the investor
+ *               passportIssueDate:
+ *                 type: string
+ *                 format: date
+ *                 description: Issue date of the investor's passport
+ *               passportExpiryDate:
+ *                 type: string
+ *                 format: date
+ *                 description: Expiry date of the investor's passport
  *               address:
  *                 type: string
  *                 description: Address of the investor
  *               phone:
  *                 type: string
  *                 description: Phone number of the investor
+ *               bank:
+ *                 type: string
+ *                 description: bank IBAN of the investor
  *     responses:
  *       200:
  *         description: KYC information submitted successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                   example: 'KYC information submitted successfully'
+ *                 investor:
+ *                   $ref: '#/components/schemas/Investor'
  *       404:
  *         description: Investor not found
  *       500:
@@ -556,7 +573,8 @@ router.post('/investor/kyc/submit/:investorId', async (req, res) => {
             dob,
             documentNumber,
             address,
-            phone
+            phone,
+            bank
         } = req.body;
 
         const investorId = req.params.investorId;
@@ -571,6 +589,10 @@ router.post('/investor/kyc/submit/:investorId', async (req, res) => {
         investor.firstname = firstname;
         investor.surname = surname;
         investor.dob = dob;
+        investor.documentNumber = documentNumber;
+        investor.address = address;
+        investor.phone = phone;
+        investor.bank = bank;
         investor.isVerified = "pending"; // Set the investor KYC status as pending
 
         await investor.save(); // Save the updated investor data
@@ -714,26 +736,9 @@ router.get('/investor/:investorId', async (req, res) => {
         // Fetch investor's general balance information
         // const generalBalance = await fetchBalance(walletAddress);
 
-        // Fetch investor tokens from the database
-        const investorTokens = await Token.find({ investorId: investorId });
-
-        // Fetch balance for each serviceContractAddress and add it to the token object
-        const tokenData = [];
-        for (const token of investorTokens) {
-
-            const associatedAssets = await Asset.find({ _id: { $in: token.assetIds } });
-
-            tokenData.push({
-                ...token.toObject(),
-                associatedAssets,
-            });
-        }
-
         // Add the balances and tokens
         const investorData = {
             ...investor.toObject(), // Convert the mongoose document to a plain object
-            // balances: generalBalance,
-            tokens: tokenData,
         };
 
         res.json(investorData);
@@ -765,18 +770,6 @@ router.get('/investor/:investorId', async (req, res) => {
  *         application/json:
  *           schema:
  *             type: object
- *             properties:
- *               businessName:
- *                 type: string
- *                 description: Name of the investor
- *               ticker:
- *                 type: string
- *                 description: Ticker symbol of the investor
- *               email:
- *                 type: string
- *                 format: email
- *                 description: Email of the investor
- *               // Add other properties that can be updated
  *     responses:
  *       200:
  *         description: Investor details updated successfully
