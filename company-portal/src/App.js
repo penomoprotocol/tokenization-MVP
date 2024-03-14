@@ -41,7 +41,7 @@ function App() {
           <div className="content-wrap">
             <Routes>
               <Route path="/" element={<Home />} />
-              <Route path="/register" element={<RegistrationPage />} />
+              {/* <Route path="/register" element={<RegistrationPage />} /> */}
               <Route
                 path="/dashboard"
                 element={

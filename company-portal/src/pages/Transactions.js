@@ -45,6 +45,7 @@ const Transactions = () => {
                 }, {});
 
                 setTransactions(transactionsData);
+                setIsLoading(false);
                 console.log("transactionsData: ", transactionsData);
             } catch (error) {
                 console.error('Error fetching transactions:', error);

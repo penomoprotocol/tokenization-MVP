@@ -26,6 +26,7 @@ const CompanyDashboard = () => {
                     headers: { Authorization: `Bearer ${userToken}` }
                 });
                 setCompanyData(companyDataRes.data);
+                console.log(companyDataRes.data);
                 setIsLoadingTokenContracts(false);
             } catch (error) {
                 console.error('Error fetching company data:', error);
@@ -38,6 +39,7 @@ const CompanyDashboard = () => {
     useEffect(() => {
         const fetchTransactions = async () => {
             if (companyData?.tokens && companyData.tokens.length > 0) {
+                console.log(companyData.tokens)
                 try {
                     // Map each token to a request to fetch its transactions
                     const transactionsRequests = companyData.tokens.map(token => {
