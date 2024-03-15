@@ -17,7 +17,7 @@ const statusUpdateSchema = new mongoose.Schema({
     }
 });
 
-const tokenSchema = new mongoose.Schema({
+const projectSchema = new mongoose.Schema({
     name: {
         type: String,
         required: true
@@ -109,8 +109,8 @@ const tokenSchema = new mongoose.Schema({
 });
 
 // Indexes for performance optimization
-tokenSchema.index({ companyId: 1, serviceContractAddress: 1 });
+projectSchema.index({ companyId: 1, serviceContractAddress: 1 });
 
-const Token = mongoose.model('Token', tokenSchema);
+const Project = mongoose.model('Project', projectSchema);
 
-module.exports = Token;
+module.exports = Project;

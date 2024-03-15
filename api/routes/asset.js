@@ -59,7 +59,7 @@ mongoose.connect(MONGO_URI, { useNewUrlParser: true, useUnifiedTopology: true })
 // Import Mongoose models:
 const Asset = require('../models/AssetModel');
 const Company = require('../models/CompanyModel');
-const Contract = require('../models/TokenModel');
+const Contract = require('../models/ProjectModel');
 const Investor = require('../models/InvestorModel');
 
 // Set up DID contract
@@ -264,7 +264,7 @@ router.post('/asset/register', verifyToken, async (req, res) => {
             assetValue,
         } = req.body;
 
-        // Create a new asset with the wallet details
+        // Create a new asset
         const newAsset = new Asset({
             assetType: assetType,
             brand: brand,
@@ -278,7 +278,7 @@ router.post('/asset/register', verifyToken, async (req, res) => {
         // Save the asset to the database
         await newAsset.save();
 
-        // Return the DID and public key to the caller
+        // Return 
         res.status(200).json({
             message: 'Successfully registered battery asset.',
             newAsset,

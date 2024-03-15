@@ -83,7 +83,7 @@ mongoose.connect(MONGO_URI, { useNewUrlParser: true, useUnifiedTopology: true })
 // Import Mongoose models:
 const Asset = require('../models/AssetModel');
 const Company = require('../models/CompanyModel');
-const Token = require('../models/TokenModel');
+const Project = require('../models/ProjectModel');
 const Investor = require('../models/InvestorModel');
 
 // Set up DID contract
@@ -182,12 +182,12 @@ async function fetchContractBalance(address) {
         // Check if balance arrays exist
         if (response.data.data.native) {
             const nativeBalances = response.data.data.native;
-            const agungBalanceWei = nativeBalances.find(token => token.symbol === 'AGUNG')?.balance || '0';
+            const agungBalanceWei = nativeBalances.find(project => project.symbol === 'AGUNG')?.balance || '0';
             agungBalance = web3.utils.fromWei(agungBalanceWei, 'ether');
         }
         if (response.data.data.ERC20) {
             const erc20Balances = response.data.data.ERC20;
-            const usdcBalanceWei = erc20Balances.find(token => token.contract === USDCContractAddress)?.balance || '0';
+            const usdcBalanceWei = erc20Balances.find(project => project.contract === USDCContractAddress)?.balance || '0';
             usdcBalance = web3.utils.fromWei(usdcBalanceWei, 'ether');
         }
 
@@ -354,14 +354,14 @@ async function deployRevenueDistributionContract(serviceContractAddress, tokenCo
 
 //// For BETA ////
 
-// Create new token
+// Create new project
 /**
  * @swagger
- * /api/token/new:
+ * /api/project/new:
  *   post:
- *     summary: Create a new token
- *     description: Create a new token for the authenticated company
- *     tags: [Token]
+ *     summary: Create a new project
+ *     description: Create a new project for the authenticated company
+ *     tags: [Project]
  *     security:
  *       - BearerAuth: []
  *     requestBody:
@@ -371,9 +371,9 @@ async function deployRevenueDistributionContract(serviceContractAddress, tokenCo
  *           schema:
  *             type: object
  *             properties:
- *               tokenName:
+ *               projectName:
  *                 type: string
- *                 description: Name of the token
+ *                 description: Name of the project
  *               tokenSupply:
  *                 type: number
  *                 description: Total supply of the token
@@ -385,22 +385,22 @@ async function deployRevenueDistributionContract(serviceContractAddress, tokenCo
  *                 description: Currency for payment
  *               contractTerm:
  *                 type: string
- *                 description: Contract term for the token
+ *                 description: Contract term for the project
  *               revenueShare:
  *                 type: number
  *                 description: Revenue share percentage
  *               assetIds:
  *                 type: array
- *                 description: Array of asset IDs associated with the token
+ *                 description: Array of asset IDs associated with the project
  *               assetValue:
  *                 type: number
  *                 description: Total value of associated assets
  *               revenueStreams:
  *                 type: array
- *                 description: Array of revenue streams for the token
+ *                 description: Array of revenue streams for the project
  *               fundingGoal:
  *                 type: number
- *                 description: Funding goal for the token
+ *                 description: Funding goal for the project
  *               fundingUsage:
  *                 type: string
  *                 description: Usage of the funding
@@ -418,9 +418,9 @@ async function deployRevenueDistributionContract(serviceContractAddress, tokenCo
  *                 message:
  *                   type: string
  *                   description: Confirmation message
- *                 newTokenEntry:
+ *                 newProjectEntry:
  *                   type: object
- *                   description: New token entry
+ *                   description: New project entry
  *       400:
  *         description: Missing required parameters
  *       401:
@@ -428,12 +428,12 @@ async function deployRevenueDistributionContract(serviceContractAddress, tokenCo
  *       500:
  *         description: Failed to create the contract draft
  */
-router.post('/token/new', verifyToken, async (req, res) => {
+router.post('/project/new', verifyToken, async (req, res) => {
     try {
         const companyId = req.user.id; // Retrieved from the JWT token by verifyToken middleware
 
         const {
-            tokenName,
+            projectName,
             tokenSupply,
             tokenPrice,
             paymentCurrency,
@@ -447,7 +447,7 @@ router.post('/token/new', verifyToken, async (req, res) => {
 
 
         // Validate the required parameters
-        if (!tokenSupply || !tokenPrice || !tokenName || !contractTerm || !revenueShare) {
+        if (!tokenSupply || !tokenPrice || !projectName || !contractTerm || !revenueShare) {
             return res.status(400).send('Missing required parameters.');
         }
 
@@ -464,8 +464,8 @@ router.post('/token/new', verifyToken, async (req, res) => {
 
         try {
             // Calculate the index by counting the number of tokens with the same companyId
-            const tokensWithSameCompanyId = await Token.find({ companyId }).exec();
-            const index = tokensWithSameCompanyId.length + 1;
+            const projectsWithSameCompanyId = await Project.find({ companyId }).exec();
+            const index = projectsWithSameCompanyId.length + 1;
 
             // Construct 'tokenSymbol'
             tokenSymbol = `${companyTicker}-${index}`;
@@ -479,8 +479,8 @@ router.post('/token/new', verifyToken, async (req, res) => {
         maxTokenSupply = tokenSupply;
 
         // Generate DB entry for new tokenization contracts
-        const newTokenEntry = new Token({
-            name: tokenName,
+        const newProjectEntry = new Project({
+            name: projectName,
             symbol: tokenSymbol,
             maxTokenSupply: tokenSupply,
             tokenPrice: tokenPrice,
@@ -507,12 +507,12 @@ router.post('/token/new', verifyToken, async (req, res) => {
         });
 
         // Save the new token entry to the database
-        await newTokenEntry.save();
+        await newProjectEntry.save();
 
         // Respond with the deployed contracts' addresses
         res.status(200).json({
             message: "Successfully created contract draft.",
-            newTokenEntry
+            newProjectEntry
         });
 
     } catch (error) {
@@ -522,26 +522,26 @@ router.post('/token/new', verifyToken, async (req, res) => {
 });
 
 
-// Approve token
+// Approve project
 /**
  * @swagger
- * /token/approve/{tokenId}:
+ * /project/approve/{projectId}:
  *   patch:
- *     summary: Approve a token
- *     description: Marks a token as "Approved", indicating the contract is ready for offering to investors. This endpoint updates specific fields of the token's status to "Approved" and sets the message and action needed accordingly.
- *     tags: [Token]
+ *     summary: Approve a project
+ *     description: Marks a project as "Approved", indicating the contract is ready for offering to investors. This endpoint updates specific fields of the project's status to "Approved" and sets the message and action needed accordingly.
+ *     tags: [Project]
  *     security:
  *       - bearerAuth: []  # Assuming bearer token is used for authorization
  *     parameters:
  *       - in: path
- *         name: tokenId
+ *         name: projectId
  *         required: true
  *         schema:
  *           type: string
- *         description: The unique identifier of the token to approve.
+ *         description: The unique identifier of the project to approve.
  *     responses:
  *       200:
- *         description: Token approved successfully.
+ *         description: Project approved successfully.
  *         content:
  *           application/json:
  *             schema:
@@ -550,7 +550,7 @@ router.post('/token/new', verifyToken, async (req, res) => {
  *                 message:
  *                   type: string
  *                   description: Success message.
- *                 updatedToken:
+ *                 updatedProject:
  *                   type: object
  *                   properties:
  *                     statusUpdates:
@@ -569,17 +569,17 @@ router.post('/token/new', verifyToken, async (req, res) => {
  *                             items:
  *                               type: string
  *       404:
- *         description: Token not found.
+ *         description: Project not found.
  *       500:
- *         description: Failed to approve the token.
+ *         description: Failed to approve the project.
  */
-router.patch('/token/approve/:tokenId', verifyToken, async (req, res) => {
-    const { tokenId } = req.params; // Token ID sent in the request URL
+router.patch('/project/approve/:projectId', verifyToken, async (req, res) => {
+    const { projectId } = req.params; // Project ID sent in the request URL
 
     try {
-        // Update the specific fields of the token
-        const updatedToken = await Token.findByIdAndUpdate(
-            tokenId,
+        // Update the specific fields of the project
+        const updatedProject = await Project.findByIdAndUpdate(
+            projectId,
             {
                 $set: {
                     "statusUpdates": [{
@@ -592,43 +592,43 @@ router.patch('/token/approve/:tokenId', verifyToken, async (req, res) => {
             { new: true } // Return the updated document
         );
 
-        if (!updatedToken) {
-            return res.status(404).send('Token not found.');
+        if (!updatedProject) {
+            return res.status(404).send('Project not found.');
         }
 
-        // Respond with the updated token information
+        // Respond with the updated project information
         res.status(200).json({
-            message: "Token approved successfully.",
-            updatedToken
+            message: "Project approved successfully.",
+            updatedProject
         });
 
     } catch (error) {
-        console.error('Error approving the token:', error);
-        res.status(500).send('Failed to approve the token.');
+        console.error('Error approving the project:', error);
+        res.status(500).send('Failed to approve the project.');
     }
 });
 
 
-// Decline token
+// Decline project
 /**
  * @swagger
- * /token/decline/{tokenId}:
+ * /project/decline/{projectId}:
  *   patch:
- *     summary: Decline a token
- *     description: Marks a token as "Declined" and provides reasons or next steps. This endpoint updates specific fields of the token's status to "Declined" and includes a message for the user about what actions are needed next or the reasons for decline.
- *     tags: [Token]
+ *     summary: Decline a project
+ *     description: Marks a project as "Declined" and provides reasons or next steps. This endpoint updates specific fields of the project's status to "Declined" and includes a message for the user about what actions are needed next or the reasons for decline.
+ *     tags: [Project]
  *     security:
- *       - bearerAuth: []  # Assuming bearer token is used for authorization
+ *       - bearerAuth: []  # Assuming bearer project is used for authorization
  *     parameters:
  *       - in: path
- *         name: tokenId
+ *         name: projectId
  *         required: true
  *         schema:
  *           type: string
- *         description: The unique identifier of the token to decline.
+ *         description: The unique identifier of the project to decline.
  *     responses:
  *       200:
- *         description: Token declined successfully.
+ *         description: Project declined successfully.
  *         content:
  *           application/json:
  *             schema:
@@ -637,7 +637,7 @@ router.patch('/token/approve/:tokenId', verifyToken, async (req, res) => {
  *                 message:
  *                   type: string
  *                   description: Success message.
- *                 updatedToken:
+ *                 updatedProject:
  *                   type: object
  *                   properties:
  *                     statusUpdates:
@@ -656,17 +656,17 @@ router.patch('/token/approve/:tokenId', verifyToken, async (req, res) => {
  *                             items:
  *                               type: string
  *       404:
- *         description: Token not found.
+ *         description: Project not found.
  *       500:
- *         description: Failed to decline the token.
+ *         description: Failed to decline the project.
  */
-router.patch('/token/decline/:tokenId', verifyToken, async (req, res) => {
-    const { tokenId } = req.params; // Token ID sent in the request URL
+router.patch('/project/decline/:projectId', verifyToken, async (req, res) => {
+    const { projectId } = req.params; // Project ID sent in the request URL
 
     try {
-        // Update the specific fields of the token to indicate it has been declined
-        const updatedToken = await Token.findByIdAndUpdate(
-            tokenId,
+        // Update the specific fields of the project to indicate it has been declined
+        const updatedProject = await Project.findByIdAndUpdate(
+            projectId,
             {
                 $set: {
                     "statusUpdates": [{
@@ -679,40 +679,40 @@ router.patch('/token/decline/:tokenId', verifyToken, async (req, res) => {
             { new: true } // Return the updated document
         );
 
-        if (!updatedToken) {
-            return res.status(404).send('Token not found.');
+        if (!updatedProject) {
+            return res.status(404).send('Project not found.');
         }
 
-        // Respond with the updated token information
+        // Respond with the updated project information
         res.status(200).json({
-            message: "Token declined successfully.",
-            updatedToken
+            message: "Project declined successfully.",
+            updatedProject
         });
 
     } catch (error) {
-        console.error('Error declining the token:', error);
-        res.status(500).send('Failed to decline the token.');
+        console.error('Error declining the project:', error);
+        res.status(500).send('Failed to decline the project.');
     }
 });
 
 
-// Request documents for token
+// Request documents for project
 /**
  * @swagger
- * /token/requestDocs/{tokenId}:
+ * /project/requestDocs/{projectId}:
  *   patch:
- *     summary: Request documents for a token
- *     description: Updates the token's status to indicate that documents have been requested from the token issuer, including a message and action needed.
- *     tags: [Token]
+ *     summary: Request documents for a project
+ *     description: Updates the project's status to indicate that documents have been requested from the project issuer, including a message and action needed.
+ *     tags: [Project]
  *     security:
- *       - bearerAuth: []  # Assuming bearer token is used for authorization
+ *       - bearerAuth: []  # Assuming bearer project is used for authorization
  *     parameters:
  *       - in: path
- *         name: tokenId
+ *         name: projectId
  *         required: true
  *         schema:
  *           type: string
- *         description: The unique identifier of the token for which documents are being requested.
+ *         description: The unique identifier of the project for which documents are being requested.
  *     responses:
  *       200:
  *         description: Documents requested successfully.
@@ -724,7 +724,7 @@ router.patch('/token/decline/:tokenId', verifyToken, async (req, res) => {
  *                 message:
  *                   type: string
  *                   description: Success message.
- *                 updatedToken:
+ *                 updatedProject:
  *                   type: object
  *                   properties:
  *                     statusUpdates:
@@ -743,22 +743,22 @@ router.patch('/token/decline/:tokenId', verifyToken, async (req, res) => {
  *                             items:
  *                               type: string
  *       404:
- *         description: Token not found.
+ *         description: Project not found.
  *       500:
- *         description: Failed to request documents for the token.
+ *         description: Failed to request documents for the project.
  */
-router.patch('/token/requestDocs/:tokenId', verifyToken, async (req, res) => {
-    const { tokenId } = req.params; // Token ID sent in the request URL
+router.patch('/project/requestDocs/:projectId', verifyToken, async (req, res) => {
+    const { projectId } = req.params; // Project ID sent in the request URL
 
     try {
-        // Update the token to reflect that documents have been requested
-        const updatedToken = await Token.findByIdAndUpdate(
-            tokenId,
+        // Update the project to reflect that documents have been requested
+        const updatedProject = await Project.findByIdAndUpdate(
+            projectId,
             {
                 $set: {
                     "statusUpdates": [{
                         status: 'Documents Requested',
-                        messages: ["Please submit the required documents for your token."],
+                        messages: ["Please submit the required documents for your project."],
                         actionsNeeded: ["Upload documents via the provided link."]
                     }]
                 }
@@ -766,40 +766,40 @@ router.patch('/token/requestDocs/:tokenId', verifyToken, async (req, res) => {
             { new: true } // Return the updated document
         );
 
-        if (!updatedToken) {
-            return res.status(404).send('Token not found.');
+        if (!updatedProject) {
+            return res.status(404).send('Project not found.');
         }
 
-        // Respond with the updated token information
+        // Respond with the updated project information
         res.status(200).json({
             message: "Documents requested successfully.",
-            updatedToken
+            updatedProject
         });
 
     } catch (error) {
-        console.error('Error requesting documents for the token:', error);
-        res.status(500).send('Failed to request documents for the token.');
+        console.error('Error requesting documents for the project:', error);
+        res.status(500).send('Failed to request documents for the project.');
     }
 });
 
 
-// Generic token status update
+// Generic project status update
 /**
  * @swagger
- * /token/status/{tokenId}:
+ * /project/status/{projectId}:
  *   patch:
- *     summary: Update the status of a token
- *     description: Updates a token's status, including messages and actions needed by the token issuer. Allows for a generic update to any token's status details.
- *     tags: [Token]
+ *     summary: Update the status of a project
+ *     description: Updates a project's status, including messages and actions needed by the project issuer. Allows for a generic update to any project's status details.
+ *     tags: [Project]
  *     security:
- *       - bearerAuth: []  # Assuming bearer token is used for authorization
+ *       - bearerAuth: []  # Assuming bearer project is used for authorization
  *     parameters:
  *       - in: path
- *         name: tokenId
+ *         name: projectId
  *         required: true
  *         schema:
  *           type: string
- *         description: The unique identifier of the token to update.
+ *         description: The unique identifier of the project to update.
  *     requestBody:
  *       required: true
  *       content:
@@ -809,7 +809,7 @@ router.patch('/token/requestDocs/:tokenId', verifyToken, async (req, res) => {
  *             properties:
  *               status:
  *                 type: string
- *                 description: The new status for the token.
+ *                 description: The new status for the project.
  *               messages:
  *                 type: array
  *                 items:
@@ -819,10 +819,10 @@ router.patch('/token/requestDocs/:tokenId', verifyToken, async (req, res) => {
  *                 type: array
  *                 items:
  *                   type: string
- *                 description: Optional actions required from the token issuer.
+ *                 description: Optional actions required from the project issuer.
  *     responses:
  *       200:
- *         description: Token status updated successfully.
+ *         description: Project status updated successfully.
  *         content:
  *           application/json:
  *             schema:
@@ -831,7 +831,7 @@ router.patch('/token/requestDocs/:tokenId', verifyToken, async (req, res) => {
  *                 message:
  *                   type: string
  *                   description: Success message.
- *                 updatedToken:
+ *                 updatedProject:
  *                   type: object
  *                   properties:
  *                     statusUpdates:
@@ -850,12 +850,12 @@ router.patch('/token/requestDocs/:tokenId', verifyToken, async (req, res) => {
  *                             items:
  *                               type: string
  *       404:
- *         description: Token not found.
+ *         description: Project not found.
  *       500:
- *         description: Failed to update token status.
+ *         description: Failed to update project status.
  */
-router.patch('/token/status/:tokenId', verifyToken, async (req, res) => {
-    const { tokenId } = req.params; // Token ID sent in the request URL
+router.patch('/project/status/:projectId', verifyToken, async (req, res) => {
+    const { projectId } = req.params; // Project ID sent in the request URL
     const { status, messages, actionsNeeded } = req.body; // Expected fields in the request body
 
     // Validate the required parameters
@@ -864,9 +864,9 @@ router.patch('/token/status/:tokenId', verifyToken, async (req, res) => {
     }
 
     try {
-        // Update the token with the new status, messages, and actionsNeeded
-        const updatedToken = await Token.findByIdAndUpdate(
-            tokenId,
+        // Update the project with the new status, messages, and actionsNeeded
+        const updatedProject = await Project.findByIdAndUpdate(
+            projectId,
             {
                 $set: {
                     "statusUpdates": [{ status, messages, actionsNeeded }]
@@ -875,46 +875,46 @@ router.patch('/token/status/:tokenId', verifyToken, async (req, res) => {
             { new: true } // Return the updated document
         );
 
-        if (!updatedToken) {
-            return res.status(404).send('Token not found.');
+        if (!updatedProject) {
+            return res.status(404).send('Project not found.');
         }
 
-        // Respond with the updated token information
+        // Respond with the updated project information
         res.status(200).json({
-            message: "Token status updated successfully.",
-            updatedToken
+            message: "Project status updated successfully.",
+            updatedProject
         });
 
     } catch (error) {
-        console.error('Error updating token status:', error);
-        res.status(500).send('Failed to update token status.');
+        console.error('Error updating project status:', error);
+        res.status(500).send('Failed to update project status.');
     }
 });
 
 
-// Get all tokens along with associated company and asset objects
+// Get all projects along with associated company and asset objects
 /**
  * @swagger
- * /api/token/all:
+ * /api/project/all:
  *   get:
- *     summary: Retrieve a list of all tokens
+ *     summary: Retrieve a list of all projects
  *     tags:
- *       - Token
- *     description: Retrieve a list of all token objects from the database.
+ *       - Project
+ *     description: Retrieve a list of all project objects from the database.
  *     responses:
  *       200:
- *         description: A list of tokens.
+ *         description: A list of projects.
  *         content:
  *           application/json:
  *             schema:
  *               type: array
  *               items:
- *                 $ref: '#/components/schemas/Token'
+ *                 $ref: '#/components/schemas/Project'
  *       500:
- *         description: An error occurred while retrieving tokens.
+ *         description: An error occurred while retrieving projects.
  * components:
  *   schemas:
- *     Token:
+ *     Project:
  *       type: object
  *       required:
  *         - name
@@ -927,7 +927,7 @@ router.patch('/token/status/:tokenId', verifyToken, async (req, res) => {
  *       properties:
  *         name:
  *           type: string
- *           description: Name of the token.
+ *           description: Name of the project.
  *         symbol:
  *           type: string
  *           description: Symbol of the token.
@@ -949,11 +949,11 @@ router.patch('/token/status/:tokenId', verifyToken, async (req, res) => {
  */
 router.get('/token/all', async (req, res) => {
     try {
-        const tokens = await Token.find({})
+        const tokens = await Project.find({})
             .populate('companyId')
             .populate('assetIds');
 
-        const updatedTokens = await Promise.all(tokens.map(async token => {
+        const updatedProjects = await Promise.all(tokens.map(async token => {
             const fundingCurrent = (await fetchContractBalance(token.liquidityContractAddress)).usdcBalance;
 
             const tokenContract = new web3.eth.Contract(TCABI, token.tokenContractAddress);
@@ -967,7 +967,7 @@ router.get('/token/all', async (req, res) => {
             };
         }));
 
-        res.status(200).json(updatedTokens);
+        res.status(200).json(updatedProjects);
     } catch (error) {
         console.error('Error retrieving tokens:', error);
         res.status(500).send('Error retrieving tokens.');
@@ -982,7 +982,7 @@ router.get('/token/all', async (req, res) => {
  *   delete:
  *     summary: Deletes a specific token by its ID
  *     tags:
- *       - Token
+ *       - Project
  *     parameters:
  *       - in: path
  *         name: tokenId
@@ -992,7 +992,7 @@ router.get('/token/all', async (req, res) => {
  *         description: The ID of the token to delete
  *     responses:
  *       200:
- *         description: Token successfully deleted
+ *         description: Project successfully deleted
  *         content:
  *           application/json:
  *             schema:
@@ -1000,15 +1000,15 @@ router.get('/token/all', async (req, res) => {
  *               properties:
  *                 message:
  *                   type: string
- *                 deletedToken:
- *                   $ref: '#/components/schemas/Token'
+ *                 deletedProject:
+ *                   $ref: '#/components/schemas/Project'
  *       404:
- *         description: Token not found
+ *         description: Project not found
  *       500:
  *         description: Failed to delete the token
  * components:
  *   schemas:
- *     Token:
+ *     Project:
  *       type: object
  *       properties:
  *         name:
@@ -1031,13 +1031,13 @@ router.delete('/token/:tokenId', async (req, res) => {
     const { tokenId } = req.params;
 
     try {
-        const deletedToken = await Token.findByIdAndDelete(tokenId);
+        const deletedProject = await Project.findByIdAndDelete(tokenId);
 
-        if (!deletedToken) {
-            return res.status(404).send('Token not found.');
+        if (!deletedProject) {
+            return res.status(404).send('Project not found.');
         }
 
-        res.status(200).json({ message: 'Token successfully deleted.', deletedToken });
+        res.status(200).json({ message: 'Project successfully deleted.', deletedProject });
     } catch (error) {
         console.error('Error deleting token:', error);
         res.status(500).send('Failed to delete the token.');

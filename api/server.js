@@ -23,8 +23,8 @@ const options = {
                 description: 'Endpoints related to asset registration and data storage'
             },
             {
-                name: 'Token',
-                description: 'Endpoints related to tokenization contracts'
+                name: 'Project',
+                description: 'Endpoints related to tokenization projects'
             },
             {
                 name: 'Revenue',
@@ -92,7 +92,7 @@ app.use(passport.initialize());
 const investorRoutes = require('./routes/investor');
 const companyRoutes = require('./routes/company');
 const assetRoutes = require('./routes/asset');
-const tokenRoutes = require('./routes/token');
+const projectRoutes = require('./routes/project');
 const transactionRoutes = require('./routes/transaction');
 // const revenueRoutes = require('./routes/revenue');
 
@@ -100,7 +100,7 @@ const transactionRoutes = require('./routes/transaction');
 app.use('/api', investorRoutes);
 app.use('/api', companyRoutes);
 app.use('/api', assetRoutes);
-app.use('/api', tokenRoutes);
+app.use('/api', projectRoutes);
 app.use('/api', transactionRoutes);
 // app.use('/api', revenueRoutes);
 
@@ -122,5 +122,5 @@ app.listen(PORT, (err) => {
 });
 
 // Export modules
-module.exports = { app, investorRoutes, companyRoutes, assetRoutes, tokenRoutes, transactionRoutes };
+module.exports = { app, investorRoutes, companyRoutes, assetRoutes, projectRoutes, transactionRoutes };
 

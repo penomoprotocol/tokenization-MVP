@@ -22,10 +22,6 @@ const investorSchema = new mongoose.Schema({
         type: String,
         required: true
     },
-    ethereumPrivateKey: {
-        type: String,
-        sparse: true // Allow multiple null values
-    },
     ethereumPublicKey: {
         type: String,
         sparse: true // Allow multiple null values

@@ -72,7 +72,7 @@ mongoose.connect(MONGO_URI, { useNewUrlParser: true, useUnifiedTopology: true })
 // Import Mongoose models:
 const Asset = require('../models/AssetModel');
 const Company = require('../models/CompanyModel');
-const Token = require('../models/TokenModel');
+const Token = require('../models/ProjectModel');
 const Investor = require('../models/InvestorModel');
 
 
@@ -480,6 +480,7 @@ router.post('/company/login', async (req, res) => {
             return res.status(401).send('Company not found');
         }
         const isPasswordValid = await bcrypt.compare(req.body.password, company.password);
+        // TODO: Add condition: isEmailVerified? -> If true -> can login
         if (isPasswordValid) {
             console.log('Login successful:', company.email); // Add this line for debugging
             const token = jwt.sign({ id: company._id }, SECRET_KEY);
@@ -582,7 +583,7 @@ router.post('/company/kyc/submit/:companyId', async (req, res) => {
         company.registrationNumber = registrationNumber;
         company.businessAddress = businessAddress;
         company.businessPhone = businessPhone;
-        company.isVerified = "pending"; // Set the company KYC status as pending
+        company.isKycVerified = "pending"; // Set the company KYC status as pending
 
         await company.save(); // Save the updated company data
 

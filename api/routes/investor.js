@@ -72,7 +72,7 @@ mongoose.connect(MONGO_URI, { useNewUrlParser: true, useUnifiedTopology: true })
 // Import Mongoose models:
 const Asset = require('../models/AssetModel');
 const Investor = require('../models/InvestorModel');
-const Token = require('../models/TokenModel');
+const Token = require('../models/ProjectModel');
 
 // Nodemailer configuration
 const transporter = nodemailer.createTransport({
