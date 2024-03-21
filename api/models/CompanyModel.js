@@ -39,9 +39,6 @@ const companySchema = new mongoose.Schema({
         type: String,
         required: true
     },
-    ethereumPrivateKey: {
-        type: String,
-    },
     ethereumPublicKey: {
         type: String,
     },
