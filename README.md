@@ -5,10 +5,10 @@ The platform aims to provide a secure and user-friendly platform for the tokeniz
 
 ## Features
 
-- **User Registration**: Users can register and create an account on the platform.
-- **KYC/AML Verification**: KYC/AML verification process for user accounts.
+- **User Registration**: Renewable energy asset owners and investors can register and create an account on two dedicated portals.
+- **KYC/AML Verification**: KYC/AML verification process for the user accounts.
 - **Asset and Project Management**: Features for managing renewable energy assets and projects.
-- **Marketplace Functionality**: Ability to list tokenized assets on a marketplace.
+- **Marketplace Functionality**: Ability to list and purchase tokenized assets on a marketplace.
 
 ## Technology Stack
 
