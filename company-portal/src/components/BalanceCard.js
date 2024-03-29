@@ -36,7 +36,7 @@ const AssetCard = ({ companyData }) => {
 
     return (
         <div style={{ marginRight: "1rem", paddingBottom: '4rem', display: 'flex', flex: '1' }} className="section-container">
-            <h3>Total Balance</h3>
+            <h3>Total Financing Received</h3>
             <div style={{ marginTop: '2rem' }} className="label-value-horizontal">
                 <div className="balance-title" style={{ fontSize: "2rem" }}>$</div>
                 <span className="balance-amount" style={{ fontSize: "2rem" }}>{totalBalance}</span>

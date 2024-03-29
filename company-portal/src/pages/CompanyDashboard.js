@@ -163,7 +163,7 @@ const CompanyDashboard = () => {
 
 
             <div className="section-container">
-                <h2 className="section-header">Your Financing Pools</h2>
+                <h2 className="section-header">Your Projects</h2>
 
                 {isLoadingCompanyData ? (
                     <p>Loading...</p>
@@ -178,19 +178,19 @@ const CompanyDashboard = () => {
                                 </a>
                             </div>
                             <div style={{ flex: '1 1 33.3%' }} className="label-value">
-                                <strong className="label">Available Funds</strong>
+                                <strong className="label">Financing Received</strong>
                                 <span className="value">${roundToDecimals(token.liquidityPoolBalance.usdcBalance, 2)}</span>
                             </div>
                             <div style={{ flex: '1 1 23.30%' }} className="btn-container">
                             </div>
-                            <div style={{ flex: '1 1 10%' }} className="btn-container">
+                            {/* <div style={{ flex: '1 1 10%' }} className="btn-container">
                                 <button className="btn-penomo" onClick={() => toggleWithdraw('USDC', token.liquidityContractAddress)}>Withdraw</button>
-                            </div>
+                            </div> */}
                         </div>
 
                     ))
                 ) : (
-                    <p>No Tokenized Assets.</p>
+                    <p>No Tokenized Projects.</p>
                 )}
             </div>
 
